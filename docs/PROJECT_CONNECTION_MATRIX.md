@@ -1,6 +1,6 @@
 # Certa Project Connection Matrix
 
-Last updated: 2026-05-22
+Last updated: 2026-05-22 19:41
 
 This file is the working standard for making sure every active Certa/CertaSurv project has both outside connections and in-house production connections.
 
@@ -34,7 +34,7 @@ This file is the working standard for making sure every active Certa/CertaSurv p
 
 | Gap | Impact | Fix Path |
 | --- | --- | --- |
-| Shared drive mount missing at `G:\Shared drives\CERTASURV_PROJECT DRIVE` | Outside system-of-record handoffs cannot be verified locally | Run `C:\Users\SimpS\OneDrive\Documents\CERTARD\scripts\Ensure-CertaSurvDriveMount.ps1`, sign into Google Drive for Desktop, then run the provisioning check again |
+| Shared drive mounted and staged | Outside system-of-record folders are now available locally | Latest stage log: `G:\Shared drives\CERTASURV_PROJECT DRIVE\00_CERTASURV_COMMAND_CENTER\08_REPORTS_EXPORTS\drive-stage-log-20260522-194113.txt` |
 | Active repos have no Git remotes | Outside source-control handoff cannot push or open PRs yet | Add remotes per repo after deciding target GitHub repositories |
 | GitHub CLI installed but repos are not authenticated/remote-wired | GitHub auth/status/push automation is available after `gh auth login`, but no project remote targets are assigned yet | Sign into `gh`, then add remotes once target repositories are chosen |
 | `npm` missing from PATH | Node web tooling may be limited outside bundled Codex Node | Install Node.js LTS when the machine is not under production load; the installer stalled during this pass |
