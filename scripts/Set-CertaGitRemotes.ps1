@@ -33,7 +33,11 @@ $rows = foreach ($repo in $repos) {
         "https://github.com/$Owner/$($repo.Slug).git"
     }
 
-    $current = git -C $repo.Path remote get-url origin 2>$null
+    $current = ''
+    $remotes = git -C $repo.Path remote
+    if ($remotes -contains 'origin') {
+        $current = git -C $repo.Path remote get-url origin
+    }
     if ($Apply) {
         if ($current) {
             git -C $repo.Path remote set-url origin $remoteUrl
