@@ -22,7 +22,7 @@ Last updated: 2026-05-22
 
 ## Adaptive Rule
 
-`CERTA Laptop Load Manager` now runs in `Auto` mode every minute. If TBC/Trimble is active, local priority shifts to TBC and nonessential browser/Codex/helper work is parked. If TBC is not active, local dev helpers are allowed back to normal priority. `CERTA Cloud Offload Runner` checks every 10 minutes and pushes already-committed branches once Git remotes and Git Credential Manager access are available.
+`CERTA Laptop Load Manager` now runs in `Auto` mode every minute. If TBC/Trimble is active, local priority shifts to TBC and nonessential browser/Codex/helper work is parked. If TBC is not active, local dev helpers are allowed back to normal priority so Codex/local tooling can take more work. `CERTA Cloud Offload Runner` checks every 5 minutes and pushes already-committed branches once Git remotes and Git Credential Manager access are available.
 
 ## Codex Cloud Utilization
 
