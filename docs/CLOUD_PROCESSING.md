@@ -20,6 +20,10 @@ Last updated: 2026-05-22
 | Google Drive Desktop mounting | Requires signed-in desktop client and local drive letter |
 | Laptop load/process management | Controls this physical machine |
 
+## Adaptive Rule
+
+`CERTA Laptop Load Manager` now runs in `Auto` mode every minute. If TBC/Trimble is active, local priority shifts to TBC and nonessential browser/Codex/helper work is parked. If TBC is not active, local dev helpers are allowed back to normal priority. `CERTA Cloud Offload Runner` checks every 10 minutes and pushes already-committed branches once GitHub auth/remotes are available.
+
 ## Activation Gate
 
 The workflows are prepared locally. They start running after:
