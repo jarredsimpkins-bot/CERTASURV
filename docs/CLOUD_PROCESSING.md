@@ -24,6 +24,22 @@ Last updated: 2026-05-22
 
 `CERTA Laptop Load Manager` now runs in `Auto` mode every minute. If TBC/Trimble is active, local priority shifts to TBC and nonessential browser/Codex/helper work is parked. If TBC is not active, local dev helpers are allowed back to normal priority. `CERTA Cloud Offload Runner` checks every 10 minutes and pushes already-committed branches once Git remotes and Git Credential Manager access are available.
 
+## Codex Cloud Utilization
+
+The subscription is now used in parallel launch lanes:
+
+| Lane | Cadence | Cloud Work |
+| --- | --- | --- |
+| Certa launch supervisor | Hourly | Cross-repo launch readiness review |
+| Certa launch implementer | Hourly | Safe repo-local launch fixes across the stack |
+| MACROTBC implementation worker | Hourly | TBC integration hardening that does not require live TBC |
+| Drive automation implementation worker | Hourly | Apps Script, registry, and Drive automation hardening |
+| Web app implementation worker | Hourly | App/dashboard tests, package, and CI readiness |
+| Certa release ops worker | Hourly | Release docs, runbooks, workflow/handoff readiness |
+| Certa launch cloud health | Every 30 minutes | Thread health report for cloud/local routing |
+
+Cloud workers may commit and push scoped repo-local fixes. They must not touch live Trimble runtime folders, destructively modify shared-drive data, or sweep unrelated dirty local changes into commits.
+
 ## Activation Gate
 
 The workflows are prepared locally and pushed to GitHub. They run on each pushed repo/branch:
