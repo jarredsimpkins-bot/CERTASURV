@@ -1,0 +1,46 @@
+name: CertaHealth Control Checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  powershell-and-docs:
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate PowerShell syntax
+        shell: pwsh
+        run: |
+          $failures = @()
+          Get-ChildItem -Recurse -Filter *.ps1 | ForEach-Object {
+            $tokens = $null
+            $parseErrors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$tokens, [ref]$parseErrors) | Out-Null
+            if ($parseErrors) {
+              $failures += "$($_.FullName): $($parseErrors -join '; ')"
+            }
+          }
+          if ($failures.Count) {
+            $failures | ForEach-Object { Write-Error $_ }
+            exit 1
+          }
+
+      - name: Verify required control files
+        shell: pwsh
+        run: |
+          $required = @(
+            'docs/PROJECT_CONNECTION_MATRIX.md',
+            'docs/GIT_SITUATION.md',
+            'scripts/Test-CertaProjectProvisioning.ps1',
+            'scripts/Set-CertaGitRemotes.ps1',
+            'scripts/Manage-CertaLaptopLoad.ps1'
+          )
+          foreach ($path in $required) {
+            if (-not (Test-Path $path)) {
+              throw "Missing required file: $path"
+            }
+          }
