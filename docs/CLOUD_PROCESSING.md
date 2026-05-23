@@ -22,13 +22,13 @@ Last updated: 2026-05-22
 
 ## Adaptive Rule
 
-`CERTA Laptop Load Manager` now runs in `Auto` mode every minute. If TBC/Trimble is active, local priority shifts to TBC and nonessential browser/Codex/helper work is parked. If TBC is not active, local dev helpers are allowed back to normal priority. `CERTA Cloud Offload Runner` checks every 10 minutes and pushes already-committed branches once GitHub auth/remotes are available.
+`CERTA Laptop Load Manager` now runs in `Auto` mode every minute. If TBC/Trimble is active, local priority shifts to TBC and nonessential browser/Codex/helper work is parked. If TBC is not active, local dev helpers are allowed back to normal priority. `CERTA Cloud Offload Runner` checks every 10 minutes and pushes already-committed branches once Git remotes and Git Credential Manager access are available.
 
 ## Activation Gate
 
 The workflows are prepared locally. They start running after:
 
-1. GitHub CLI is logged in with `gh auth login`.
-2. GitHub repositories are created or assigned.
-3. Local remotes are added with `scripts/Set-CertaGitRemotes.ps1 -Apply`.
+1. GitHub repositories are created or assigned.
+2. Local remotes are added with `scripts/Set-CertaGitRemotes.ps1 -Apply`.
+3. Git Credential Manager has browser-approved access for `jarredsimpkins-bot`.
 4. Branches are pushed.

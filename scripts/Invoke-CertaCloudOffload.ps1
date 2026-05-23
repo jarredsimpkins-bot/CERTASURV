@@ -4,7 +4,6 @@ param(
 
 $ErrorActionPreference = 'Continue'
 
-$gh = 'C:\Program Files\GitHub CLI\gh.exe'
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
 $repos = @(
     @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH' },
@@ -14,16 +13,6 @@ $repos = @(
     @{ Name = 'New project2'; Path = Join-Path $documents 'New project2' }
 )
 
-function Get-GhReady {
-    if (-not (Test-Path -LiteralPath $gh -PathType Leaf)) {
-        return $false
-    }
-
-    & $gh auth status *> $null
-    return ($LASTEXITCODE -eq 0)
-}
-
-$ghReady = Get-GhReady
 $rows = foreach ($repo in $repos) {
     $gitDir = Join-Path $repo.Path '.git'
     if (-not (Test-Path -LiteralPath $gitDir)) {
@@ -40,11 +29,6 @@ $rows = foreach ($repo in $repos) {
         continue
     }
 
-    if (-not $ghReady) {
-        [pscustomobject]@{ Repo = $repo.Name; Status = 'waiting-gh-auth'; Branch = $branch; Remote = $remote; Detail = 'gh auth status is not logged in' }
-        continue
-    }
-
     git -C $repo.Path push -u origin $branch
     $pushOk = ($LASTEXITCODE -eq 0)
     [pscustomobject]@{
@@ -58,7 +42,7 @@ $rows = foreach ($repo in $repos) {
 
 if (-not $Quiet) {
     [pscustomobject]@{
-        GitHubCliReady = $ghReady
+        GitPushMode = 'credential-manager'
         Timestamp = Get-Date
     } | Format-List
 
