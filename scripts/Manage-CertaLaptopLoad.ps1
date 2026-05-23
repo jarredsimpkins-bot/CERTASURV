@@ -1,6 +1,6 @@
 param(
-    [ValidateSet('Production', 'Throttle', 'Critical')]
-    [string]$Mode = 'Production',
+    [ValidateSet('Auto', 'Production', 'Throttle', 'Critical')]
+    [string]$Mode = 'Auto',
     [switch]$Aggressive,
     [switch]$Quiet
 )
@@ -47,6 +47,23 @@ function Set-SafePriority {
 
 $changes = @()
 
+$tbcActive = $false
+try {
+    $tbcActive = [bool](Get-Process -ErrorAction SilentlyContinue |
+        Where-Object { $_.ProcessName -match $protectedProcesses -or $_.MainWindowTitle -match $protectedTitle } |
+        Select-Object -First 1)
+}
+catch {
+    $tbcActive = $false
+}
+
+$effectiveMode = if ($Mode -eq 'Auto') {
+    if ($tbcActive) { 'TbcProtected' } else { 'Production' }
+}
+else {
+    $Mode
+}
+
 function Enable-ProductionPower {
     $schemeToUse = $highPerformanceScheme
     $schemes = powercfg /list
@@ -92,8 +109,9 @@ function Enable-ThrottlePower {
     powercfg /setactive $balancedScheme | Out-Null
 }
 
-switch ($Mode) {
+switch ($effectiveMode) {
     'Production' { Enable-ProductionPower }
+    'TbcProtected' { Enable-ProductionPower }
     'Throttle' { Enable-ThrottlePower -AcMax 85 -DcMax 70 }
     'Critical' { Enable-ThrottlePower -AcMax 75 -DcMax 60 }
 }
@@ -165,8 +183,18 @@ foreach ($name in $backgroundNames) {
         ForEach-Object {
             if ($seenBackground.ContainsKey($_.Id)) { return }
             $seenBackground[$_.Id] = $true
-            $target = if ($_.ProcessName -eq 'mscopilot') { 'Idle' } else { 'BelowNormal' }
+            $target = if ($effectiveMode -eq 'TbcProtected' -or $_.ProcessName -eq 'mscopilot') { 'Idle' } else { 'BelowNormal' }
             $changes += Set-SafePriority -Process $_ -Priority $target -Rule 'quiet-background'
+        }
+}
+
+if ($effectiveMode -eq 'Production') {
+    # When TBC is not active, let local development helpers run with more room.
+    Get-Process -Name codex,Codex,node,node_repl,python,powershell -ErrorAction SilentlyContinue |
+        Where-Object { $_.MainWindowTitle -notmatch $protectedTitle } |
+        ForEach-Object {
+            $target = if ($_.ProcessName -match 'node_repl') { 'BelowNormal' } else { 'Normal' }
+            $changes += Set-SafePriority -Process $_ -Priority $target -Rule 'local-production-boost'
         }
 }
 
@@ -196,6 +224,8 @@ if (-not $Quiet) {
     [pscustomobject]@{
         PowerPlan = (powercfg /getactivescheme)
         Mode = $Mode
+        EffectiveMode = $effectiveMode
+        TbcActive = $tbcActive
         CpuPercent = [math]::Round($cpu.CounterSamples[0].CookedValue, 1)
         AvailableMB = [math]::Round($mem.CounterSamples[0].CookedValue, 0)
         Changes = $changes.Count
