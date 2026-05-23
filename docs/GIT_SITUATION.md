@@ -13,15 +13,15 @@ Last updated: 2026-05-22
 
 | Repo | Path | Remote Status |
 | --- | --- | --- |
-| CERTAHEALTH | `C:\Users\SimpS\OneDrive\Documents\CERTAHEALTH` | Needs GitHub repo/remote |
-| CERTARD | `C:\Users\SimpS\OneDrive\Documents\CERTARD` | Needs GitHub repo/remote |
-| MACROTBC | `C:\Users\SimpS\OneDrive\Documents\MACROTBC` | Needs GitHub repo/remote |
-| AUTOMATIONS | `C:\Users\SimpS\OneDrive\Documents\AUTOMATIONS` | Needs GitHub repo/remote |
-| New project2 | `C:\Users\SimpS\OneDrive\Documents\New project2` | Needs GitHub repo/remote |
+| CERTAHEALTH | `C:\Users\SimpS\OneDrive\Documents\CERTAHEALTH` | `origin` -> `https://github.com/jarredsimpkins-bot/CERTASURV.git` |
+| CERTARD | `C:\Users\SimpS\OneDrive\Documents\CERTARD` | `origin` -> `https://github.com/jarredsimpkins-bot/certard.git` |
+| MACROTBC | `C:\Users\SimpS\OneDrive\Documents\MACROTBC` | `origin` -> `https://github.com/jarredsimpkins-bot/macrotbc.git` |
+| AUTOMATIONS | `C:\Users\SimpS\OneDrive\Documents\AUTOMATIONS` | `origin` -> `https://github.com/jarredsimpkins-bot/certasurv-automations.git` |
+| New project2 | `C:\Users\SimpS\OneDrive\Documents\New project2` | `origin` -> `https://github.com/jarredsimpkins-bot/certasurv-web-app.git` |
 
 ## Planned Remote Names
 
-| Local Repo | Planned GitHub Remote |
+| Local Repo | GitHub Remote |
 | --- | --- |
 | CERTAHEALTH | `https://github.com/jarredsimpkins-bot/certahealth.git` |
 | CERTARD | `https://github.com/jarredsimpkins-bot/certard.git` |
@@ -29,4 +29,4 @@ Last updated: 2026-05-22
 | AUTOMATIONS | `https://github.com/jarredsimpkins-bot/certasurv-automations.git` |
 | New project2 | `https://github.com/jarredsimpkins-bot/certasurv-web-app.git` |
 
-Run `scripts\Set-CertaGitRemotes.ps1 -Apply` after those repositories exist or after `gh auth login` is completed and the repos are created.
+All planned repositories now exist. `CERTASURV` is public; the remaining launch support repositories are private.

@@ -26,9 +26,12 @@ Last updated: 2026-05-22
 
 ## Activation Gate
 
-The workflows are prepared locally. They start running after:
+The workflows are prepared locally and pushed to GitHub. They run on each pushed repo/branch:
 
-1. GitHub repositories are created or assigned.
-2. Local remotes are added with `scripts/Set-CertaGitRemotes.ps1 -Apply`.
-3. Git Credential Manager has browser-approved access for `jarredsimpkins-bot`.
-4. Branches are pushed.
+1. `CERTASURV` / `CERTAHEALTH`: public control repo, `main`.
+2. `certard`: private coordination repo, `main`.
+3. `macrotbc`: private TBC production integration repo, `codex/certasurv-command-center`.
+4. `certasurv-automations`: private Drive/AppScript automation repo, `codex/onboard-everything`.
+5. `certasurv-web-app`: private app/dashboard repo, `codex/land-opportunity-radar-mvp`.
+
+The cloud offload runner pushes committed branches every 10 minutes. It intentionally does not auto-stage or auto-commit live work.
