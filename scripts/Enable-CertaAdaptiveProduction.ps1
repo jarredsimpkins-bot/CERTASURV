@@ -1,6 +1,26 @@
 $ErrorActionPreference = 'Stop'
 
-$root = 'C:\Users\SimpS\OneDrive\Documents\CERTAHEALTH'
+function Resolve-CertaControlRoot {
+    $scriptRepoRoot = Split-Path -Path $PSScriptRoot -Parent
+    if ($scriptRepoRoot -and (Test-Path -LiteralPath (Join-Path $scriptRepoRoot 'scripts\Manage-CertaLaptopLoad.ps1'))) {
+        return $scriptRepoRoot
+    }
+
+    $fallbackRoots = @(
+        'C:\Users\SimpS\OneDrive\Documents\CERTAHEALTH',
+        'C:\Users\SimpS\OneDrive\Documents\CERTASURV'
+    )
+
+    foreach ($candidate in $fallbackRoots) {
+        if (Test-Path -LiteralPath (Join-Path $candidate 'scripts\Manage-CertaLaptopLoad.ps1')) {
+            return $candidate
+        }
+    }
+
+    throw 'Unable to resolve the CERTA control repo root.'
+}
+
+$root = Resolve-CertaControlRoot
 $loadScript = Join-Path $root 'scripts\Manage-CertaLaptopLoad.ps1'
 $cloudScript = Join-Path $root 'scripts\Invoke-CertaCloudOffload.ps1'
 
