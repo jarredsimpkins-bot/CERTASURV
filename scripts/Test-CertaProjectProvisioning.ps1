@@ -5,12 +5,27 @@ param(
 $ErrorActionPreference = 'Continue'
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
+function Resolve-RepoPath {
+    param(
+        [string[]]$Candidates
+    )
+
+    foreach ($candidate in $Candidates) {
+        $path = Join-Path $documents $candidate
+        if (Test-Path -LiteralPath $path) {
+            return $path
+        }
+    }
+
+    return (Join-Path $documents $Candidates[0])
+}
+
 $projects = @(
     @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH'; Type = 'control' },
     @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD'; Type = 'coordination' },
     @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC'; Type = 'tbc-integration' },
     @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS'; Type = 'automation' },
-    @{ Name = 'New project2'; Path = Join-Path $documents 'New project2'; Type = 'local-app' },
+    @{ Name = 'CERTASURV_WEB_APP'; Path = Resolve-RepoPath @('CERTASURV_WEB_APP', 'New project2'); Type = 'local-app' },
     @{ Name = 'TBC Live Macros'; Path = Join-Path $documents 'Trimble Business Center\MacroCommands3\CertaSurv'; Type = 'tbc-live' },
     @{ Name = 'Feature Definition Manager'; Path = Join-Path $documents 'Feature Definition Manager'; Type = 'cad-standards' },
     @{ Name = 'TBC Templates Matrix'; Path = 'C:\ProgramData\Trimble\CONVERSE_FULL_DRAFTING_MATRIX_FROM_PAPERSPACE'; Type = 'tbc-templates' }

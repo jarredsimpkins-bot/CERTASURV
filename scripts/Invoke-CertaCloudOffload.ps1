@@ -5,12 +5,27 @@ param(
 $ErrorActionPreference = 'Continue'
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
+function Resolve-RepoPath {
+    param(
+        [string[]]$Candidates
+    )
+
+    foreach ($candidate in $Candidates) {
+        $path = Join-Path $documents $candidate
+        if (Test-Path -LiteralPath $path) {
+            return $path
+        }
+    }
+
+    return (Join-Path $documents $Candidates[0])
+}
+
 $repos = @(
     @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH' },
     @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD' },
     @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC' },
     @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS' },
-    @{ Name = 'New project2'; Path = Join-Path $documents 'New project2' }
+    @{ Name = 'CERTASURV_WEB_APP'; Path = Resolve-RepoPath @('CERTASURV_WEB_APP', 'New project2') }
 )
 
 $rows = foreach ($repo in $repos) {
