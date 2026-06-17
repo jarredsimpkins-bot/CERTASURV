@@ -1,6 +1,6 @@
 # Certa Project Connection Matrix
 
-Last updated: 2026-05-22 19:41
+Last updated: 2026-06-17 09:35
 
 This file is the working standard for making sure every active Certa/CertaSurv project has both outside connections and in-house production connections.
 
@@ -14,7 +14,8 @@ This file is the working standard for making sure every active Certa/CertaSurv p
 | Outside automation | Google Apps Script Drive bootstrap and scraper | `AUTOMATIONS\share-drive-automation` package |
 | In-house TBC production | Live TBC macros and worker services | `Trimble Business Center\MacroCommands3\CertaSurv` and Trimble services |
 | In-house CAD standards | Templates, feature definitions, blocks, layers, symbols | ProgramData Trimble matrix and Feature Definition Manager |
-| In-house local apps | Local web/dashboard/parcel/estimate tools | `New project2` plus local Python runtime |
+| In-house local apps | Local web/dashboard/parcel/estimate tools | `CERTASURV_WEB_APP` plus local Python runtime |
+| In-house research apps | Courthouse research prompts, outputs, and worker tooling | `WV_COURTHOUSE_RESEARCHER` plus local Python runtime |
 | In-house coordination | Watchlists, nudges, drive staging helpers | `CERTARD` and `CERTAHEALTH` scripts |
 
 ## Project Matrix
@@ -25,7 +26,8 @@ This file is the working standard for making sure every active Certa/CertaSurv p
 | CERTARD | `C:\Users\SimpS\OneDrive\Documents\CERTARD` | Shared-drive mount helpers; needs Git remote | Project watchlist, staging scripts | Active coordination repo |
 | MACROTBC | `C:\Users\SimpS\OneDrive\Documents\MACROTBC` | AppSheet, Google Drive, command-center manifest; needs Git remote | TBC macros, CAD resources, installers, sync scripts | Active production integration repo |
 | AUTOMATIONS | `C:\Users\SimpS\OneDrive\Documents\AUTOMATIONS` | Google Apps Script, Drive API, test shared drive automation; needs Git remote | Reproducible automation package | Active automation repo |
-| New project2 | `C:\Users\SimpS\OneDrive\Documents\New project2` | Shared-drive project data and estimate folders; needs Git remote | Local Python app/dashboard tools | Active local app project |
+| CERTASURV_WEB_APP | `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` | Shared-drive project data and estimate folders; needs Git remote | Local Python app/dashboard tools | Active local app project |
+| WV_COURTHOUSE_RESEARCHER | `C:\Users\SimpS\OneDrive\Documents\WV_COURTHOUSE_RESEARCHER` | County/courthouse research source handoff once remote is assigned | Local research worker tools | Renamed repo path should be used consistently before more automation is added |
 | Trimble Business Center macros | `C:\Users\SimpS\OneDrive\Documents\Trimble Business Center\MacroCommands3\CertaSurv` | Mirrors to shared drive through MACROTBC | Live TBC macro command folder | Present locally |
 | Feature Definition Manager | `C:\Users\SimpS\OneDrive\Documents\Feature Definition Manager` | Should be staged to shared drive CAD standards | Feature definition and CAD resources | Present locally |
 | TBC templates matrix | `C:\ProgramData\Trimble\CONVERSE_FULL_DRAFTING_MATRIX_FROM_PAPERSPACE` | Should be staged to shared drive TBC templates | Local drafting/template matrix | Present locally |
