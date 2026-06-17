@@ -1,6 +1,6 @@
 # Certa Project Connection Matrix
 
-Last updated: 2026-05-22 19:41
+Last updated: 2026-06-17 10:35
 
 This file is the working standard for making sure every active Certa/CertaSurv project has both outside connections and in-house production connections.
 
@@ -14,18 +14,18 @@ This file is the working standard for making sure every active Certa/CertaSurv p
 | Outside automation | Google Apps Script Drive bootstrap and scraper | `AUTOMATIONS\share-drive-automation` package |
 | In-house TBC production | Live TBC macros and worker services | `Trimble Business Center\MacroCommands3\CertaSurv` and Trimble services |
 | In-house CAD standards | Templates, feature definitions, blocks, layers, symbols | ProgramData Trimble matrix and Feature Definition Manager |
-| In-house local apps | Local web/dashboard/parcel/estimate tools | `New project2` plus local Python runtime |
+| In-house local apps | Local web/dashboard/parcel/estimate tools | `CERTASURV_WEB_APP` plus local Python runtime |
 | In-house coordination | Watchlists, nudges, drive staging helpers | `CERTARD` and `CERTAHEALTH` scripts |
 
 ## Project Matrix
 
 | Project | Path | Outside Connections | In-House Connections | Current Status |
 | --- | --- | --- | --- | --- |
-| CERTAHEALTH | `C:\Users\SimpS\OneDrive\Documents\CERTAHEALTH` | Needs Git remote if this becomes a publishable ops repo | Laptop load manager, project provisioning scripts | Active local control repo |
+| CERTAHEALTH | `C:\Users\SimpS\OneDrive\Documents\CERTAHEALTH` | `origin` currently points to `https://github.com/jarredsimpkins-bot/CERTASURV.git`; target publishable slug is `certahealth.git` when split | Laptop load manager, project provisioning scripts | Active local control repo |
 | CERTARD | `C:\Users\SimpS\OneDrive\Documents\CERTARD` | Shared-drive mount helpers; needs Git remote | Project watchlist, staging scripts | Active coordination repo |
 | MACROTBC | `C:\Users\SimpS\OneDrive\Documents\MACROTBC` | AppSheet, Google Drive, command-center manifest; needs Git remote | TBC macros, CAD resources, installers, sync scripts | Active production integration repo |
 | AUTOMATIONS | `C:\Users\SimpS\OneDrive\Documents\AUTOMATIONS` | Google Apps Script, Drive API, test shared drive automation; needs Git remote | Reproducible automation package | Active automation repo |
-| New project2 | `C:\Users\SimpS\OneDrive\Documents\New project2` | Shared-drive project data and estimate folders; needs Git remote | Local Python app/dashboard tools | Active local app project |
+| CERTASURV_WEB_APP | `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` | `origin` -> `https://github.com/jarredsimpkins-bot/certasurv-web-app.git` | Local Python app/dashboard tools | Active local app project after workspace rename |
 | Trimble Business Center macros | `C:\Users\SimpS\OneDrive\Documents\Trimble Business Center\MacroCommands3\CertaSurv` | Mirrors to shared drive through MACROTBC | Live TBC macro command folder | Present locally |
 | Feature Definition Manager | `C:\Users\SimpS\OneDrive\Documents\Feature Definition Manager` | Should be staged to shared drive CAD standards | Feature definition and CAD resources | Present locally |
 | TBC templates matrix | `C:\ProgramData\Trimble\CONVERSE_FULL_DRAFTING_MATRIX_FROM_PAPERSPACE` | Should be staged to shared drive TBC templates | Local drafting/template matrix | Present locally |
@@ -34,10 +34,11 @@ This file is the working standard for making sure every active Certa/CertaSurv p
 
 | Gap | Impact | Fix Path |
 | --- | --- | --- |
-| Shared drive mounted and staged | Outside system-of-record folders are now available locally | Latest stage log: `G:\Shared drives\CERTASURV_PROJECT DRIVE\00_CERTASURV_COMMAND_CENTER\08_REPORTS_EXPORTS\drive-stage-log-20260522-194113.txt` |
-| Active repos have no Git remotes | Outside source-control handoff cannot push or open PRs yet | Add remotes per repo after deciding target GitHub repositories |
-| GitHub CLI installed but repos are not authenticated/remote-wired | GitHub auth/status/push automation is available after `gh auth login`, but no project remote targets are assigned yet | Sign into `gh`, then add remotes once target repositories are chosen |
-| `npm` missing from PATH | Node web tooling may be limited outside bundled Codex Node | Install Node.js LTS when the machine is not under production load; the installer stalled during this pass |
+| Shared drive mounted and staged | Outside system-of-record folders are available locally for handoff validation | Latest stage log remains `G:\Shared drives\CERTASURV_PROJECT DRIVE\00_CERTASURV_COMMAND_CENTER\08_REPORTS_EXPORTS\drive-stage-log-20260522-194113.txt` until a newer staging pass is recorded |
+| Repo remote mapping is partially misaligned | `CERTAHEALTH` can push today, but it is still wired to the public `CERTASURV.git` repo instead of the planned `certahealth.git` slug | Decide whether to keep the shared control repo model or repoint `origin` with `scripts/Set-CertaGitRemotes.ps1 -Apply` |
+| GitHub CLI installed but unauthenticated on this machine | Local `gh` workflow inspection and PR automation are blocked even though public repo pages remain reachable | Run `gh auth login` or provide `GH_TOKEN` before relying on authenticated release operations |
+| Workspace rename needs final sweep outside this repo | This repo now refers to `CERTASURV_WEB_APP`, but some external/local tooling may still reference `New project2` until those repos are updated | Continue rename alignment in the web-app and coordination repos |
+| `npm` availability should be rechecked from the primary workstation | This worktree can use bundled Node through Codex, but launch docs should not assume global Node on the host machine without confirmation | Verify `node` and `npm` on the production workstation during install/runbook validation |
 
 ## Operating Rule
 
