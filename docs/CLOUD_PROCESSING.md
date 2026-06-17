@@ -1,12 +1,12 @@
 # Cloud Processing Plan
 
-Last updated: 2026-05-22
+Last updated: 2026-06-17
 
 ## What Moves To Cloud
 
 | Work | Cloud Target | Reason |
 | --- | --- | --- |
-| Python app tests for `New project2` | GitHub Actions | Keeps dependency install and pytest load off the laptop |
+| Python app tests for `CERTASURV_WEB_APP` | GitHub Actions | Keeps dependency install and pytest load off the laptop while tolerating the renamed local workspace |
 | PowerShell syntax checks for control/TBC scripts | GitHub Actions on Windows runners | Catches broken scripts without touching local production |
 | JSON/config validation for command-center and Drive automation packages | GitHub Actions | Verifies package integrity before handoff |
 | Drive file routing and scraper jobs | Google Apps Script triggers | Runs near Drive data instead of depending on laptop uptime |
@@ -48,6 +48,12 @@ The workflows are prepared locally and pushed to GitHub. They run on each pushed
 2. `certard`: private coordination repo, `main`.
 3. `macrotbc`: private TBC production integration repo, `codex/certasurv-command-center`.
 4. `certasurv-automations`: private Drive/AppScript automation repo, `codex/onboard-everything`.
-5. `certasurv-web-app`: private app/dashboard repo, `codex/land-opportunity-radar-mvp`.
+5. `certasurv-web-app`: private app/dashboard repo, currently mounted locally as `CERTASURV_WEB_APP` on `codex/certasurv-unified-forward`.
 
 The cloud offload runner pushes committed branches every 10 minutes. It intentionally does not auto-stage or auto-commit live work.
+
+## Current June 17 Readiness Notes
+
+- Public GitHub Actions visibility for `jarredsimpkins-bot/CERTASURV` showed 10 workflow runs during this pass, with the latest visible run listed as `CertaHealth Control Checks #10` for commit `14b9b65` and the prior visible Codex branch run listed as `#9` for commit `6677946`.
+- Repo-local docs and scripts must treat `CERTASURV_WEB_APP` as canonical and only fall back to `New project2` when older local layouts still exist.
+- Both `G:\Shared drives\CERTASTRUCT` and `G:\Shared drives\CERTASURV_PROJECT DRIVE` are mounted locally. The canonical launch root is `CERTASTRUCT`, but the active `00_CERTASURV_COMMAND_CENTER` tree still resolves from the legacy drive path on this machine.

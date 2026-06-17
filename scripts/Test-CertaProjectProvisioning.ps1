@@ -5,21 +5,37 @@ param(
 $ErrorActionPreference = 'Continue'
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
+function Resolve-CertaPath {
+    param(
+        [string]$Preferred,
+        [string]$Fallback
+    )
+
+    if ($Preferred -and (Test-Path -LiteralPath $Preferred)) {
+        return $Preferred
+    }
+
+    return $Fallback
+}
+
+$webAppPath = Resolve-CertaPath -Preferred (Join-Path $documents 'CERTASURV_WEB_APP') -Fallback (Join-Path $documents 'New project2')
+$sharedDriveRoot = Resolve-CertaPath -Preferred 'G:\Shared drives\CERTASTRUCT' -Fallback 'G:\Shared drives\CERTASURV_PROJECT DRIVE'
+$commandCenterPath = Resolve-CertaPath -Preferred (Join-Path 'G:\Shared drives\CERTASTRUCT' '00_CERTASURV_COMMAND_CENTER') -Fallback (Join-Path 'G:\Shared drives\CERTASURV_PROJECT DRIVE' '00_CERTASURV_COMMAND_CENTER')
 $projects = @(
     @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH'; Type = 'control' },
     @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD'; Type = 'coordination' },
     @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC'; Type = 'tbc-integration' },
     @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS'; Type = 'automation' },
-    @{ Name = 'New project2'; Path = Join-Path $documents 'New project2'; Type = 'local-app' },
+    @{ Name = 'CERTASURV_WEB_APP'; Path = $webAppPath; Type = 'local-app' },
     @{ Name = 'TBC Live Macros'; Path = Join-Path $documents 'Trimble Business Center\MacroCommands3\CertaSurv'; Type = 'tbc-live' },
     @{ Name = 'Feature Definition Manager'; Path = Join-Path $documents 'Feature Definition Manager'; Type = 'cad-standards' },
     @{ Name = 'TBC Templates Matrix'; Path = 'C:\ProgramData\Trimble\CONVERSE_FULL_DRAFTING_MATRIX_FROM_PAPERSPACE'; Type = 'tbc-templates' }
 )
 
 $connections = @(
-    @{ Name = 'Shared Drive Mount'; Path = 'G:\Shared drives\CERTASURV_PROJECT DRIVE'; Lane = 'outside-drive' },
-    @{ Name = 'Command Center Root'; Path = 'G:\Shared drives\CERTASURV_PROJECT DRIVE\00_CERTASURV_COMMAND_CENTER'; Lane = 'outside-drive' },
-    @{ Name = 'Shared Drive Projects'; Path = 'G:\Shared drives\CERTASURV_PROJECT DRIVE\00_CERTASURV_COMMAND_CENTER\01_PROJECTS'; Lane = 'outside-drive' },
+    @{ Name = 'Shared Drive Mount'; Path = $sharedDriveRoot; Lane = 'outside-drive' },
+    @{ Name = 'Command Center Root'; Path = $commandCenterPath; Lane = 'outside-drive' },
+    @{ Name = 'Shared Drive Projects'; Path = Join-Path $commandCenterPath '01_PROJECTS'; Lane = 'outside-drive' },
     @{ Name = 'CERTARD Drive Mount Helper'; Path = Join-Path $documents 'CERTARD\scripts\Ensure-CertaSurvDriveMount.ps1'; Lane = 'outside-drive-helper' },
     @{ Name = 'CERTARD Drive Stage Helper'; Path = Join-Path $documents 'CERTARD\scripts\Stage-CertaSurvSharedDrive.ps1'; Lane = 'outside-drive-helper' },
     @{ Name = 'MACROTBC Command Manifest'; Path = Join-Path $documents 'MACROTBC\command_center\command_center_manifest.json'; Lane = 'outside-appsheet-drive' },
@@ -81,10 +97,31 @@ $projectRows = foreach ($project in $projects) {
     }
 }
 
-$allRows = @($toolRows) + @($connectionRows) + @($projectRows)
+$stateRows = @(
+    [pscustomobject]@{
+        Area = 'State'
+        Name = 'Canonical Shared Drive'
+        Status = if ($sharedDriveRoot -eq 'G:\Shared drives\CERTASTRUCT') { 'OK' } else { 'LEGACY_FALLBACK' }
+        Detail = $sharedDriveRoot
+    }
+    [pscustomobject]@{
+        Area = 'State'
+        Name = 'Active Command Center Path'
+        Status = if ($commandCenterPath -like 'G:\Shared drives\CERTASTRUCT*') { 'OK' } else { 'LEGACY_FALLBACK' }
+        Detail = $commandCenterPath
+    }
+    [pscustomobject]@{
+        Area = 'State'
+        Name = 'Canonical Web App Workspace'
+        Status = if ($webAppPath -like '*CERTASURV_WEB_APP') { 'OK' } else { 'LEGACY_FALLBACK' }
+        Detail = $webAppPath
+    }
+)
+
+$allRows = @($toolRows) + @($connectionRows) + @($projectRows) + @($stateRows)
 $allRows | Sort-Object Area,Name | Format-Table -AutoSize -Wrap
 
-$missing = $allRows | Where-Object { $_.Status -ne 'OK' }
+$missing = $allRows | Where-Object { $_.Status -notin @('OK', 'LEGACY_FALLBACK') }
 if ($missing) {
     Write-Host ''
     Write-Host 'Provisioning gaps to fix:'

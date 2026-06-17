@@ -1,6 +1,6 @@
 # Git Situation
 
-Last updated: 2026-05-22
+Last updated: 2026-06-17
 
 ## Fixed Locally
 
@@ -17,7 +17,7 @@ Last updated: 2026-05-22
 | CERTARD | `C:\Users\SimpS\OneDrive\Documents\CERTARD` | `origin` -> `https://github.com/jarredsimpkins-bot/certard.git` |
 | MACROTBC | `C:\Users\SimpS\OneDrive\Documents\MACROTBC` | `origin` -> `https://github.com/jarredsimpkins-bot/macrotbc.git` |
 | AUTOMATIONS | `C:\Users\SimpS\OneDrive\Documents\AUTOMATIONS` | `origin` -> `https://github.com/jarredsimpkins-bot/certasurv-automations.git` |
-| New project2 | `C:\Users\SimpS\OneDrive\Documents\New project2` | `origin` -> `https://github.com/jarredsimpkins-bot/certasurv-web-app.git` |
+| CERTASURV_WEB_APP | `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` | `origin` -> `https://github.com/jarredsimpkins-bot/certasurv-web-app.git` |
 
 ## Planned Remote Names
 
@@ -27,6 +27,12 @@ Last updated: 2026-05-22
 | CERTARD | `https://github.com/jarredsimpkins-bot/certard.git` |
 | MACROTBC | `https://github.com/jarredsimpkins-bot/macrotbc.git` |
 | AUTOMATIONS | `https://github.com/jarredsimpkins-bot/certasurv-automations.git` |
-| New project2 | `https://github.com/jarredsimpkins-bot/certasurv-web-app.git` |
+| CERTASURV_WEB_APP | `https://github.com/jarredsimpkins-bot/certasurv-web-app.git` |
 
 All planned repositories now exist. `CERTASURV` is public; the remaining launch support repositories are private.
+
+## Current Launch Reality
+
+- As of 2026-06-17, the local CERTAHEALTH checkout still pushes to the public `CERTASURV.git` remote, not the planned `certahealth.git` cutover target.
+- The renamed local web-app workspace exists at `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` and is on branch `codex/certasurv-unified-forward`.
+- Public GitHub Actions for `jarredsimpkins-bot/CERTASURV` were reachable during this pass, but private workflow inspection still depends on valid `gh` authentication outside this repo.
