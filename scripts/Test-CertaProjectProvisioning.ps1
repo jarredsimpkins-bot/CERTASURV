@@ -7,10 +7,10 @@ $ErrorActionPreference = 'Continue'
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
 $projects = @(
     @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH'; Type = 'control' },
-    @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD'; Type = 'coordination' },
+    @{ Name = 'WV_COURTHOUSE_RESEARCHER'; Path = Join-Path $documents 'WV_COURTHOUSE_RESEARCHER'; Type = 'coordination' },
     @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC'; Type = 'tbc-integration' },
     @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS'; Type = 'automation' },
-    @{ Name = 'New project2'; Path = Join-Path $documents 'New project2'; Type = 'local-app' },
+    @{ Name = 'CERTASURV_WEB_APP'; Path = Join-Path $documents 'CERTASURV_WEB_APP'; Type = 'local-app' },
     @{ Name = 'TBC Live Macros'; Path = Join-Path $documents 'Trimble Business Center\MacroCommands3\CertaSurv'; Type = 'tbc-live' },
     @{ Name = 'Feature Definition Manager'; Path = Join-Path $documents 'Feature Definition Manager'; Type = 'cad-standards' },
     @{ Name = 'TBC Templates Matrix'; Path = 'C:\ProgramData\Trimble\CONVERSE_FULL_DRAFTING_MATRIX_FROM_PAPERSPACE'; Type = 'tbc-templates' }
@@ -20,8 +20,8 @@ $connections = @(
     @{ Name = 'Shared Drive Mount'; Path = 'G:\Shared drives\CERTASURV_PROJECT DRIVE'; Lane = 'outside-drive' },
     @{ Name = 'Command Center Root'; Path = 'G:\Shared drives\CERTASURV_PROJECT DRIVE\00_CERTASURV_COMMAND_CENTER'; Lane = 'outside-drive' },
     @{ Name = 'Shared Drive Projects'; Path = 'G:\Shared drives\CERTASURV_PROJECT DRIVE\00_CERTASURV_COMMAND_CENTER\01_PROJECTS'; Lane = 'outside-drive' },
-    @{ Name = 'CERTARD Drive Mount Helper'; Path = Join-Path $documents 'CERTARD\scripts\Ensure-CertaSurvDriveMount.ps1'; Lane = 'outside-drive-helper' },
-    @{ Name = 'CERTARD Drive Stage Helper'; Path = Join-Path $documents 'CERTARD\scripts\Stage-CertaSurvSharedDrive.ps1'; Lane = 'outside-drive-helper' },
+    @{ Name = 'WV_COURTHOUSE_RESEARCHER Drive Mount Helper'; Path = Join-Path $documents 'WV_COURTHOUSE_RESEARCHER\scripts\Ensure-CertaSurvDriveMount.ps1'; Lane = 'outside-drive-helper' },
+    @{ Name = 'WV_COURTHOUSE_RESEARCHER Drive Stage Helper'; Path = Join-Path $documents 'WV_COURTHOUSE_RESEARCHER\scripts\Stage-CertaSurvSharedDrive.ps1'; Lane = 'outside-drive-helper' },
     @{ Name = 'MACROTBC Command Manifest'; Path = Join-Path $documents 'MACROTBC\command_center\command_center_manifest.json'; Lane = 'outside-appsheet-drive' },
     @{ Name = 'MACROTBC Shared Drive Config'; Path = Join-Path $documents 'MACROTBC\certasurv_shared_drive.json'; Lane = 'outside-drive-config' },
     @{ Name = 'AUTOMATIONS Apps Script'; Path = Join-Path $documents 'AUTOMATIONS\share-drive-automation\apps-script\Code.gs'; Lane = 'outside-automation' },
@@ -67,9 +67,12 @@ $projectRows = foreach ($project in $projects) {
     $hasRemote = $false
 
     if ($hasGit) {
-        $gitConfig = Join-Path $gitPath 'config'
-        if (Test-Path -LiteralPath $gitConfig -PathType Leaf) {
-            $hasRemote = Select-String -LiteralPath $gitConfig -Pattern '^\s*\[remote "' -Quiet -ErrorAction SilentlyContinue
+        try {
+            $remoteNames = git -C $project.Path remote 2>$null
+            $hasRemote = [bool]($remoteNames | Select-Object -First 1)
+        }
+        catch {
+            $hasRemote = $false
         }
     }
 
