@@ -4,6 +4,31 @@ param(
 
 $ErrorActionPreference = 'Continue'
 
+function Test-GitWorkingTree {
+    param(
+        [Parameter(Mandatory)]
+        [string]$RepoPath
+    )
+
+    $output = git -C $RepoPath rev-parse --is-inside-work-tree 2>$null
+    return (($LASTEXITCODE -eq 0) -and ($output -contains 'true'))
+}
+
+function Test-GitRemoteConfigured {
+    param(
+        [Parameter(Mandatory)]
+        [string]$RepoPath
+    )
+
+    git -C $RepoPath remote 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        return $false
+    }
+
+    $remote = git -C $RepoPath remote get-url origin 2>$null
+    return (($LASTEXITCODE -eq 0) -and -not [string]::IsNullOrWhiteSpace(($remote | Select-Object -First 1)))
+}
+
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
 $webAppCandidates = @(
     Join-Path $documents 'CERTASURV_WEB_APP'
@@ -70,22 +95,14 @@ $connectionRows = foreach ($connection in $connections) {
 
 $projectRows = foreach ($project in $projects) {
     $exists = Test-Path -LiteralPath $project.Path
-    $gitPath = Join-Path $project.Path '.git'
-    $hasGit = $exists -and (Test-Path -LiteralPath $gitPath)
-    $hasRemote = $false
-
-    if ($hasGit) {
-        $gitConfig = Join-Path $gitPath 'config'
-        if (Test-Path -LiteralPath $gitConfig -PathType Leaf) {
-            $hasRemote = Select-String -LiteralPath $gitConfig -Pattern '^\s*\[remote "' -Quiet -ErrorAction SilentlyContinue
-        }
-    }
+    $hasGit = $exists -and (Test-GitWorkingTree -RepoPath $project.Path)
+    $hasRemote = $hasGit -and (Test-GitRemoteConfigured -RepoPath $project.Path)
 
     [pscustomobject]@{
         Area = 'Project'
         Name = $project.Name
         Status = if (-not $exists) { 'MISSING' } elseif ($hasGit -and -not $hasRemote) { 'LOCAL_ONLY' } else { 'OK' }
-        Detail = if ($hasGit) { "git remote: $hasRemote; $($project.Path)" } else { $project.Path }
+        Detail = if ($hasGit) { "git worktree: $hasGit; remote origin: $hasRemote; $($project.Path)" } else { $project.Path }
     }
 }
 
