@@ -19,6 +19,11 @@ $headers = @{
     'X-GitHub-Api-Version' = '2022-11-28'
 }
 
+$webAppPath = 'C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP'
+if (-not (Test-Path -LiteralPath $webAppPath)) {
+    $webAppPath = 'C:\Users\SimpS\OneDrive\Documents\New project2'
+}
+
 $repos = @(
     @{
         Name = 'certard'
@@ -41,7 +46,7 @@ $repos = @(
     @{
         Name = 'certasurv-web-app'
         Description = 'CertaSurv land opportunity radar, parcel, estimate, and dashboard app.'
-        Path = 'C:\Users\SimpS\OneDrive\Documents\New project2'
+        Path = $webAppPath
         Branch = 'codex/land-opportunity-radar-mvp'
     }
 )

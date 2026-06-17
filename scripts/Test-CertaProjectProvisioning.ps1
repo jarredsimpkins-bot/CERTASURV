@@ -5,21 +5,40 @@ param(
 $ErrorActionPreference = 'Continue'
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
+$webAppCandidates = @(
+    @{ Name = 'CERTASURV_WEB_APP'; Path = Join-Path $documents 'CERTASURV_WEB_APP'; Status = 'OK' },
+    @{ Name = 'New project2'; Path = Join-Path $documents 'New project2'; Status = 'LEGACY_FALLBACK' }
+)
+$webAppPath = ($webAppCandidates | Where-Object { Test-Path -LiteralPath $_.Path } | Select-Object -First 1).Path
+if (-not $webAppPath) {
+    $webAppPath = $webAppCandidates[0].Path
+}
+
+$commandCenterCandidates = @(
+    @{ Name = 'CERTASTRUCT'; Path = 'G:\Shared drives\CERTASTRUCT\00_CERTASURV_COMMAND_CENTER'; Status = 'OK' },
+    @{ Name = 'CERTASURV_PROJECT DRIVE'; Path = 'G:\Shared drives\CERTASURV_PROJECT DRIVE\00_CERTASURV_COMMAND_CENTER'; Status = 'LEGACY_FALLBACK' }
+)
+$commandCenter = $commandCenterCandidates | Where-Object { Test-Path -LiteralPath $_.Path } | Select-Object -First 1
+$commandCenterPath = if ($commandCenter) { $commandCenter.Path } else { $commandCenterCandidates[0].Path }
+$sharedDrivePath = if ($commandCenterPath -like 'G:\Shared drives\CERTASTRUCT*') { 'G:\Shared drives\CERTASTRUCT' } else { 'G:\Shared drives\CERTASURV_PROJECT DRIVE' }
+$sharedDriveStatus = if ($sharedDrivePath -eq 'G:\Shared drives\CERTASTRUCT') { 'OK' } else { 'LEGACY_FALLBACK' }
+$commandCenterStatus = if ($commandCenter) { $commandCenter.Status } else { 'MISSING' }
+
 $projects = @(
     @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH'; Type = 'control' },
     @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD'; Type = 'coordination' },
     @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC'; Type = 'tbc-integration' },
     @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS'; Type = 'automation' },
-    @{ Name = 'New project2'; Path = Join-Path $documents 'New project2'; Type = 'local-app' },
+    @{ Name = 'CERTASURV_WEB_APP'; Path = $webAppPath; Type = 'local-app' },
     @{ Name = 'TBC Live Macros'; Path = Join-Path $documents 'Trimble Business Center\MacroCommands3\CertaSurv'; Type = 'tbc-live' },
     @{ Name = 'Feature Definition Manager'; Path = Join-Path $documents 'Feature Definition Manager'; Type = 'cad-standards' },
     @{ Name = 'TBC Templates Matrix'; Path = 'C:\ProgramData\Trimble\CONVERSE_FULL_DRAFTING_MATRIX_FROM_PAPERSPACE'; Type = 'tbc-templates' }
 )
 
 $connections = @(
-    @{ Name = 'Shared Drive Mount'; Path = 'G:\Shared drives\CERTASURV_PROJECT DRIVE'; Lane = 'outside-drive' },
-    @{ Name = 'Command Center Root'; Path = 'G:\Shared drives\CERTASURV_PROJECT DRIVE\00_CERTASURV_COMMAND_CENTER'; Lane = 'outside-drive' },
-    @{ Name = 'Shared Drive Projects'; Path = 'G:\Shared drives\CERTASURV_PROJECT DRIVE\00_CERTASURV_COMMAND_CENTER\01_PROJECTS'; Lane = 'outside-drive' },
+    @{ Name = 'Shared Drive Mount'; Path = $sharedDrivePath; Lane = 'outside-drive'; ExpectedStatus = $sharedDriveStatus },
+    @{ Name = 'Command Center Root'; Path = $commandCenterPath; Lane = 'outside-drive'; ExpectedStatus = $commandCenterStatus },
+    @{ Name = 'Shared Drive Projects'; Path = Join-Path $commandCenterPath '01_PROJECTS'; Lane = 'outside-drive'; ExpectedStatus = $commandCenterStatus },
     @{ Name = 'CERTARD Drive Mount Helper'; Path = Join-Path $documents 'CERTARD\scripts\Ensure-CertaSurvDriveMount.ps1'; Lane = 'outside-drive-helper' },
     @{ Name = 'CERTARD Drive Stage Helper'; Path = Join-Path $documents 'CERTARD\scripts\Stage-CertaSurvSharedDrive.ps1'; Lane = 'outside-drive-helper' },
     @{ Name = 'MACROTBC Command Manifest'; Path = Join-Path $documents 'MACROTBC\command_center\command_center_manifest.json'; Lane = 'outside-appsheet-drive' },
@@ -52,10 +71,12 @@ $toolRows = foreach ($tool in $toolNames) {
 }
 
 $connectionRows = foreach ($connection in $connections) {
+    $exists = Test-Path -LiteralPath $connection.Path
+    $status = if ($exists) { if ($connection.ExpectedStatus) { $connection.ExpectedStatus } else { 'OK' } } else { 'MISSING' }
     [pscustomobject]@{
         Area = 'Connection'
         Name = $connection.Name
-        Status = if (Test-Path -LiteralPath $connection.Path) { 'OK' } else { 'MISSING' }
+        Status = $status
         Detail = $connection.Path
     }
 }
@@ -76,7 +97,7 @@ $projectRows = foreach ($project in $projects) {
     [pscustomobject]@{
         Area = 'Project'
         Name = $project.Name
-        Status = if (-not $exists) { 'MISSING' } elseif ($hasGit -and -not $hasRemote) { 'LOCAL_ONLY' } else { 'OK' }
+        Status = if (-not $exists) { 'MISSING' } elseif ($project.Name -eq 'CERTASURV_WEB_APP' -and $project.Path -like '*New project2') { 'LEGACY_FALLBACK' } elseif ($hasGit -and -not $hasRemote) { 'LOCAL_ONLY' } else { 'OK' }
         Detail = if ($hasGit) { "git remote: $hasRemote; $($project.Path)" } else { $project.Path }
     }
 }
