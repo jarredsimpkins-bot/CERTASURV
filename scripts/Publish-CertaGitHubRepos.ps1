@@ -19,6 +19,21 @@ $headers = @{
     'X-GitHub-Api-Version' = '2022-11-28'
 }
 
+function Resolve-WebAppPath {
+    param(
+        [string]$DocumentsRoot
+    )
+
+    $preferred = Join-Path $DocumentsRoot 'CERTASURV_WEB_APP'
+    if (Test-Path -LiteralPath $preferred) {
+        return $preferred
+    }
+
+    return (Join-Path $DocumentsRoot 'New project2')
+}
+
+$documents = 'C:\Users\SimpS\OneDrive\Documents'
+$webAppPath = Resolve-WebAppPath -DocumentsRoot $documents
 $repos = @(
     @{
         Name = 'certard'
@@ -41,7 +56,7 @@ $repos = @(
     @{
         Name = 'certasurv-web-app'
         Description = 'CertaSurv land opportunity radar, parcel, estimate, and dashboard app.'
-        Path = 'C:\Users\SimpS\OneDrive\Documents\New project2'
+        Path = $webAppPath
         Branch = 'codex/land-opportunity-radar-mvp'
     }
 )

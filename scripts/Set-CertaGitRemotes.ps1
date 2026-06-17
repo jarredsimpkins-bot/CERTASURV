@@ -6,13 +6,27 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+function Resolve-WebAppPath {
+    param(
+        [string]$DocumentsRoot
+    )
+
+    $preferred = Join-Path $DocumentsRoot 'CERTASURV_WEB_APP'
+    if (Test-Path -LiteralPath $preferred) {
+        return $preferred
+    }
+
+    return (Join-Path $DocumentsRoot 'New project2')
+}
+
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
+$webAppPath = Resolve-WebAppPath -DocumentsRoot $documents
 $repos = @(
     @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH'; Slug = 'certahealth' },
     @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD'; Slug = 'certard' },
     @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC'; Slug = 'macrotbc' },
     @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS'; Slug = 'certasurv-automations' },
-    @{ Name = 'New project2'; Path = Join-Path $documents 'New project2'; Slug = 'certasurv-web-app' }
+    @{ Name = 'CERTASURV_WEB_APP'; Path = $webAppPath; Slug = 'certasurv-web-app' }
 )
 
 $rows = foreach ($repo in $repos) {

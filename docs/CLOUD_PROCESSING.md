@@ -1,12 +1,12 @@
 # Cloud Processing Plan
 
-Last updated: 2026-05-22
+Last updated: 2026-06-17
 
 ## What Moves To Cloud
 
 | Work | Cloud Target | Reason |
 | --- | --- | --- |
-| Python app tests for `New project2` | GitHub Actions | Keeps dependency install and pytest load off the laptop |
+| Python app tests for `CERTASURV_WEB_APP` | GitHub Actions | Keeps dependency install and pytest load off the laptop |
 | PowerShell syntax checks for control/TBC scripts | GitHub Actions on Windows runners | Catches broken scripts without touching local production |
 | JSON/config validation for command-center and Drive automation packages | GitHub Actions | Verifies package integrity before handoff |
 | Drive file routing and scraper jobs | Google Apps Script triggers | Runs near Drive data instead of depending on laptop uptime |
@@ -48,6 +48,12 @@ The workflows are prepared locally and pushed to GitHub. They run on each pushed
 2. `certard`: private coordination repo, `main`.
 3. `macrotbc`: private TBC production integration repo, `codex/certasurv-command-center`.
 4. `certasurv-automations`: private Drive/AppScript automation repo, `codex/onboard-everything`.
-5. `certasurv-web-app`: private app/dashboard repo, `codex/land-opportunity-radar-mvp`.
+5. `certasurv-web-app`: private app/dashboard repo, `codex/land-opportunity-radar-mvp`, local path `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` with legacy `New project2` fallback in helper scripts.
 
 The cloud offload runner pushes committed branches every 10 minutes. It intentionally does not auto-stage or auto-commit live work.
+
+## Current Readiness Notes
+
+- Public GitHub Actions page for `jarredsimpkins-bot/CERTASURV` showed 24 `CertaHealth Control Checks` runs on 2026-06-17, including run `#24` for commit `a89a5cb` on branch `codex/certasurv-web-app-rename-alignment`.
+- Local `gh auth status` remains unauthenticated on 2026-06-17, so private-repo workflow logs and artifact inspection still require either `gh auth login` or another authenticated path.
+- Shared-drive evidence is present locally: `G:\Shared drives\CERTASURV_PROJECT DRIVE` is mounted, `G:\Shared drives\CERTASTRUCT` is mounted, and the latest `TBC_WEB_INSTALLERS` package seen during this pass was `CertaSurv_TBC_Web_Installer_20260522-221032.zip`.
