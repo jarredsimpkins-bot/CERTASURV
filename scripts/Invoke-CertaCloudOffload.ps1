@@ -7,10 +7,10 @@ $ErrorActionPreference = 'Continue'
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
 $repos = @(
     @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH' },
-    @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD' },
+    @{ Name = 'WV_COURTHOUSE_RESEARCHER'; Path = Join-Path $documents 'WV_COURTHOUSE_RESEARCHER' },
     @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC' },
     @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS' },
-    @{ Name = 'New project2'; Path = Join-Path $documents 'New project2' }
+    @{ Name = 'CERTASURV_WEB_APP'; Path = Join-Path $documents 'CERTASURV_WEB_APP' }
 )
 
 $rows = foreach ($repo in $repos) {
@@ -25,7 +25,7 @@ $rows = foreach ($repo in $repos) {
     $dirty = git -C $repo.Path status --porcelain
 
     if (-not $remote) {
-        [pscustomobject]@{ Repo = $repo.Name; Status = 'no-remote'; Branch = $branch; Remote = ''; Detail = 'Run Set-CertaGitRemotes.ps1 -Apply after repositories exist' }
+        [pscustomobject]@{ Repo = $repo.Name; Status = 'no-remote'; Branch = $branch; Remote = ''; Detail = 'Run Set-CertaGitRemotes.ps1 -Apply to wire the current GitHub origin' }
         continue
     }
 
