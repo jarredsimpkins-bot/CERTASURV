@@ -41,7 +41,7 @@ $repos = @(
     @{
         Name = 'certasurv-web-app'
         Description = 'CertaSurv land opportunity radar, parcel, estimate, and dashboard app.'
-        Path = 'C:\Users\SimpS\OneDrive\Documents\New project2'
+        Path = if (Test-Path 'C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP') { 'C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP' } else { 'C:\Users\SimpS\OneDrive\Documents\New project2' }
         Branch = 'codex/land-opportunity-radar-mvp'
     }
 )

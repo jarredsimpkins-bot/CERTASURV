@@ -35,6 +35,7 @@ jobs:
           $required = @(
             'docs/PROJECT_CONNECTION_MATRIX.md',
             'docs/GIT_SITUATION.md',
+            'docs/RELEASE_OPS_READINESS.md',
             'scripts/Test-CertaProjectProvisioning.ps1',
             'scripts/Set-CertaGitRemotes.ps1',
             'scripts/Manage-CertaLaptopLoad.ps1'

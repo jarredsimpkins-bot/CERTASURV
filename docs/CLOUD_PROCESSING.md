@@ -1,12 +1,12 @@
 # Cloud Processing Plan
 
-Last updated: 2026-05-22
+Last updated: 2026-06-16
 
 ## What Moves To Cloud
 
 | Work | Cloud Target | Reason |
 | --- | --- | --- |
-| Python app tests for `New project2` | GitHub Actions | Keeps dependency install and pytest load off the laptop |
+| Python app tests for `CERTASURV_WEB_APP` | GitHub Actions | Keeps dependency install and pytest load off the laptop |
 | PowerShell syntax checks for control/TBC scripts | GitHub Actions on Windows runners | Catches broken scripts without touching local production |
 | JSON/config validation for command-center and Drive automation packages | GitHub Actions | Verifies package integrity before handoff |
 | Drive file routing and scraper jobs | Google Apps Script triggers | Runs near Drive data instead of depending on laptop uptime |
@@ -48,6 +48,14 @@ The workflows are prepared locally and pushed to GitHub. They run on each pushed
 2. `certard`: private coordination repo, `main`.
 3. `macrotbc`: private TBC production integration repo, `codex/certasurv-command-center`.
 4. `certasurv-automations`: private Drive/AppScript automation repo, `codex/onboard-everything`.
-5. `certasurv-web-app`: private app/dashboard repo, `codex/land-opportunity-radar-mvp`.
+5. `certasurv-web-app`: private app/dashboard repo for the local `CERTASURV_WEB_APP` workspace, `codex/land-opportunity-radar-mvp`.
+
+## Current Launch Notes
+
+- Public `CERTASURV` Actions history currently shows two successful `CertaHealth Control Checks` runs on `main`.
+- The latest visible run is `Use git credentials for cloud offload pushes` at commit `d2e6776`, triggered on May 23, 2026, with `Status Success` and `18s` total duration.
+- GitHub also surfaces two environment warnings worth tracking before launch hardening:
+  - `actions/checkout@v4` is still on the Node 20 runtime path and GitHub warns that Node 24 becomes the default on June 2, 2026.
+  - `windows-latest` is being redirected to `windows-2025-vs2026`.
 
 The cloud offload runner pushes committed branches every 10 minutes. It intentionally does not auto-stage or auto-commit live work.
