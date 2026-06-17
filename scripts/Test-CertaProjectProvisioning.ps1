@@ -4,22 +4,49 @@ param(
 
 $ErrorActionPreference = 'Continue'
 
+function Resolve-FirstExistingPath {
+    param(
+        [string[]]$Candidates
+    )
+
+    foreach ($candidate in $Candidates) {
+        if (Test-Path -LiteralPath $candidate) {
+            return $candidate
+        }
+    }
+
+    return $Candidates[0]
+}
+
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
+$webAppPath = Resolve-FirstExistingPath @(
+    (Join-Path $documents 'CERTASURV_WEB_APP'),
+    (Join-Path $documents 'New project2')
+)
+$sharedDriveRoot = Resolve-FirstExistingPath @(
+    'G:\Shared drives\CERTASTRUCT',
+    'G:\Shared drives\CERTASURV_PROJECT DRIVE'
+)
+$commandCenterRoot = Resolve-FirstExistingPath @(
+    (Join-Path $sharedDriveRoot '00_CERTASURV_COMMAND_CENTER'),
+    'G:\Shared drives\CERTASURV_PROJECT DRIVE\00_CERTASURV_COMMAND_CENTER'
+)
+
 $projects = @(
     @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH'; Type = 'control' },
     @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD'; Type = 'coordination' },
     @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC'; Type = 'tbc-integration' },
     @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS'; Type = 'automation' },
-    @{ Name = 'New project2'; Path = Join-Path $documents 'New project2'; Type = 'local-app' },
+    @{ Name = 'CERTASURV_WEB_APP'; Path = $webAppPath; Type = 'local-app' },
     @{ Name = 'TBC Live Macros'; Path = Join-Path $documents 'Trimble Business Center\MacroCommands3\CertaSurv'; Type = 'tbc-live' },
     @{ Name = 'Feature Definition Manager'; Path = Join-Path $documents 'Feature Definition Manager'; Type = 'cad-standards' },
     @{ Name = 'TBC Templates Matrix'; Path = 'C:\ProgramData\Trimble\CONVERSE_FULL_DRAFTING_MATRIX_FROM_PAPERSPACE'; Type = 'tbc-templates' }
 )
 
 $connections = @(
-    @{ Name = 'Shared Drive Mount'; Path = 'G:\Shared drives\CERTASURV_PROJECT DRIVE'; Lane = 'outside-drive' },
-    @{ Name = 'Command Center Root'; Path = 'G:\Shared drives\CERTASURV_PROJECT DRIVE\00_CERTASURV_COMMAND_CENTER'; Lane = 'outside-drive' },
-    @{ Name = 'Shared Drive Projects'; Path = 'G:\Shared drives\CERTASURV_PROJECT DRIVE\00_CERTASURV_COMMAND_CENTER\01_PROJECTS'; Lane = 'outside-drive' },
+    @{ Name = 'Shared Drive Mount'; Path = $sharedDriveRoot; Lane = 'outside-drive' },
+    @{ Name = 'Command Center Root'; Path = $commandCenterRoot; Lane = 'outside-drive' },
+    @{ Name = 'Shared Drive Projects'; Path = Join-Path $commandCenterRoot '01_PROJECTS'; Lane = 'outside-drive' },
     @{ Name = 'CERTARD Drive Mount Helper'; Path = Join-Path $documents 'CERTARD\scripts\Ensure-CertaSurvDriveMount.ps1'; Lane = 'outside-drive-helper' },
     @{ Name = 'CERTARD Drive Stage Helper'; Path = Join-Path $documents 'CERTARD\scripts\Stage-CertaSurvSharedDrive.ps1'; Lane = 'outside-drive-helper' },
     @{ Name = 'MACROTBC Command Manifest'; Path = Join-Path $documents 'MACROTBC\command_center\command_center_manifest.json'; Lane = 'outside-appsheet-drive' },
