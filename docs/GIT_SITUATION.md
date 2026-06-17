@@ -17,7 +17,7 @@ Last updated: 2026-06-17
 | CERTARD | `C:\Users\SimpS\OneDrive\Documents\CERTARD` | `origin` -> `https://github.com/jarredsimpkins-bot/certard.git` |
 | MACROTBC | `C:\Users\SimpS\OneDrive\Documents\MACROTBC` | `origin` -> `https://github.com/jarredsimpkins-bot/macrotbc.git` |
 | AUTOMATIONS | `C:\Users\SimpS\OneDrive\Documents\AUTOMATIONS` | `origin` -> `https://github.com/jarredsimpkins-bot/certasurv-automations.git` |
-| CERTASURV_WEB_APP / New project2 | `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` with fallback `C:\Users\SimpS\OneDrive\Documents\New project2` | `origin` -> `https://github.com/jarredsimpkins-bot/certasurv-web-app.git` |
+| CERTASURV_WEB_APP | `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` | `origin` -> `https://github.com/jarredsimpkins-bot/certasurv-web-app.git` |
 
 ## Planned Remote Names
 
@@ -33,5 +33,6 @@ All planned repositories now exist. `CERTASURV` is public; the remaining launch 
 
 ## Current Launch Notes
 
-- `gh auth status` is still expected to fail on this workstation until the operator signs into GitHub CLI.
+- `gh auth status` currently fails on this workstation until the operator signs into GitHub CLI.
 - `CERTAHEALTH` should ultimately publish to `certahealth.git`; the legacy public `CERTASURV` remote is only a temporary compatibility state for older local clones.
+- `CERTASURV_WEB_APP` is the live local web-app workspace; the old `New project2` alias is no longer present on this workstation.
