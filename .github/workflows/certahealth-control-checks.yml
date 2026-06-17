@@ -33,6 +33,7 @@ jobs:
         shell: pwsh
         run: |
           $required = @(
+            'docs/CLOUD_PROCESSING.md',
             'docs/PROJECT_CONNECTION_MATRIX.md',
             'docs/GIT_SITUATION.md',
             'scripts/Test-CertaProjectProvisioning.ps1',
