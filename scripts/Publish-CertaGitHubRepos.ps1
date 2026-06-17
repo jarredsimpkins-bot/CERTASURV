@@ -21,28 +21,39 @@ $headers = @{
 
 $repos = @(
     @{
+        Name = 'certahealth'
+        Description = 'Certa launch control scripts, readiness docs, and production-safe automation helpers.'
+        Path = 'C:\Users\SimpS\OneDrive\Documents\CERTAHEALTH'
+        Branch = 'main'
+        Private = $false
+    },
+    @{
         Name = 'certard'
         Description = 'CERTARD project watcher and coordination companion.'
         Path = 'C:\Users\SimpS\OneDrive\Documents\CERTARD'
         Branch = 'main'
+        Private = $true
     },
     @{
         Name = 'macrotbc'
         Description = 'CertaSurv TBC macro, command center, and local production integration.'
         Path = 'C:\Users\SimpS\OneDrive\Documents\MACROTBC'
         Branch = 'codex/certasurv-command-center'
+        Private = $true
     },
     @{
         Name = 'certasurv-automations'
         Description = 'CertaSurv Google Drive, Apps Script, and operations automation package.'
         Path = 'C:\Users\SimpS\OneDrive\Documents\AUTOMATIONS'
         Branch = 'codex/onboard-everything'
+        Private = $true
     },
     @{
         Name = 'certasurv-web-app'
         Description = 'CertaSurv land opportunity radar, parcel, estimate, and dashboard app.'
-        Path = 'C:\Users\SimpS\OneDrive\Documents\New project2'
+        Path = 'C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP'
         Branch = 'codex/land-opportunity-radar-mvp'
+        Private = $true
     }
 )
 
@@ -64,7 +75,7 @@ $results = foreach ($repo in $repos) {
         $body = @{
             name = $repo.Name
             description = $repo.Description
-            private = $true
+            private = $repo.Private
             auto_init = $false
         } | ConvertTo-Json
 
