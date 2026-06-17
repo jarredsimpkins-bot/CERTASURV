@@ -21,6 +21,12 @@ $headers = @{
 
 $repos = @(
     @{
+        Name = 'certahealth'
+        Description = 'CERTAHEALTH control repo for launch coordination and ops hardening.'
+        Path = 'C:\Users\SimpS\OneDrive\Documents\CERTAHEALTH'
+        Branch = 'main'
+    },
+    @{
         Name = 'certard'
         Description = 'CERTARD project watcher and coordination companion.'
         Path = 'C:\Users\SimpS\OneDrive\Documents\CERTARD'

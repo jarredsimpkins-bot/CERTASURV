@@ -30,3 +30,7 @@ Last updated: 2026-05-22
 | New project2 | `https://github.com/jarredsimpkins-bot/certasurv-web-app.git` |
 
 All planned repositories now exist. `CERTASURV` is public; the remaining launch support repositories are private.
+
+## Launch Readiness Note
+
+`CERTAHEALTH` is still shown above with the legacy public `CERTASURV` remote in local status captures. The intended launch target for this repo is `https://github.com/jarredsimpkins-bot/certahealth.git`; use `scripts/Set-CertaGitRemotes.ps1` when the local checkout should be flipped to the dedicated repo.

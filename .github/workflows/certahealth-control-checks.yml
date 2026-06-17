@@ -33,8 +33,11 @@ jobs:
         shell: pwsh
         run: |
           $required = @(
+            'docs/CLOUD_PROCESSING.md',
             'docs/PROJECT_CONNECTION_MATRIX.md',
             'docs/GIT_SITUATION.md',
+            'scripts/Invoke-CertaCloudOffload.ps1',
+            'scripts/Publish-CertaGitHubRepos.ps1',
             'scripts/Test-CertaProjectProvisioning.ps1',
             'scripts/Set-CertaGitRemotes.ps1',
             'scripts/Manage-CertaLaptopLoad.ps1'

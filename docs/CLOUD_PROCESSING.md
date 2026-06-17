@@ -44,7 +44,7 @@ Cloud workers may commit and push scoped repo-local fixes. They must not touch l
 
 The workflows are prepared locally and pushed to GitHub. They run on each pushed repo/branch:
 
-1. `CERTASURV` / `CERTAHEALTH`: public control repo, `main`.
+1. `certahealth` / `CERTAHEALTH`: control repo, `main`.
 2. `certard`: private coordination repo, `main`.
 3. `macrotbc`: private TBC production integration repo, `codex/certasurv-command-center`.
 4. `certasurv-automations`: private Drive/AppScript automation repo, `codex/onboard-everything`.
