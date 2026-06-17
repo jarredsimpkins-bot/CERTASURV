@@ -5,12 +5,32 @@ param(
 $ErrorActionPreference = 'Continue'
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
+function Resolve-PreferredPath {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$PrimaryLeaf,
+
+        [string]$LegacyLeaf
+    )
+
+    $primaryPath = Join-Path $documents $PrimaryLeaf
+    if (Test-Path -LiteralPath $primaryPath) {
+        return $primaryPath
+    }
+
+    if ($LegacyLeaf) {
+        return Join-Path $documents $LegacyLeaf
+    }
+
+    return $primaryPath
+}
+
 $repos = @(
     @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH' },
     @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD' },
     @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC' },
     @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS' },
-    @{ Name = 'New project2'; Path = Join-Path $documents 'New project2' }
+    @{ Name = 'CERTASURV_WEB_APP'; Path = Resolve-PreferredPath -PrimaryLeaf 'CERTASURV_WEB_APP' -LegacyLeaf 'New project2' }
 )
 
 $rows = foreach ($repo in $repos) {
