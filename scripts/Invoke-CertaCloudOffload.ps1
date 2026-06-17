@@ -4,13 +4,28 @@ param(
 
 $ErrorActionPreference = 'Continue'
 
+function Resolve-PreferredPath {
+    param(
+        [string]$Primary,
+        [string]$Fallback
+    )
+
+    if (Test-Path -LiteralPath $Primary) {
+        return $Primary
+    }
+
+    return $Fallback
+}
+
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
+$coordinationPath = Resolve-PreferredPath -Primary (Join-Path $documents 'WV_COURTHOUSE_RESEARCHER') -Fallback (Join-Path $documents 'CERTARD')
+$webAppPath = Resolve-PreferredPath -Primary (Join-Path $documents 'CERTASURV_WEB_APP') -Fallback (Join-Path $documents 'New project2')
 $repos = @(
     @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH' },
-    @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD' },
+    @{ Name = 'WV_COURTHOUSE_RESEARCHER'; Path = $coordinationPath },
     @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC' },
     @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS' },
-    @{ Name = 'New project2'; Path = Join-Path $documents 'New project2' }
+    @{ Name = 'CERTASURV_WEB_APP'; Path = $webAppPath }
 )
 
 $rows = foreach ($repo in $repos) {
@@ -23,6 +38,17 @@ $rows = foreach ($repo in $repos) {
     $branch = git -C $repo.Path branch --show-current
     $remote = git -C $repo.Path remote get-url origin 2>$null
     $dirty = git -C $repo.Path status --porcelain
+
+    if (-not $branch) {
+        [pscustomobject]@{
+            Repo = $repo.Name
+            Status = 'detached-head'
+            Branch = ''
+            Remote = $remote
+            Detail = 'Skipped push because this worktree is detached; checkout a named branch before cloud push.'
+        }
+        continue
+    }
 
     if (-not $remote) {
         [pscustomobject]@{ Repo = $repo.Name; Status = 'no-remote'; Branch = $branch; Remote = ''; Detail = 'Run Set-CertaGitRemotes.ps1 -Apply after repositories exist' }

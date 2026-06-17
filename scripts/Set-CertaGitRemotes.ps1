@@ -6,13 +6,28 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+function Resolve-PreferredPath {
+    param(
+        [string]$Primary,
+        [string]$Fallback
+    )
+
+    if (Test-Path -LiteralPath $Primary) {
+        return $Primary
+    }
+
+    return $Fallback
+}
+
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
+$coordinationPath = Resolve-PreferredPath -Primary (Join-Path $documents 'WV_COURTHOUSE_RESEARCHER') -Fallback (Join-Path $documents 'CERTARD')
+$webAppPath = Resolve-PreferredPath -Primary (Join-Path $documents 'CERTASURV_WEB_APP') -Fallback (Join-Path $documents 'New project2')
 $repos = @(
     @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH'; Slug = 'certahealth' },
-    @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD'; Slug = 'certard' },
+    @{ Name = 'WV_COURTHOUSE_RESEARCHER'; Path = $coordinationPath; Slug = 'certard' },
     @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC'; Slug = 'macrotbc' },
     @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS'; Slug = 'certasurv-automations' },
-    @{ Name = 'New project2'; Path = Join-Path $documents 'New project2'; Slug = 'certasurv-web-app' }
+    @{ Name = 'CERTASURV_WEB_APP'; Path = $webAppPath; Slug = 'certasurv-web-app' }
 )
 
 $rows = foreach ($repo in $repos) {
