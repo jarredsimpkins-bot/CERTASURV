@@ -4,13 +4,31 @@ param(
 
 $ErrorActionPreference = 'Continue'
 
+function Resolve-CertaRepoPath {
+    param(
+        [string]$DocumentsRoot,
+        [string]$PreferredLeaf,
+        [string[]]$LegacyLeaves = @()
+    )
+
+    $candidates = @($PreferredLeaf) + $LegacyLeaves
+    foreach ($leaf in $candidates) {
+        $path = Join-Path $DocumentsRoot $leaf
+        if (Test-Path -LiteralPath $path) {
+            return $path
+        }
+    }
+
+    return (Join-Path $DocumentsRoot $PreferredLeaf)
+}
+
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
 $projects = @(
     @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH'; Type = 'control' },
     @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD'; Type = 'coordination' },
     @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC'; Type = 'tbc-integration' },
     @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS'; Type = 'automation' },
-    @{ Name = 'New project2'; Path = Join-Path $documents 'New project2'; Type = 'local-app' },
+    @{ Name = 'CERTASURV_WEB_APP'; Path = Resolve-CertaRepoPath -DocumentsRoot $documents -PreferredLeaf 'CERTASURV_WEB_APP' -LegacyLeaves @('New project2'); Type = 'local-app' },
     @{ Name = 'TBC Live Macros'; Path = Join-Path $documents 'Trimble Business Center\MacroCommands3\CertaSurv'; Type = 'tbc-live' },
     @{ Name = 'Feature Definition Manager'; Path = Join-Path $documents 'Feature Definition Manager'; Type = 'cad-standards' },
     @{ Name = 'TBC Templates Matrix'; Path = 'C:\ProgramData\Trimble\CONVERSE_FULL_DRAFTING_MATRIX_FROM_PAPERSPACE'; Type = 'tbc-templates' }

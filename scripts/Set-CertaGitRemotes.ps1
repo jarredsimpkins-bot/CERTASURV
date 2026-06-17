@@ -6,13 +6,31 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+function Resolve-CertaRepoPath {
+    param(
+        [string]$DocumentsRoot,
+        [string]$PreferredLeaf,
+        [string[]]$LegacyLeaves = @()
+    )
+
+    $candidates = @($PreferredLeaf) + $LegacyLeaves
+    foreach ($leaf in $candidates) {
+        $path = Join-Path $DocumentsRoot $leaf
+        if (Test-Path -LiteralPath $path) {
+            return $path
+        }
+    }
+
+    return (Join-Path $DocumentsRoot $PreferredLeaf)
+}
+
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
 $repos = @(
     @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH'; Slug = 'certahealth' },
     @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD'; Slug = 'certard' },
     @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC'; Slug = 'macrotbc' },
     @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS'; Slug = 'certasurv-automations' },
-    @{ Name = 'New project2'; Path = Join-Path $documents 'New project2'; Slug = 'certasurv-web-app' }
+    @{ Name = 'CERTASURV_WEB_APP'; Path = Resolve-CertaRepoPath -DocumentsRoot $documents -PreferredLeaf 'CERTASURV_WEB_APP' -LegacyLeaves @('New project2'); Slug = 'certasurv-web-app' }
 )
 
 $rows = foreach ($repo in $repos) {
