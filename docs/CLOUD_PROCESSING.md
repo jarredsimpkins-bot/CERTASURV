@@ -1,12 +1,12 @@
 # Cloud Processing Plan
 
-Last updated: 2026-05-22
+Last updated: 2026-06-17
 
 ## What Moves To Cloud
 
 | Work | Cloud Target | Reason |
 | --- | --- | --- |
-| Python app tests for `New project2` | GitHub Actions | Keeps dependency install and pytest load off the laptop |
+| Python app tests for `CERTASURV_WEB_APP` | GitHub Actions | Keeps dependency install and pytest load off the laptop |
 | PowerShell syntax checks for control/TBC scripts | GitHub Actions on Windows runners | Catches broken scripts without touching local production |
 | JSON/config validation for command-center and Drive automation packages | GitHub Actions | Verifies package integrity before handoff |
 | Drive file routing and scraper jobs | Google Apps Script triggers | Runs near Drive data instead of depending on laptop uptime |
@@ -51,3 +51,9 @@ The workflows are prepared locally and pushed to GitHub. They run on each pushed
 5. `certasurv-web-app`: private app/dashboard repo, `codex/land-opportunity-radar-mvp`.
 
 The cloud offload runner pushes committed branches every 10 minutes. It intentionally does not auto-stage or auto-commit live work.
+
+## Current Control-Repo Signal
+
+- Public control-repo workflow `CertaHealth Control Checks` is visible on GitHub and the latest public run observed on June 17, 2026 was successful.
+- The latest visible run (`#26`, commit `36e1c93`) completed in 19 seconds and reported one warning about GitHub Actions forcing `actions/checkout@v4` off deprecated Node.js 20 onto Node.js 24.
+- Private-repo workflow outputs remain unavailable from this host until `gh` authentication is restored.
