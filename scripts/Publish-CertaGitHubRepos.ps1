@@ -21,9 +21,9 @@ $headers = @{
 
 $repos = @(
     @{
-        Name = 'certard'
-        Description = 'CERTARD project watcher and coordination companion.'
-        Path = 'C:\Users\SimpS\OneDrive\Documents\CERTARD'
+        Name = 'wv_courthouse_researcher'
+        Description = 'WV Courthouse Researcher project watcher and coordination companion.'
+        Path = 'C:\Users\SimpS\OneDrive\Documents\WV_COURTHOUSE_RESEARCHER'
         Branch = 'main'
     },
     @{
@@ -41,7 +41,7 @@ $repos = @(
     @{
         Name = 'certasurv-web-app'
         Description = 'CertaSurv land opportunity radar, parcel, estimate, and dashboard app.'
-        Path = 'C:\Users\SimpS\OneDrive\Documents\New project2'
+        Path = 'C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP'
         Branch = 'codex/land-opportunity-radar-mvp'
     }
 )
