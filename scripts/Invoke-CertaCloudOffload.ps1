@@ -5,12 +5,16 @@ param(
 $ErrorActionPreference = 'Continue'
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
+$webAppPath = Join-Path $documents 'CERTASURV_WEB_APP'
+if (-not (Test-Path -LiteralPath $webAppPath)) {
+    $webAppPath = Join-Path $documents 'New project2'
+}
 $repos = @(
     @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH' },
     @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD' },
     @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC' },
     @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS' },
-    @{ Name = 'New project2'; Path = Join-Path $documents 'New project2' }
+    @{ Name = 'CERTASURV_WEB_APP'; Path = $webAppPath }
 )
 
 $rows = foreach ($repo in $repos) {
