@@ -5,21 +5,45 @@ param(
 $ErrorActionPreference = 'Continue'
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
+$preferredWebAppPath = Join-Path $documents 'CERTASURV_WEB_APP'
+$legacyWebAppPath = Join-Path $documents 'New project2'
+$sharedDriveRootCandidates = @(
+    'G:\Shared drives\CERTASTRUCT',
+    'G:\Shared drives\CERTASURV_PROJECT DRIVE'
+)
+
+function Resolve-PreferredPath {
+    param(
+        [string[]]$Candidates
+    )
+
+    $existing = $Candidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+    if ($existing) {
+        return $existing
+    }
+
+    return $Candidates[0]
+}
+
+$sharedDriveRoot = Resolve-PreferredPath -Candidates $sharedDriveRootCandidates
+$commandCenterRoot = Resolve-PreferredPath -Candidates ($sharedDriveRootCandidates | ForEach-Object { Join-Path $_ '00_CERTASURV_COMMAND_CENTER' })
+$sharedDriveProjectsRoot = Resolve-PreferredPath -Candidates ($sharedDriveRootCandidates | ForEach-Object { Join-Path $_ '00_CERTASURV_COMMAND_CENTER\01_PROJECTS' })
+
 $projects = @(
     @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH'; Type = 'control' },
     @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD'; Type = 'coordination' },
     @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC'; Type = 'tbc-integration' },
     @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS'; Type = 'automation' },
-    @{ Name = 'New project2'; Path = Join-Path $documents 'New project2'; Type = 'local-app' },
+    @{ Name = 'CERTASURV_WEB_APP'; Path = $preferredWebAppPath; Type = 'local-app'; FallbackPath = $legacyWebAppPath },
     @{ Name = 'TBC Live Macros'; Path = Join-Path $documents 'Trimble Business Center\MacroCommands3\CertaSurv'; Type = 'tbc-live' },
     @{ Name = 'Feature Definition Manager'; Path = Join-Path $documents 'Feature Definition Manager'; Type = 'cad-standards' },
     @{ Name = 'TBC Templates Matrix'; Path = 'C:\ProgramData\Trimble\CONVERSE_FULL_DRAFTING_MATRIX_FROM_PAPERSPACE'; Type = 'tbc-templates' }
 )
 
 $connections = @(
-    @{ Name = 'Shared Drive Mount'; Path = 'G:\Shared drives\CERTASURV_PROJECT DRIVE'; Lane = 'outside-drive' },
-    @{ Name = 'Command Center Root'; Path = 'G:\Shared drives\CERTASURV_PROJECT DRIVE\00_CERTASURV_COMMAND_CENTER'; Lane = 'outside-drive' },
-    @{ Name = 'Shared Drive Projects'; Path = 'G:\Shared drives\CERTASURV_PROJECT DRIVE\00_CERTASURV_COMMAND_CENTER\01_PROJECTS'; Lane = 'outside-drive' },
+    @{ Name = 'Shared Drive Mount'; Path = $sharedDriveRoot; Lane = 'outside-drive' },
+    @{ Name = 'Command Center Root'; Path = $commandCenterRoot; Lane = 'outside-drive' },
+    @{ Name = 'Shared Drive Projects'; Path = $sharedDriveProjectsRoot; Lane = 'outside-drive' },
     @{ Name = 'CERTARD Drive Mount Helper'; Path = Join-Path $documents 'CERTARD\scripts\Ensure-CertaSurvDriveMount.ps1'; Lane = 'outside-drive-helper' },
     @{ Name = 'CERTARD Drive Stage Helper'; Path = Join-Path $documents 'CERTARD\scripts\Stage-CertaSurvSharedDrive.ps1'; Lane = 'outside-drive-helper' },
     @{ Name = 'MACROTBC Command Manifest'; Path = Join-Path $documents 'MACROTBC\command_center\command_center_manifest.json'; Lane = 'outside-appsheet-drive' },
@@ -61,8 +85,15 @@ $connectionRows = foreach ($connection in $connections) {
 }
 
 $projectRows = foreach ($project in $projects) {
-    $exists = Test-Path -LiteralPath $project.Path
-    $gitPath = Join-Path $project.Path '.git'
+    $projectPath = $project.Path
+    $aliasNote = ''
+    if ($project.ContainsKey('FallbackPath') -and -not (Test-Path -LiteralPath $projectPath) -and (Test-Path -LiteralPath $project.FallbackPath)) {
+        $projectPath = $project.FallbackPath
+        $aliasNote = " (fallback alias in use: $($project.FallbackPath))"
+    }
+
+    $exists = Test-Path -LiteralPath $projectPath
+    $gitPath = Join-Path $projectPath '.git'
     $hasGit = $exists -and (Test-Path -LiteralPath $gitPath)
     $hasRemote = $false
 
@@ -77,7 +108,7 @@ $projectRows = foreach ($project in $projects) {
         Area = 'Project'
         Name = $project.Name
         Status = if (-not $exists) { 'MISSING' } elseif ($hasGit -and -not $hasRemote) { 'LOCAL_ONLY' } else { 'OK' }
-        Detail = if ($hasGit) { "git remote: $hasRemote; $($project.Path)" } else { $project.Path }
+        Detail = if ($hasGit) { "git remote: $hasRemote; $projectPath$aliasNote" } else { "$projectPath$aliasNote" }
     }
 }
 

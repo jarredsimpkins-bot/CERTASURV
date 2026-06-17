@@ -19,29 +19,40 @@ $headers = @{
     'X-GitHub-Api-Version' = '2022-11-28'
 }
 
+$documents = 'C:\Users\SimpS\OneDrive\Documents'
+$preferredWebAppPath = Join-Path $documents 'CERTASURV_WEB_APP'
+$legacyWebAppPath = Join-Path $documents 'New project2'
+$webAppPath = if (Test-Path -LiteralPath $preferredWebAppPath) { $preferredWebAppPath } else { $legacyWebAppPath }
+
 $repos = @(
+    @{
+        Name = 'certahealth'
+        Description = 'CertaHealth control repo for launch readiness, automation, and release operations.'
+        Path = Join-Path $documents 'CERTAHEALTH'
+        Branch = 'main'
+    },
     @{
         Name = 'certard'
         Description = 'CERTARD project watcher and coordination companion.'
-        Path = 'C:\Users\SimpS\OneDrive\Documents\CERTARD'
+        Path = Join-Path $documents 'CERTARD'
         Branch = 'main'
     },
     @{
         Name = 'macrotbc'
         Description = 'CertaSurv TBC macro, command center, and local production integration.'
-        Path = 'C:\Users\SimpS\OneDrive\Documents\MACROTBC'
+        Path = Join-Path $documents 'MACROTBC'
         Branch = 'codex/certasurv-command-center'
     },
     @{
         Name = 'certasurv-automations'
         Description = 'CertaSurv Google Drive, Apps Script, and operations automation package.'
-        Path = 'C:\Users\SimpS\OneDrive\Documents\AUTOMATIONS'
+        Path = Join-Path $documents 'AUTOMATIONS'
         Branch = 'codex/onboard-everything'
     },
     @{
         Name = 'certasurv-web-app'
         Description = 'CertaSurv land opportunity radar, parcel, estimate, and dashboard app.'
-        Path = 'C:\Users\SimpS\OneDrive\Documents\New project2'
+        Path = $webAppPath
         Branch = 'codex/land-opportunity-radar-mvp'
     }
 )
