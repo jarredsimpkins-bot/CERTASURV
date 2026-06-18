@@ -6,7 +6,7 @@ Last updated: 2026-06-18 13:48
 
 | Area | Current Signal | Readiness |
 | --- | --- | --- |
-| Control repo workflow | Public API now shows latest overall run `#43` on June 18, 2026 succeeded; latest `main` run `#41` on June 18, 2026 also succeeded | Ready |
+| Control repo workflow | Public API now shows latest overall run `#44` on June 18, 2026 succeeded; latest `main` run `#41` on June 18, 2026 also succeeded | Ready |
 | Control repo docs | Core launch docs are present in repo and now tracked by workflow required-file validation, including a repo-local launch checklist | Ready |
 | Shared-drive handoff docs | Shared-drive staging and Apps Script deployment references exist outside this repo and remain read-only during release ops | Ready with external dependency |
 | Web app workspace naming | Active local folder is `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP`; legacy `New project2` references were a release risk | Ready after this alignment |
@@ -25,7 +25,7 @@ These references still align on the shared-drive root `G:\Shared drives\CERTASUR
 ## Current Verified Workflow Signal
 
 - Workflow file: `.github/workflows/certahealth-control-checks.yml`
-- Latest verified overall public run: `#43`, branch `codex/wv-courthouse-launch-alignment-20260618`, commit `fb84a2d`, created `2026-06-18T17:30:50Z`, conclusion `success`
+- Latest verified overall public run: `#44`, branch `codex/release-ops-launch-refresh-20260618`, commit `4b3d560`, created `2026-06-18T18:20:46Z`, conclusion `success`
 - Latest verified `main` run: `#41`, branch `main`, commit `6f40b64`, created `2026-06-18T16:17:45Z`, conclusion `success`
 - Verified job summary for run `#41`: single job `powershell-and-docs` succeeded, including `Validate PowerShell syntax` and `Verify required control files`
 

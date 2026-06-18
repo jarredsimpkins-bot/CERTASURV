@@ -36,4 +36,4 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 
 - Public workflow: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/workflows/certahealth-control-checks.yml`
 - Latest verified `main` run: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/runs/27773432493`
-- Latest verified overall run during this pass: `#43` on branch `codex/wv-courthouse-launch-alignment-20260618`, success on June 18, 2026; latest `main` run `#41` also succeeded
+- Latest verified overall run during this pass: `#44` on branch `codex/release-ops-launch-refresh-20260618`, success on June 18, 2026; latest `main` run `#41` also succeeded
