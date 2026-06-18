@@ -1,6 +1,6 @@
 # Certa Project Connection Matrix
 
-Last updated: 2026-06-17 11:30
+Last updated: 2026-06-18 17:02
 
 This file is the working standard for making sure every active Certa/CertaSurv project has both outside connections and in-house production connections.
 
@@ -37,7 +37,7 @@ This file is the working standard for making sure every active Certa/CertaSurv p
 | Shared drive mounted and staged | Outside system-of-record folders are now available locally | Latest stage log: `G:\Shared drives\CERTASURV_PROJECT DRIVE\00_CERTASURV_COMMAND_CENTER\08_REPORTS_EXPORTS\drive-stage-log-20260522-194113.txt` |
 | CERTAHEALTH remote target is unresolved | Release notes and automation still need a final answer on whether the control repo stays on public `CERTASURV.git` or moves to `certahealth.git` | Decide the permanent GitHub destination before final launch cutover |
 | GitHub CLI is installed but unauthenticated on this host | `gh`-driven release pushes and private workflow/log inspection are blocked until auth is restored | Run `gh auth login` with repo and workflow scopes |
-| `npm` is available on disk but can be missing from PATH in some shells | Node web tooling may work inconsistently outside the explicit Node install path | Normalize host PATH or install/reinstall Node.js LTS when the machine is not under production load |
+| `node` and `npm` are missing from `PATH` in the current release-ops shell | Node web tooling and package-driven follow-ons can fail even though the machine otherwise provisions cleanly | Normalize host PATH or install/reinstall Node.js LTS when the machine is not under production load |
 
 ## Operating Rule
 
