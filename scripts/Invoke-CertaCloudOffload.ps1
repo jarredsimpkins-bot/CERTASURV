@@ -37,6 +37,17 @@ $rows = foreach ($repo in $repos) {
         continue
     }
 
+    if (-not $branch) {
+        [pscustomobject]@{
+            Repo = $repo.Name
+            Status = 'detached-head'
+            Branch = ''
+            Remote = $remote
+            Detail = 'Skipped push because this repo is on detached HEAD; check out a branch before offload runs.'
+        }
+        continue
+    }
+
     git -C $repo.Path push -u origin $branch
     $pushOk = ($LASTEXITCODE -eq 0)
     [pscustomobject]@{
@@ -57,7 +68,7 @@ if (-not $Quiet) {
     $rows | Format-Table -AutoSize -Wrap
 }
 
-if ($rows.Status -contains 'push-failed') {
+if (($rows.Status -contains 'push-failed') -or ($rows.Status -contains 'detached-head')) {
     exit 1
 }
 
