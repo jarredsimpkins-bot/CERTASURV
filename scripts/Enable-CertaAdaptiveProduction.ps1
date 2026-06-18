@@ -1,6 +1,15 @@
 $ErrorActionPreference = 'Stop'
 
-$root = 'C:\Users\SimpS\OneDrive\Documents\CERTAHEALTH'
+$root = if ($env:CERTAHEALTH_ROOT) {
+    $env:CERTAHEALTH_ROOT
+}
+elseif ($PSScriptRoot) {
+    Split-Path -Parent $PSScriptRoot
+}
+else {
+    Split-Path -Parent $MyInvocation.MyCommand.Path
+}
+
 $loadScript = Join-Path $root 'scripts\Manage-CertaLaptopLoad.ps1'
 $cloudScript = Join-Path $root 'scripts\Invoke-CertaCloudOffload.ps1'
 

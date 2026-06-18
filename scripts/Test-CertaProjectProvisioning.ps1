@@ -4,6 +4,27 @@ param(
 
 $ErrorActionPreference = 'Continue'
 
+function Test-GitRemoteConfigured {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$RepoPath
+    )
+
+    $insideWorkTree = git -C $RepoPath rev-parse --is-inside-work-tree 2>$null
+    if ($LASTEXITCODE -ne 0 -or $insideWorkTree.Trim() -ne 'true') {
+        return [pscustomobject]@{
+            IsRepo = $false
+            OriginUrl = ''
+        }
+    }
+
+    $originUrl = git -C $RepoPath remote get-url origin 2>$null
+    [pscustomobject]@{
+        IsRepo = $true
+        OriginUrl = if ($LASTEXITCODE -eq 0) { $originUrl.Trim() } else { '' }
+    }
+}
+
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
 $webAppCandidates = @(
     Join-Path $documents 'CERTASURV_WEB_APP'
@@ -70,22 +91,26 @@ $connectionRows = foreach ($connection in $connections) {
 
 $projectRows = foreach ($project in $projects) {
     $exists = Test-Path -LiteralPath $project.Path
-    $gitPath = Join-Path $project.Path '.git'
-    $hasGit = $exists -and (Test-Path -LiteralPath $gitPath)
-    $hasRemote = $false
-
-    if ($hasGit) {
-        $gitConfig = Join-Path $gitPath 'config'
-        if (Test-Path -LiteralPath $gitConfig -PathType Leaf) {
-            $hasRemote = Select-String -LiteralPath $gitConfig -Pattern '^\s*\[remote "' -Quiet -ErrorAction SilentlyContinue
-        }
-    }
+    $gitState = if ($exists) { Test-GitRemoteConfigured -RepoPath $project.Path } else { $null }
+    $hasGit = $gitState -and $gitState.IsRepo
+    $originUrl = if ($gitState) { $gitState.OriginUrl } else { '' }
+    $hasRemote = -not [string]::IsNullOrWhiteSpace($originUrl)
 
     [pscustomobject]@{
         Area = 'Project'
         Name = $project.Name
         Status = if (-not $exists) { 'MISSING' } elseif ($hasGit -and -not $hasRemote) { 'LOCAL_ONLY' } else { 'OK' }
-        Detail = if ($hasGit) { "git remote: $hasRemote; $($project.Path)" } else { $project.Path }
+        Detail = if ($hasGit) {
+            if ($hasRemote) {
+                "origin: $originUrl; $($project.Path)"
+            }
+            else {
+                "origin: missing; $($project.Path)"
+            }
+        }
+        else {
+            $project.Path
+        }
     }
 }
 
