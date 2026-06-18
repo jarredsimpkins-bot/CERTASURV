@@ -53,6 +53,12 @@ $repos = @(
         Description = 'CertaSurv land opportunity radar, parcel, estimate, and dashboard app.'
         Path = $webAppPath
         Branch = 'codex/land-opportunity-radar-mvp'
+    },
+    @{
+        Name = 'wv-courthouse-researcher'
+        Description = 'West Virginia courthouse research, deed analysis, and parcel evidence tooling.'
+        Path = 'C:\Users\SimpS\OneDrive\Documents\WV_COURTHOUSE_RESEARCHER'
+        Branch = 'codex/wv-courthouse-researcher-cabell-lessons'
     }
 )
 

@@ -35,6 +35,7 @@ The subscription is now used in parallel launch lanes:
 | MACROTBC implementation worker | Hourly | TBC integration hardening that does not require live TBC |
 | Drive automation implementation worker | Hourly | Apps Script, registry, and Drive automation hardening |
 | Web app implementation worker | Hourly | App/dashboard tests, package, and CI readiness |
+| WV courthouse researcher worker | Hourly | Research/deed tooling tests, package, and CI readiness |
 | Certa release ops worker | Hourly | Release docs, runbooks, workflow/handoff readiness |
 | Certa launch cloud health | Every 30 minutes | Thread health report for cloud/local routing |
 
@@ -49,6 +50,7 @@ The workflows are prepared locally and pushed to GitHub. They run on each pushed
 3. `macrotbc`: private TBC production integration repo, `codex/certasurv-command-center`.
 4. `certasurv-automations`: private Drive/AppScript automation repo, `codex/onboard-everything`.
 5. `certasurv-web-app`: private app/dashboard repo, `codex/land-opportunity-radar-mvp`.
+6. `wv-courthouse-researcher`: private courthouse/deed research repo, `codex/wv-courthouse-researcher-cabell-lessons`.
 
 The cloud offload runner pushes committed branches every 10 minutes. It intentionally does not auto-stage or auto-commit live work.
 
