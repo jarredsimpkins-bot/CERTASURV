@@ -1,6 +1,6 @@
 # Certa Control Repo Launch Checklist
 
-Last updated: 2026-06-18
+Last updated: 2026-06-18 13:48
 
 Use this checklist for the control-repo side of a Certa/CertaSurv launch or release handoff. This stays repo-local and should be updated before copying any generated release notes into external systems.
 
@@ -8,11 +8,12 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 
 | Gate | What to confirm | Current state |
 | --- | --- | --- |
-| Workflow green on `main` | Latest public `CertaHealth Control Checks` run for `main` is successful | Verified on June 18, 2026: run `#40`, commit `e0cd20b`, success |
+| Workflow green on `main` | Latest public `CertaHealth Control Checks` run for `main` is successful | Verified on June 18, 2026: run `#41`, commit `6f40b64`, success |
 | Docs present | Release readiness, connection matrix, git situation, cloud processing, and this checklist are committed | Required by workflow |
 | PowerShell syntax clean | All tracked `.ps1` files parse without errors | Required by workflow |
 | Workspace path aligned | Operator-facing web app path uses `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` | Verified in current repo docs/scripts |
-| Shared-drive handoff references intact | External staging/deploy references still point to `G:\Shared drives\CERTASURV_PROJECT DRIVE` | Verified read-only on June 17, 2026 |
+| Shared-drive handoff references intact | External staging/deploy references still point to `G:\Shared drives\CERTASURV_PROJECT DRIVE` | Verified read-only on June 18, 2026 |
+| Release-ops host baseline | Provisioning script confirms repo paths and drive mounts; `node` and `npm` remain off `PATH` | Verified on June 18, 2026 |
 | GitHub access for private repos | `gh` is authenticated with repo/workflow access on the host used for release operations | Blocked on this host |
 | Control repo destination decided | Final answer exists for `CERTASURV.git` vs `certahealth.git` | Decision still open |
 
@@ -22,8 +23,9 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 2. Run `pwsh -File .\scripts\Test-CertaProjectProvisioning.ps1 -Detailed` and record any missing tools or mounts.
 3. Confirm the latest public control workflow run on `main` is green before handing off notes or switching remotes.
 4. Verify external handoff references remain read-only unless copying from committed repo docs.
-5. Decide the permanent control-repo remote before final launch cutover so release notes, automation, and operator docs all point to one destination.
-6. Authenticate `gh` before any private workflow/log inspection or release push that depends on GitHub CLI.
+5. If this host will also run web-app release tasks, add `node` and `npm` to `PATH` before that handoff.
+6. Decide the permanent control-repo remote before final launch cutover so release notes, automation, and operator docs all point to one destination.
+7. Authenticate `gh` before any private workflow/log inspection or release push that depends on GitHub CLI.
 
 ## Current Launch Blockers
 
@@ -33,5 +35,5 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 ## Evidence References
 
 - Public workflow: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/workflows/certahealth-control-checks.yml`
-- Latest verified `main` run: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/runs/27769753846`
-- Latest verified overall run during this pass: `#40` on branch `main`, success on June 18, 2026; prior feature-branch run `#39` also succeeded
+- Latest verified `main` run: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/runs/27773432493`
+- Latest verified overall run during this pass: `#43` on branch `codex/wv-courthouse-launch-alignment-20260618`, success on June 18, 2026; latest `main` run `#41` also succeeded

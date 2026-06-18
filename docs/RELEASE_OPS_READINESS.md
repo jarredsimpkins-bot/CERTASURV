@@ -1,16 +1,17 @@
 # Certa Release Ops Readiness
 
-Last updated: 2026-06-18 11:33
+Last updated: 2026-06-18 13:48
 
 ## Launch Snapshot
 
 | Area | Current Signal | Readiness |
 | --- | --- | --- |
-| Control repo workflow | Public API now shows latest overall run `#40` on June 18, 2026 succeeded on `main`; the preceding feature-branch run `#39` also succeeded | Ready |
+| Control repo workflow | Public API now shows latest overall run `#43` on June 18, 2026 succeeded; latest `main` run `#41` on June 18, 2026 also succeeded | Ready |
 | Control repo docs | Core launch docs are present in repo and now tracked by workflow required-file validation, including a repo-local launch checklist | Ready |
 | Shared-drive handoff docs | Shared-drive staging and Apps Script deployment references exist outside this repo and remain read-only during release ops | Ready with external dependency |
 | Web app workspace naming | Active local folder is `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP`; legacy `New project2` references were a release risk | Ready after this alignment |
-| GitHub CLI access | `gh` is installed locally but unauthenticated on this host | Blocked |
+| GitHub CLI access | `gh` is installed locally but `gh auth status` still reports no logged-in host on June 18, 2026 | Blocked |
+| Local host provisioning | `scripts/Test-CertaProjectProvisioning.ps1 -Detailed` passes path and mount checks, but `node` and `npm` are still missing from `PATH` | Ready with host gap |
 | Final control-repo destination | `CERTAHEALTH` still points at public `CERTASURV.git`; planned `certahealth.git` exists | Decision needed |
 
 ## External Handoff References Checked
@@ -24,9 +25,16 @@ These references still align on the shared-drive root `G:\Shared drives\CERTASUR
 ## Current Verified Workflow Signal
 
 - Workflow file: `.github/workflows/certahealth-control-checks.yml`
-- Latest verified overall public run: `#40`, branch `main`, commit `e0cd20b`, created `2026-06-18T15:17:34Z`, conclusion `success`
-- Latest verified prior feature-branch run: `#39`, branch `codex/adaptive-worktree-launch-hardening-20260618`, commit `422cbb5`, created `2026-06-18T14:19:31Z`, conclusion `success`
-- Verified job summary for run `#40`: single job `powershell-and-docs` succeeded, including `Validate PowerShell syntax` and `Verify required control files`
+- Latest verified overall public run: `#43`, branch `codex/wv-courthouse-launch-alignment-20260618`, commit `fb84a2d`, created `2026-06-18T17:30:50Z`, conclusion `success`
+- Latest verified `main` run: `#41`, branch `main`, commit `6f40b64`, created `2026-06-18T16:17:45Z`, conclusion `success`
+- Verified job summary for run `#41`: single job `powershell-and-docs` succeeded, including `Validate PowerShell syntax` and `Verify required control files`
+
+## Local Provisioning Signal
+
+- Command run: `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\Test-CertaProjectProvisioning.ps1 -Detailed`
+- Verified local repo/workspace paths: `CERTAHEALTH`, `CERTARD`, `MACROTBC`, `AUTOMATIONS`, and `CERTASURV_WEB_APP`
+- Verified external path dependencies: shared-drive mount, command-center root, Apps Script deploy notes, and command manifest
+- Remaining host gaps: `node` and `npm` are not on `PATH` on this release-ops host as of June 18, 2026
 
 ## Launch Blockers
 
@@ -37,3 +45,4 @@ These references still align on the shared-drive root `G:\Shared drives\CERTASUR
 
 - Normalize any remaining operator-facing references to `CERTASURV_WEB_APP` across sibling repos so release handoff docs all use the same workspace name.
 - Keep using the public REST API as a fallback for public workflow visibility when `gh` remains unauthenticated on this host.
+- Add `node` and `npm` to the standard release-ops laptop `PATH` if this host will also be used for web-app release or validation work.
