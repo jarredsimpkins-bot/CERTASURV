@@ -1,12 +1,12 @@
 # Certa Release Ops Readiness
 
-Last updated: 2026-06-18 11:33
+Last updated: 2026-06-18 16:05
 
 ## Launch Snapshot
 
 | Area | Current Signal | Readiness |
 | --- | --- | --- |
-| Control repo workflow | Public API now shows latest overall run `#40` on June 18, 2026 succeeded on `main`; the preceding feature-branch run `#39` also succeeded | Ready |
+| Control repo workflow | Public API now shows latest overall run `#47` on June 18, 2026 succeeded on branch `codex/legacy-webapp-fallback-removal-20260618`; latest `main` run `#41` also succeeded | Ready |
 | Control repo docs | Core launch docs are present in repo and now tracked by workflow required-file validation, including a repo-local launch checklist | Ready |
 | Shared-drive handoff docs | Shared-drive staging and Apps Script deployment references exist outside this repo and remain read-only during release ops | Ready with external dependency |
 | Web app workspace naming | Active local folder is `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP`; legacy `New project2` references were a release risk | Ready after this alignment |
@@ -24,9 +24,10 @@ These references still align on the shared-drive root `G:\Shared drives\CERTASUR
 ## Current Verified Workflow Signal
 
 - Workflow file: `.github/workflows/certahealth-control-checks.yml`
-- Latest verified overall public run: `#40`, branch `main`, commit `e0cd20b`, created `2026-06-18T15:17:34Z`, conclusion `success`
-- Latest verified prior feature-branch run: `#39`, branch `codex/adaptive-worktree-launch-hardening-20260618`, commit `422cbb5`, created `2026-06-18T14:19:31Z`, conclusion `success`
-- Verified job summary for run `#40`: single job `powershell-and-docs` succeeded, including `Validate PowerShell syntax` and `Verify required control files`
+- Latest verified overall public run: `#47`, branch `codex/legacy-webapp-fallback-removal-20260618`, commit `e394ca5`, created `2026-06-18T19:33:28Z`, conclusion `success`
+- Latest verified `main` run: `#41`, branch `main`, commit `6f40b64`, created `2026-06-18T16:17:45Z`, conclusion `success`
+- Latest verified prior release-ops branch run: `#46`, branch `codex/release-ops-doc-refresh-20260618-1502`, commit `3d4053c`, created `2026-06-18T19:24:33Z`, conclusion `success`
+- Verified job summary for run `#41`: single job `powershell-and-docs` succeeded, including `Validate PowerShell syntax` and `Verify required control files`
 
 ## Launch Blockers
 
