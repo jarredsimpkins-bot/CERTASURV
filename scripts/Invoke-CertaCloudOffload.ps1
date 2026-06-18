@@ -18,7 +18,8 @@ $repos = @(
     @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD' },
     @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC' },
     @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS' },
-    @{ Name = 'CERTASURV_WEB_APP'; Path = $webAppPath }
+    @{ Name = 'CERTASURV_WEB_APP'; Path = $webAppPath },
+    @{ Name = 'WV_COURTHOUSE_RESEARCHER'; Path = Join-Path $documents 'WV_COURTHOUSE_RESEARCHER' }
 )
 
 $rows = foreach ($repo in $repos) {
