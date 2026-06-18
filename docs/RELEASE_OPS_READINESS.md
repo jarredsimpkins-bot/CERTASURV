@@ -1,15 +1,15 @@
 # Certa Release Ops Readiness
 
-Last updated: 2026-06-18 11:33
+Last updated: 2026-06-18 18:21
 
 ## Launch Snapshot
 
 | Area | Current Signal | Readiness |
 | --- | --- | --- |
-| Control repo workflow | Public API now shows latest overall run `#40` on June 18, 2026 succeeded on `main`; the preceding feature-branch run `#39` also succeeded | Ready |
+| Control repo workflow | Public API now shows latest overall run `#51` on June 18, 2026 succeeded on `codex/wv-courthouse-launch-alignment-20260618b`; latest `main` run `#41` also succeeded | Ready |
 | Control repo docs | Core launch docs are present in repo and now tracked by workflow required-file validation, including a repo-local launch checklist | Ready |
 | Shared-drive handoff docs | Shared-drive staging and Apps Script deployment references exist outside this repo and remain read-only during release ops | Ready with external dependency |
-| Web app workspace naming | Active local folder is `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP`; legacy `New project2` references were a release risk | Ready after this alignment |
+| App workspace naming | Active local folders are `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` and `C:\Users\SimpS\OneDrive\Documents\WV_COURTHOUSE_RESEARCHER`; legacy `New project2` references were a release risk | Ready after this alignment |
 | GitHub CLI access | `gh` is installed locally but unauthenticated on this host | Blocked |
 | Final control-repo destination | `CERTAHEALTH` still points at public `CERTASURV.git`; planned `certahealth.git` exists | Decision needed |
 
@@ -24,9 +24,9 @@ These references still align on the shared-drive root `G:\Shared drives\CERTASUR
 ## Current Verified Workflow Signal
 
 - Workflow file: `.github/workflows/certahealth-control-checks.yml`
-- Latest verified overall public run: `#40`, branch `main`, commit `e0cd20b`, created `2026-06-18T15:17:34Z`, conclusion `success`
-- Latest verified prior feature-branch run: `#39`, branch `codex/adaptive-worktree-launch-hardening-20260618`, commit `422cbb5`, created `2026-06-18T14:19:31Z`, conclusion `success`
-- Verified job summary for run `#40`: single job `powershell-and-docs` succeeded, including `Validate PowerShell syntax` and `Verify required control files`
+- Latest verified overall public run: `#51`, branch `codex/wv-courthouse-launch-alignment-20260618b`, commit `b3cf43c`, created `2026-06-18T21:36:13Z`, conclusion `success`
+- Latest verified `main` run: `#41`, branch `main`, commit `6f40b64`, created `2026-06-18T16:17:45Z`, conclusion `success`
+- Verified job summary for run `#51`: single job `powershell-and-docs` succeeded, including `Validate PowerShell syntax` and `Verify required control files`
 
 ## Launch Blockers
 
@@ -35,5 +35,5 @@ These references still align on the shared-drive root `G:\Shared drives\CERTASUR
 
 ## Non-Blocking Follow-Up
 
-- Normalize any remaining operator-facing references to `CERTASURV_WEB_APP` across sibling repos so release handoff docs all use the same workspace name.
+- Normalize any remaining operator-facing references to `CERTASURV_WEB_APP` and `WV_COURTHOUSE_RESEARCHER` across sibling repos so release handoff docs all use the same workspace names.
 - Keep using the public REST API as a fallback for public workflow visibility when `gh` remains unauthenticated on this host.
