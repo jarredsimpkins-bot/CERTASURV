@@ -47,3 +47,12 @@ jobs:
               throw "Missing required file: $path"
             }
           }
+
+      - name: Reject legacy workspace rename fallback in scripts
+        shell: pwsh
+        run: |
+          $matches = Get-ChildItem scripts -Recurse -File | Select-String -Pattern 'New project2'
+          if ($matches) {
+            $matches | ForEach-Object { Write-Error "$($_.Path):$($_.LineNumber): $($_.Line.Trim())" }
+            throw 'Legacy New project2 fallback is still present in control scripts.'
+          }
