@@ -59,6 +59,24 @@ $toolRows = foreach ($tool in $toolNames) {
     }
 }
 
+$ghTool = $toolRows | Where-Object { $_.Name -eq 'gh' -and $_.Status -eq 'OK' } | Select-Object -First 1
+$accessRows = @()
+if ($ghTool) {
+    $ghPath = $ghTool.Detail
+    $previousPromptDisabled = $env:GH_PROMPT_DISABLED
+    $env:GH_PROMPT_DISABLED = '1'
+    $ghStatusOutput = & $ghPath auth status --hostname github.com 2>&1 | Out-String
+    $ghAuthenticated = $LASTEXITCODE -eq 0
+    $env:GH_PROMPT_DISABLED = $previousPromptDisabled
+
+    $accessRows += [pscustomobject]@{
+        Area = 'Access'
+        Name = 'GitHub CLI Auth'
+        Status = if ($ghAuthenticated) { 'OK' } else { 'MISSING' }
+        Detail = if ($ghAuthenticated) { 'github.com authenticated' } else { ($ghStatusOutput.Trim() -replace '\s+', ' ') }
+    }
+}
+
 $connectionRows = foreach ($connection in $connections) {
     [pscustomobject]@{
         Area = 'Connection'
@@ -89,7 +107,7 @@ $projectRows = foreach ($project in $projects) {
     }
 }
 
-$allRows = @($toolRows) + @($connectionRows) + @($projectRows)
+$allRows = @($toolRows) + @($accessRows) + @($connectionRows) + @($projectRows)
 $allRows | Sort-Object Area,Name | Format-Table -AutoSize -Wrap
 
 $missing = $allRows | Where-Object { $_.Status -ne 'OK' }
