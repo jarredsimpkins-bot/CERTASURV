@@ -1,13 +1,13 @@
 # Cloud Processing Plan
 
-Last updated: 2026-06-18
+Last updated: 2026-06-19
 
 ## What Moves To Cloud
 
 | Work | Cloud Target | Reason |
 | --- | --- | --- |
 | Python app tests for `CERTASURV_WEB_APP` | GitHub Actions | Keeps dependency install and pytest load off the laptop |
-| PowerShell syntax checks for control/TBC scripts | GitHub Actions on Windows runners | Catches broken scripts without touching local production |
+| PowerShell syntax checks for control/TBC/WV scripts | GitHub Actions on Windows runners | Catches broken scripts without touching local production |
 | JSON/config validation for command-center and Drive automation packages | GitHub Actions | Verifies package integrity before handoff |
 | Drive file routing and scraper jobs | Google Apps Script triggers | Runs near Drive data instead of depending on laptop uptime |
 | Shared-drive package artifacts | GitHub Actions artifacts after push | Gives downloadable release packages outside OneDrive |
@@ -35,26 +35,27 @@ The subscription is now used in parallel launch lanes:
 | MACROTBC implementation worker | Hourly | TBC integration hardening that does not require live TBC |
 | Drive automation implementation worker | Hourly | Apps Script, registry, and Drive automation hardening |
 | Web app implementation worker | Hourly | App/dashboard tests, package, and CI readiness |
-| Certa release ops worker | Hourly | Release docs, runbooks, workflow/handoff readiness |
+| Certa release ops worker | Hourly | Release docs, runbooks, workflow, and handoff readiness |
 | Certa launch cloud health | Every 30 minutes | Thread health report for cloud/local routing |
 
 Cloud workers may commit and push scoped repo-local fixes. They must not touch live Trimble runtime folders, destructively modify shared-drive data, or sweep unrelated dirty local changes into commits.
 
 ## Activation Gate
 
-The workflows are prepared locally and pushed to GitHub. They run on each pushed repo/branch:
+The workflows are prepared locally and pushed to GitHub. They run on each pushed repo or branch when remote connectivity exists:
 
 1. `CERTASURV` / `CERTAHEALTH`: public control repo, `main`.
-2. `certard`: private coordination repo, `main`.
-3. `macrotbc`: private TBC production integration repo, `codex/certasurv-command-center`.
-4. `certasurv-automations`: private Drive/AppScript automation repo, `codex/onboard-everything`.
-5. `certasurv-web-app`: private app/dashboard repo, `codex/land-opportunity-radar-mvp`.
+2. `certard`: private coordination repo, current branch as needed for launch review.
+3. `macrotbc`: private TBC production integration repo, current branch after the active edits are intentionally staged.
+4. `certasurv-automations`: private Drive/AppScript automation repo, current branch as needed for release support.
+5. `certasurv-web-app`: private app/dashboard repo, current branch as needed for launch review.
+6. `wv-courthouse-researcher`: private WV toolkit repo after remote creation and `origin` setup.
 
 The cloud offload runner pushes committed branches every 10 minutes. It intentionally does not auto-stage or auto-commit live work.
 
 ## Current Control-Repo Signal
 
-- Public control-repo workflow `CertaHealth Control Checks` is visible on GitHub and the latest public run observed on June 18, 2026 was successful.
-- The latest visible overall run is `#40` on branch `main`, commit `e0cd20b`, success.
-- The latest visible prior feature-branch run is `#39` on branch `codex/adaptive-worktree-launch-hardening-20260618`, commit `422cbb5`, success.
+- Public control-repo workflow `CertaHealth Control Checks` is visible on GitHub and the latest public run observed during this pass was successful.
+- The latest visible overall run is `#66` on branch `codex/release-control-worktree-hardening-20260619b`, commit `6631d8f`, success on June 19, 2026.
+- The latest visible `main` run remains `#41` on commit `6f40b64`, success on June 18, 2026.
 - Private-repo workflow outputs remain unavailable from this host until `gh` authentication is restored.

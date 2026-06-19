@@ -35,24 +35,35 @@ $repos = @(
         Description = 'CERTARD project watcher and coordination companion.'
         Path = 'C:\Users\SimpS\OneDrive\Documents\CERTARD'
         Branch = 'main'
+        Private = $true
     },
     @{
         Name = 'macrotbc'
         Description = 'CertaSurv TBC macro, command center, and local production integration.'
         Path = 'C:\Users\SimpS\OneDrive\Documents\MACROTBC'
         Branch = 'codex/certasurv-command-center'
+        Private = $true
     },
     @{
         Name = 'certasurv-automations'
         Description = 'CertaSurv Google Drive, Apps Script, and operations automation package.'
         Path = 'C:\Users\SimpS\OneDrive\Documents\AUTOMATIONS'
         Branch = 'codex/onboard-everything'
+        Private = $true
     },
     @{
         Name = 'certasurv-web-app'
         Description = 'CertaSurv land opportunity radar, parcel, estimate, and dashboard app.'
         Path = $webAppPath
         Branch = 'codex/land-opportunity-radar-mvp'
+        Private = $true
+    },
+    @{
+        Name = 'wv-courthouse-researcher'
+        Description = 'CertaSurv West Virginia courthouse research toolkit and basemap workflow.'
+        Path = 'C:\Users\SimpS\OneDrive\Documents\WV_COURTHOUSE_RESEARCHER'
+        Branch = 'main'
+        Private = $true
     }
 )
 
@@ -74,7 +85,7 @@ $results = foreach ($repo in $repos) {
         $body = @{
             name = $repo.Name
             description = $repo.Description
-            private = $true
+            private = $repo.Private
             auto_init = $false
         } | ConvertTo-Json
 
