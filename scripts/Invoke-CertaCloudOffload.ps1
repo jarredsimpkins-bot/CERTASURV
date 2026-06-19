@@ -5,14 +5,7 @@ param(
 $ErrorActionPreference = 'Continue'
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
-$webAppCandidates = @(
-    Join-Path $documents 'CERTASURV_WEB_APP'
-    Join-Path $documents 'New project2'
-)
-$webAppPath = $webAppCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-if (-not $webAppPath) {
-    $webAppPath = $webAppCandidates[0]
-}
+$webAppPath = Join-Path $documents 'CERTASURV_WEB_APP'
 $repos = @(
     @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH' },
     @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD' },
@@ -28,8 +21,19 @@ $rows = foreach ($repo in $repos) {
         continue
     }
 
-    $branch = git -C $repo.Path branch --show-current
     $remote = git -C $repo.Path remote get-url origin 2>$null
+    $branch = git -C $repo.Path branch --show-current
+    if ([string]::IsNullOrWhiteSpace($branch)) {
+        [pscustomobject]@{
+            Repo = $repo.Name
+            Status = 'no-branch'
+            Branch = ''
+            Remote = if ($remote) { $remote } else { '' }
+            Detail = 'Attach the repo to a named branch before cloud offload can push it.'
+        }
+        continue
+    }
+
     $dirty = git -C $repo.Path status --porcelain
 
     if (-not $remote) {
