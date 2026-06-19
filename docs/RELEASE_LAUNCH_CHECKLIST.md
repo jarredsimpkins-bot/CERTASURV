@@ -1,6 +1,6 @@
 # Certa Control Repo Launch Checklist
 
-Last updated: 2026-06-18
+Last updated: 2026-06-18 12:15
 
 Use this checklist for the control-repo side of a Certa/CertaSurv launch or release handoff. This stays repo-local and should be updated before copying any generated release notes into external systems.
 
@@ -12,6 +12,7 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 | Docs present | Release readiness, connection matrix, git situation, cloud processing, and this checklist are committed | Required by workflow |
 | PowerShell syntax clean | All tracked `.ps1` files parse without errors | Required by workflow |
 | Workspace path aligned | Operator-facing web app path uses `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` | Verified in current repo docs/scripts |
+| Research workspace inventoried | Release-control helpers include `WV_COURTHOUSE_RESEARCHER` without touching its live outputs | Verified in current repo docs/scripts |
 | Shared-drive handoff references intact | External staging/deploy references still point to `G:\Shared drives\CERTASURV_PROJECT DRIVE` | Verified read-only on June 17, 2026 |
 | GitHub access for private repos | `gh` is authenticated with repo/workflow access on the host used for release operations | Blocked on this host |
 | Control repo destination decided | Final answer exists for `CERTASURV.git` vs `certahealth.git` | Decision still open |
@@ -21,14 +22,16 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 1. Run `git status --short` in `CERTAHEALTH` and confirm only intended release-ops edits are present.
 2. Run `pwsh -File .\scripts\Test-CertaProjectProvisioning.ps1 -Detailed` and record any missing tools or mounts.
 3. Confirm the latest public control workflow run on `main` is green before handing off notes or switching remotes.
-4. Verify external handoff references remain read-only unless copying from committed repo docs.
-5. Decide the permanent control-repo remote before final launch cutover so release notes, automation, and operator docs all point to one destination.
-6. Authenticate `gh` before any private workflow/log inspection or release push that depends on GitHub CLI.
+4. Confirm `WV_COURTHOUSE_RESEARCHER` shows as `LOCAL_ONLY` until its remote is intentionally configured, not as a missing workspace.
+5. Verify external handoff references remain read-only unless copying from committed repo docs.
+6. Decide the permanent control-repo remote before final launch cutover so release notes, automation, and operator docs all point to one destination.
+7. Authenticate `gh` before any private workflow/log inspection or release push that depends on GitHub CLI.
 
 ## Current Launch Blockers
 
 1. `gh` is not authenticated on this host, so private workflow runs/logs cannot be inspected here.
 2. The permanent GitHub destination for `CERTAHEALTH` is still unresolved between public `CERTASURV.git` and dedicated `certahealth.git`.
+3. `WV_COURTHOUSE_RESEARCHER` still needs an `origin` configured in its local checkout before remote automation can push it.
 
 ## Evidence References
 

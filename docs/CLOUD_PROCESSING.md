@@ -1,6 +1,6 @@
 # Cloud Processing Plan
 
-Last updated: 2026-06-18
+Last updated: 2026-06-18 12:15
 
 ## What Moves To Cloud
 
@@ -49,8 +49,9 @@ The workflows are prepared locally and pushed to GitHub. They run on each pushed
 3. `macrotbc`: private TBC production integration repo, `codex/certasurv-command-center`.
 4. `certasurv-automations`: private Drive/AppScript automation repo, `codex/onboard-everything`.
 5. `certasurv-web-app`: private app/dashboard repo, `codex/land-opportunity-radar-mvp`.
+6. `wv-courthouse-researcher`: private research/support repo, only after the local checkout has an `origin` configured.
 
-The cloud offload runner pushes committed branches every 10 minutes. It intentionally does not auto-stage or auto-commit live work.
+The cloud offload runner pushes committed branches every 10 minutes. It intentionally does not auto-stage or auto-commit live work, and it skips repos that are detached or do not yet have a named branch or remote.
 
 ## Current Control-Repo Signal
 

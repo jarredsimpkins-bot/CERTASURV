@@ -1,6 +1,6 @@
 # Certa Release Ops Readiness
 
-Last updated: 2026-06-18 11:33
+Last updated: 2026-06-18 12:15
 
 ## Launch Snapshot
 
@@ -10,6 +10,7 @@ Last updated: 2026-06-18 11:33
 | Control repo docs | Core launch docs are present in repo and now tracked by workflow required-file validation, including a repo-local launch checklist | Ready |
 | Shared-drive handoff docs | Shared-drive staging and Apps Script deployment references exist outside this repo and remain read-only during release ops | Ready with external dependency |
 | Web app workspace naming | Active local folder is `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP`; legacy `New project2` references were a release risk | Ready after this alignment |
+| Research workspace coverage | Release-control scripts now inventory `WV_COURTHOUSE_RESEARCHER` and surface its remote gap without treating the repo as missing | Ready with remote blocker |
 | GitHub CLI access | `gh` is installed locally but unauthenticated on this host | Blocked |
 | Final control-repo destination | `CERTAHEALTH` still points at public `CERTASURV.git`; planned `certahealth.git` exists | Decision needed |
 
@@ -32,6 +33,7 @@ These references still align on the shared-drive root `G:\Shared drives\CERTASUR
 
 1. Authenticate `gh` on this host with repo and workflow scopes so private workflow runs and logs can be inspected directly.
 2. Decide whether the control repo should keep using public `CERTASURV.git` or switch to the planned dedicated `certahealth.git` remote before launch cutover.
+3. Add the planned `origin` to the local `WV_COURTHOUSE_RESEARCHER` checkout when remote automation for that repo is needed.
 
 ## Non-Blocking Follow-Up
 

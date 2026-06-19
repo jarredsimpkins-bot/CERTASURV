@@ -5,20 +5,15 @@ param(
 $ErrorActionPreference = 'Continue'
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
-$webAppCandidates = @(
-    Join-Path $documents 'CERTASURV_WEB_APP'
-    Join-Path $documents 'New project2'
-)
-$webAppPath = $webAppCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-if (-not $webAppPath) {
-    $webAppPath = $webAppCandidates[0]
-}
+$webAppPath = Join-Path $documents 'CERTASURV_WEB_APP'
+$wvResearchPath = Join-Path $documents 'WV_COURTHOUSE_RESEARCHER'
 $repos = @(
     @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH' },
     @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD' },
     @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC' },
     @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS' },
-    @{ Name = 'CERTASURV_WEB_APP'; Path = $webAppPath }
+    @{ Name = 'CERTASURV_WEB_APP'; Path = $webAppPath },
+    @{ Name = 'WV_COURTHOUSE_RESEARCHER'; Path = $wvResearchPath }
 )
 
 $rows = foreach ($repo in $repos) {
@@ -29,6 +24,11 @@ $rows = foreach ($repo in $repos) {
     }
 
     $branch = git -C $repo.Path branch --show-current
+    if (-not $branch) {
+        [pscustomobject]@{ Repo = $repo.Name; Status = 'no-branch'; Branch = ''; Remote = ''; Detail = 'Attach the repo to a named branch before cloud offload can push it' }
+        continue
+    }
+
     $remote = git -C $repo.Path remote get-url origin 2>$null
     $dirty = git -C $repo.Path status --porcelain
 
