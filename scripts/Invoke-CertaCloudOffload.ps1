@@ -5,14 +5,7 @@ param(
 $ErrorActionPreference = 'Continue'
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
-$webAppCandidates = @(
-    Join-Path $documents 'CERTASURV_WEB_APP'
-    Join-Path $documents 'New project2'
-)
-$webAppPath = $webAppCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-if (-not $webAppPath) {
-    $webAppPath = $webAppCandidates[0]
-}
+$webAppPath = Join-Path $documents 'CERTASURV_WEB_APP'
 $repos = @(
     @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH' },
     @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD' },
@@ -37,6 +30,17 @@ $rows = foreach ($repo in $repos) {
         continue
     }
 
+    if (-not $branch) {
+        [pscustomobject]@{
+            Repo = $repo.Name
+            Status = 'detached-head'
+            Branch = ''
+            Remote = $remote
+            Detail = 'Skipped push because this repo is on detached HEAD; check out a branch before offload runs.'
+        }
+        continue
+    }
+
     git -C $repo.Path push -u origin $branch
     $pushOk = ($LASTEXITCODE -eq 0)
     [pscustomobject]@{
@@ -57,7 +61,7 @@ if (-not $Quiet) {
     $rows | Format-Table -AutoSize -Wrap
 }
 
-if ($rows.Status -contains 'push-failed') {
+if (($rows.Status -contains 'push-failed') -or ($rows.Status -contains 'detached-head')) {
     exit 1
 }
 

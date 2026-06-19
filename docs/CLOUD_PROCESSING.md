@@ -50,7 +50,7 @@ The workflows are prepared locally and pushed to GitHub. They run on each pushed
 4. `certasurv-automations`: private Drive/AppScript automation repo, `codex/onboard-everything`.
 5. `certasurv-web-app`: private app/dashboard repo, `codex/land-opportunity-radar-mvp`.
 
-The cloud offload runner pushes committed branches every 10 minutes. It intentionally does not auto-stage or auto-commit live work.
+The cloud offload runner pushes committed branches every 10 minutes. It intentionally does not auto-stage or auto-commit live work, and it skips repositories on detached HEAD until they are attached to a named branch.
 
 ## Current Control-Repo Signal
 
