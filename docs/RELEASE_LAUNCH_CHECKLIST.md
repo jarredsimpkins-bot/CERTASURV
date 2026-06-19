@@ -1,6 +1,6 @@
 # Certa Control Repo Launch Checklist
 
-Last updated: 2026-06-18
+Last updated: 2026-06-19
 
 Use this checklist for the control-repo side of a Certa/CertaSurv launch or release handoff. This stays repo-local and should be updated before copying any generated release notes into external systems.
 
@@ -8,30 +8,33 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 
 | Gate | What to confirm | Current state |
 | --- | --- | --- |
-| Workflow green on `main` | Latest public `CertaHealth Control Checks` run for `main` is successful | Verified on June 18, 2026: run `#40`, commit `e0cd20b`, success |
+| Workflow green recently | Latest visible public `CertaHealth Control Checks` runs are successful | Verified on June 19, 2026: runs `#69`, `#68`, and `#67` all show success on the public workflow page |
 | Docs present | Release readiness, connection matrix, git situation, cloud processing, and this checklist are committed | Required by workflow |
 | PowerShell syntax clean | All tracked `.ps1` files parse without errors | Required by workflow |
 | Workspace path aligned | Operator-facing web app path uses `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` | Verified in current repo docs/scripts |
 | Shared-drive handoff references intact | External staging/deploy references still point to `G:\Shared drives\CERTASURV_PROJECT DRIVE` | Verified read-only on June 17, 2026 |
-| GitHub access for private repos | `gh` is authenticated with repo/workflow access on the host used for release operations | Blocked on this host |
+| GitHub access for private repos | `gh` is authenticated with repo/workflow access on the host used for release operations | Blocked on this host; `gh auth status` reports no logged-in hosts |
 | Control repo destination decided | Final answer exists for `CERTASURV.git` vs `certahealth.git` | Decision still open |
+| Stack blockers reduced | `MACROTBC` and `WV_COURTHOUSE_RESEARCHER` are no longer blocking launch | Still blocked |
 
 ## Operator Sequence
 
 1. Run `git status --short` in `CERTAHEALTH` and confirm only intended release-ops edits are present.
 2. Run `pwsh -File .\scripts\Test-CertaProjectProvisioning.ps1 -Detailed` and record any missing tools or mounts.
-3. Confirm the latest public control workflow run on `main` is green before handing off notes or switching remotes.
+3. Confirm the latest visible public control workflow run is green before handing off notes or switching remotes, and note whether the evidence came from public page access or authenticated `gh`.
 4. Verify external handoff references remain read-only unless copying from committed repo docs.
 5. Decide the permanent control-repo remote before final launch cutover so release notes, automation, and operator docs all point to one destination.
 6. Authenticate `gh` before any private workflow/log inspection or release push that depends on GitHub CLI.
+7. Do not treat `CERTARD` or `CERTASURV_WEB_APP` as launch blockers if they remain clean locally; focus release engineering effort on `MACROTBC` and `WV_COURTHOUSE_RESEARCHER`.
 
 ## Current Launch Blockers
 
 1. `gh` is not authenticated on this host, so private workflow runs/logs cannot be inspected here.
 2. The permanent GitHub destination for `CERTAHEALTH` is still unresolved between public `CERTASURV.git` and dedicated `certahealth.git`.
+3. `MACROTBC` and `WV_COURTHOUSE_RESEARCHER` remain the substantive full-stack release blockers.
 
 ## Evidence References
 
 - Public workflow: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/workflows/certahealth-control-checks.yml`
 - Latest verified `main` run: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/runs/27769753846`
-- Latest verified overall run during this pass: `#40` on branch `main`, success on June 18, 2026; prior feature-branch run `#39` also succeeded
+- Latest visible overall runs during this pass: `#69` (`3aeb98f`), `#68` (`ff261a7`), and `#67` (`f6a0a19`), all successful on June 19, 2026
