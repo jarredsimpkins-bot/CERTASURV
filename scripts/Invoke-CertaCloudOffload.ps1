@@ -4,6 +4,21 @@ param(
 
 $ErrorActionPreference = 'Continue'
 
+function Test-GitRemoteConfigured {
+    param(
+        [Parameter(Mandatory)]
+        [string]$RepoPath
+    )
+
+    $null = git -C $RepoPath rev-parse --git-dir 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        return $false
+    }
+
+    $remotes = @(git -C $RepoPath remote 2>$null)
+    return $LASTEXITCODE -eq 0 -and ($remotes -contains 'origin')
+}
+
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
 $webAppCandidates = @(
     Join-Path $documents 'CERTASURV_WEB_APP'
@@ -22,20 +37,27 @@ $repos = @(
 )
 
 $rows = foreach ($repo in $repos) {
-    $gitDir = Join-Path $repo.Path '.git'
-    if (-not (Test-Path -LiteralPath $gitDir)) {
+    $null = git -C $repo.Path rev-parse --git-dir 2>$null
+    if ($LASTEXITCODE -ne 0) {
         [pscustomobject]@{ Repo = $repo.Name; Status = 'missing-git'; Branch = ''; Remote = ''; Detail = $repo.Path }
         continue
     }
 
-    $branch = git -C $repo.Path branch --show-current
-    $remote = git -C $repo.Path remote get-url origin 2>$null
+    $branch = (git -C $repo.Path branch --show-current 2>$null | Select-Object -First 1).Trim()
+    $hasRemote = Test-GitRemoteConfigured -RepoPath $repo.Path
     $dirty = git -C $repo.Path status --porcelain
 
-    if (-not $remote) {
+    if (-not $branch) {
+        [pscustomobject]@{ Repo = $repo.Name; Status = 'detached-head'; Branch = ''; Remote = ''; Detail = 'Checkout or create a branch before cloud offload pushes this repo' }
+        continue
+    }
+
+    if (-not $hasRemote) {
         [pscustomobject]@{ Repo = $repo.Name; Status = 'no-remote'; Branch = $branch; Remote = ''; Detail = 'Run Set-CertaGitRemotes.ps1 -Apply after repositories exist' }
         continue
     }
+
+    $remote = git -C $repo.Path remote get-url origin 2>$null
 
     git -C $repo.Path push -u origin $branch
     $pushOk = ($LASTEXITCODE -eq 0)

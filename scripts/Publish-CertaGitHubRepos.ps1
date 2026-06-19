@@ -1,5 +1,14 @@
 $ErrorActionPreference = 'Stop'
 
+function Get-CurrentBranch {
+    param(
+        [Parameter(Mandatory)]
+        [string]$RepoPath
+    )
+
+    return (git -C $RepoPath branch --show-current 2>$null | Select-Object -First 1).Trim()
+}
+
 function Get-GitHubCredentialToken {
     $inputText = "protocol=https`nhost=github.com`n`n"
     $credText = $inputText | git credential fill
@@ -34,25 +43,21 @@ $repos = @(
         Name = 'certard'
         Description = 'CERTARD project watcher and coordination companion.'
         Path = 'C:\Users\SimpS\OneDrive\Documents\CERTARD'
-        Branch = 'main'
     },
     @{
         Name = 'macrotbc'
         Description = 'CertaSurv TBC macro, command center, and local production integration.'
         Path = 'C:\Users\SimpS\OneDrive\Documents\MACROTBC'
-        Branch = 'codex/certasurv-command-center'
     },
     @{
         Name = 'certasurv-automations'
         Description = 'CertaSurv Google Drive, Apps Script, and operations automation package.'
         Path = 'C:\Users\SimpS\OneDrive\Documents\AUTOMATIONS'
-        Branch = 'codex/onboard-everything'
     },
     @{
         Name = 'certasurv-web-app'
         Description = 'CertaSurv land opportunity radar, parcel, estimate, and dashboard app.'
         Path = $webAppPath
-        Branch = 'codex/land-opportunity-radar-mvp'
     }
 )
 
@@ -87,6 +92,19 @@ $results = foreach ($repo in $repos) {
 
     $remote = "https://github.com/$fullName.git"
     $remotes = git -C $repo.Path remote
+    $branch = Get-CurrentBranch -RepoPath $repo.Path
+
+    if (-not $branch) {
+        [pscustomobject]@{
+            Repo = $fullName
+            Created = $created
+            Branch = ''
+            Pushed = $false
+            Url = "https://github.com/$fullName"
+            Status = 'detached-head'
+        }
+        continue
+    }
 
     if ($remotes -contains 'origin') {
         git -C $repo.Path remote set-url origin $remote
@@ -95,15 +113,16 @@ $results = foreach ($repo in $repos) {
         git -C $repo.Path remote add origin $remote
     }
 
-    git -C $repo.Path push -u origin $repo.Branch
+    git -C $repo.Path push -u origin $branch
     $pushOk = ($LASTEXITCODE -eq 0)
 
     [pscustomobject]@{
         Repo = $fullName
         Created = $created
-        Branch = $repo.Branch
+        Branch = $branch
         Pushed = $pushOk
         Url = "https://github.com/$fullName"
+        Status = if ($pushOk) { 'pushed' } else { 'push-failed' }
     }
 }
 

@@ -4,6 +4,21 @@ param(
 
 $ErrorActionPreference = 'Continue'
 
+function Test-GitRemoteConfigured {
+    param(
+        [Parameter(Mandatory)]
+        [string]$RepoPath
+    )
+
+    $null = git -C $RepoPath rev-parse --git-dir 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        return $false
+    }
+
+    $remotes = @(git -C $RepoPath remote 2>$null)
+    return $LASTEXITCODE -eq 0 -and ($remotes -contains 'origin')
+}
+
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
 $webAppCandidates = @(
     Join-Path $documents 'CERTASURV_WEB_APP'
@@ -70,16 +85,8 @@ $connectionRows = foreach ($connection in $connections) {
 
 $projectRows = foreach ($project in $projects) {
     $exists = Test-Path -LiteralPath $project.Path
-    $gitPath = Join-Path $project.Path '.git'
-    $hasGit = $exists -and (Test-Path -LiteralPath $gitPath)
-    $hasRemote = $false
-
-    if ($hasGit) {
-        $gitConfig = Join-Path $gitPath 'config'
-        if (Test-Path -LiteralPath $gitConfig -PathType Leaf) {
-            $hasRemote = Select-String -LiteralPath $gitConfig -Pattern '^\s*\[remote "' -Quiet -ErrorAction SilentlyContinue
-        }
-    }
+    $hasGit = $exists -and ((git -C $project.Path rev-parse --git-dir 2>$null) -ne $null) -and ($LASTEXITCODE -eq 0)
+    $hasRemote = $hasGit -and (Test-GitRemoteConfigured -RepoPath $project.Path)
 
     [pscustomobject]@{
         Area = 'Project'
