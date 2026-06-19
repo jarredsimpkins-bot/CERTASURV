@@ -1,15 +1,19 @@
 # Certa Release Ops Readiness
 
-Last updated: 2026-06-18 11:33
+Last updated: 2026-06-19 12:05
 
 ## Launch Snapshot
 
 | Area | Current Signal | Readiness |
 | --- | --- | --- |
-| Control repo workflow | Public API now shows latest overall run `#40` on June 18, 2026 succeeded on `main`; the preceding feature-branch run `#39` also succeeded | Ready |
+| Control repo workflow | Public API now shows latest overall run `#68` on June 19, 2026 succeeded; latest `main` run remains green as well | Ready |
 | Control repo docs | Core launch docs are present in repo and now tracked by workflow required-file validation, including a repo-local launch checklist | Ready |
 | Shared-drive handoff docs | Shared-drive staging and Apps Script deployment references exist outside this repo and remain read-only during release ops | Ready with external dependency |
 | Web app workspace naming | Active local folder is `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP`; legacy `New project2` references were a release risk | Ready after this alignment |
+| CERTARD release posture | Branch matches upstream; only a local liaison-brief doc edit is present | Ready with push/review timing |
+| CERTASURV_WEB_APP release posture | Branch matches upstream and no remote blocker is present | Ready with push/review timing |
+| MACROTBC release posture | Branch matches upstream but substantive tracked and untracked local release work is still open | Blocked |
+| WV_COURTHOUSE_RESEARCHER release posture | Local branch has no upstream or `origin`, and multiple setup docs still reference legacy `New project` paths | Blocked |
 | GitHub CLI access | `gh` is installed locally but unauthenticated on this host | Blocked |
 | Final control-repo destination | `CERTAHEALTH` still points at public `CERTASURV.git`; planned `certahealth.git` exists | Decision needed |
 
@@ -24,16 +28,27 @@ These references still align on the shared-drive root `G:\Shared drives\CERTASUR
 ## Current Verified Workflow Signal
 
 - Workflow file: `.github/workflows/certahealth-control-checks.yml`
-- Latest verified overall public run: `#40`, branch `main`, commit `e0cd20b`, created `2026-06-18T15:17:34Z`, conclusion `success`
-- Latest verified prior feature-branch run: `#39`, branch `codex/adaptive-worktree-launch-hardening-20260618`, commit `422cbb5`, created `2026-06-18T14:19:31Z`, conclusion `success`
-- Verified job summary for run `#40`: single job `powershell-and-docs` succeeded, including `Validate PowerShell syntax` and `Verify required control files`
+- Latest verified overall public run: `#68`, branch `codex/release-ops-readiness-20260619-0955`, commit `ff261a7`, created `2026-06-19T13:37:55Z`, conclusion `success`
+- Latest verified `main` public run: `#40`, branch `main`, commit `e0cd20b`, created `2026-06-18T15:17:34Z`, conclusion `success`
+- Verified job summary for the latest visible runs: single job `powershell-and-docs` succeeded, including `Validate PowerShell syntax` and `Verify required control files`
+
+## Current Cross-Repo Signal
+
+- `CERTARD`: branch `codex/certasurv-unified-forward`, upstream `origin/codex/certasurv-unified-forward`, ahead/behind `0/0`, local diff limited to `drive/CERTASURV_LIAISON_BRIEF.md`
+- `CERTASURV_WEB_APP`: branch `codex/certasurv-unified-forward`, upstream `origin/codex/certasurv-unified-forward`, ahead/behind `0/0`
+- `MACROTBC`: branch `codex/certasurv-unified-forward`, upstream `origin/codex/certasurv-unified-forward`, ahead/behind `0/0`, substantive local changes remain across macro, drive-map, and sync files plus new parser-hotkey artifacts
+- `WV_COURTHOUSE_RESEARCHER`: branch `codex/wv-courthouse-researcher-cabell-lessons`, no upstream configured, tracked release/runbook/tooling changes remain local only
+- WV setup/install docs still reference legacy `C:\Users\SimpS\OneDrive\Documents\New project` paths in multiple files, including `docs\CertaSurv_Release1_Setup_Instructions.md`, `docs\release1_appsheet_drive_setup.md`, `docs\release1_click_by_click_setup.md`, and `docs\release1_simple_execute.md`
 
 ## Launch Blockers
 
 1. Authenticate `gh` on this host with repo and workflow scopes so private workflow runs and logs can be inspected directly.
 2. Decide whether the control repo should keep using public `CERTASURV.git` or switch to the planned dedicated `certahealth.git` remote before launch cutover.
+3. Finish and review the substantive `MACROTBC` local release work before treating the TBC integration lane as push-ready.
+4. Decide and configure the GitHub remote/upstream for `WV_COURTHOUSE_RESEARCHER`, then push the current branch so launch review can happen against a real remote.
+5. Update the WV repo's release/setup docs off legacy `New project` paths before copying any installer or runbook instructions into external handoff systems.
 
 ## Non-Blocking Follow-Up
 
-- Normalize any remaining operator-facing references to `CERTASURV_WEB_APP` across sibling repos so release handoff docs all use the same workspace name.
+- Keep `CERTARD` and `CERTASURV_WEB_APP` on the push/review queue once their local doc changes are either committed or intentionally deferred.
 - Keep using the public REST API as a fallback for public workflow visibility when `gh` remains unauthenticated on this host.
