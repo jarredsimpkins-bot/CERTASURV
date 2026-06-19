@@ -47,3 +47,15 @@ jobs:
               throw "Missing required file: $path"
             }
           }
+
+      - name: Reject legacy web app workspace fallback in scripts
+        shell: pwsh
+        run: |
+          $matches = Get-ChildItem scripts -Filter *.ps1 -Recurse |
+            Select-String -Pattern 'New project2'
+          if ($matches) {
+            $matches | ForEach-Object {
+              Write-Error "Legacy workspace reference found: $($_.Path):$($_.LineNumber)"
+            }
+            exit 1
+          }
