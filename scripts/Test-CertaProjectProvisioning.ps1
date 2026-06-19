@@ -19,6 +19,7 @@ $projects = @(
     @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC'; Type = 'tbc-integration' },
     @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS'; Type = 'automation' },
     @{ Name = 'CERTASURV_WEB_APP'; Path = $webAppPath; Type = 'local-app' },
+    @{ Name = 'WV_COURTHOUSE_RESEARCHER'; Path = Join-Path $documents 'WV_COURTHOUSE_RESEARCHER'; Type = 'county-research' },
     @{ Name = 'TBC Live Macros'; Path = Join-Path $documents 'Trimble Business Center\MacroCommands3\CertaSurv'; Type = 'tbc-live' },
     @{ Name = 'Feature Definition Manager'; Path = Join-Path $documents 'Feature Definition Manager'; Type = 'cad-standards' },
     @{ Name = 'TBC Templates Matrix'; Path = 'C:\ProgramData\Trimble\CONVERSE_FULL_DRAFTING_MATRIX_FROM_PAPERSPACE'; Type = 'tbc-templates' }
@@ -57,6 +58,32 @@ $toolRows = foreach ($tool in $toolNames) {
         Status = if ($cmd) { 'OK' } else { 'MISSING' }
         Detail = if ($cmd.Source) { $cmd.Source } elseif ($cmd.FullName) { $cmd.FullName } else { 'Not on PATH' }
     }
+}
+
+$ghAuthOutput = @()
+$ghAuthStatus = 'MISSING'
+$ghCommand = Get-Command gh -ErrorAction SilentlyContinue
+if (-not $ghCommand -and (Test-Path 'C:\Program Files\GitHub CLI\gh.exe')) {
+    $ghCommand = Get-Item 'C:\Program Files\GitHub CLI\gh.exe'
+}
+if ($ghCommand) {
+    $ghAuthOutput = & $ghCommand.Source auth status 2>&1
+    $ghAuthStatus = if ($LASTEXITCODE -eq 0) { 'OK' } else { 'AUTH_REQUIRED' }
+}
+$ghAuthDetail = if ($ghAuthOutput) {
+    ($ghAuthOutput | Select-Object -First 1).ToString().Trim()
+}
+elseif ($ghCommand) {
+    'GitHub CLI available'
+}
+else {
+    'GitHub CLI not installed'
+}
+$toolRows += [pscustomobject]@{
+    Area = 'Tool'
+    Name = 'gh-auth'
+    Status = $ghAuthStatus
+    Detail = $ghAuthDetail
 }
 
 $connectionRows = foreach ($connection in $connections) {
