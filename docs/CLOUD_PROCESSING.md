@@ -54,7 +54,7 @@ The cloud offload runner pushes committed branches every 10 minutes. It intentio
 
 ## Current Control-Repo Signal
 
-- Public control-repo workflow `CertaHealth Control Checks` is visible on GitHub and the latest public run observed on June 18, 2026 was successful.
-- The latest visible overall run is `#40` on branch `main`, commit `e0cd20b`, success.
-- The latest visible prior feature-branch run is `#39` on branch `codex/adaptive-worktree-launch-hardening-20260618`, commit `422cbb5`, success.
-- Private-repo workflow outputs remain unavailable from this host until `gh` authentication is restored.
+- Public control-repo workflow `CertaHealth Control Checks` is visible on GitHub and the latest public run observed at `2026-06-19T01:38:03Z` was successful.
+- The latest visible overall run is `#59` on branch `codex/remove-legacy-webapp-fallback-20260618`, commit `e053ee9`, success.
+- The latest visible `main` run is `#41` on branch `main`, commit `6f40b64`, success.
+- Private-repo workflow outputs remain unavailable from this host until `gh` authentication is restored, and `WV_COURTHOUSE_RESEARCHER` still cannot offload because it has no `origin` remote yet.

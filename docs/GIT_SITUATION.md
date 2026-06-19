@@ -1,6 +1,6 @@
 # Git Situation
 
-Last updated: 2026-06-17
+Last updated: 2026-06-18 21:45 EDT
 
 ## Fixed Locally
 
@@ -18,6 +18,7 @@ Last updated: 2026-06-17
 | MACROTBC | `C:\Users\SimpS\OneDrive\Documents\MACROTBC` | `origin` -> `https://github.com/jarredsimpkins-bot/macrotbc.git` |
 | AUTOMATIONS | `C:\Users\SimpS\OneDrive\Documents\AUTOMATIONS` | `origin` -> `https://github.com/jarredsimpkins-bot/certasurv-automations.git` |
 | CERTASURV_WEB_APP | `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` | `origin` -> `https://github.com/jarredsimpkins-bot/certasurv-web-app.git` |
+| WV_COURTHOUSE_RESEARCHER | `C:\Users\SimpS\OneDrive\Documents\WV_COURTHOUSE_RESEARCHER` | No `origin` remote configured |
 
 ## Planned Remote Names
 
@@ -28,11 +29,15 @@ Last updated: 2026-06-17
 | MACROTBC | `https://github.com/jarredsimpkins-bot/macrotbc.git` |
 | AUTOMATIONS | `https://github.com/jarredsimpkins-bot/certasurv-automations.git` |
 | CERTASURV_WEB_APP | `https://github.com/jarredsimpkins-bot/certasurv-web-app.git` |
+| WV_COURTHOUSE_RESEARCHER | `https://github.com/jarredsimpkins-bot/wv-courthouse-researcher.git` |
 
-All planned repositories now exist. `CERTASURV` is public; the remaining launch support repositories are private.
+`CERTASURV` is public. The current launch assumption is that the remaining support repositories stay private, but `WV_COURTHOUSE_RESEARCHER` still needs an upstream target confirmed and connected locally.
 
 ## Current Release-Ops Notes
 
 - `CERTAHEALTH` currently pushes to public `CERTASURV.git`, but the planned dedicated target remains `certahealth.git`.
+- `CERTARD` and `CERTASURV_WEB_APP` are both clean on branch `codex/certasurv-unified-forward` and only need push/review timing.
+- `MACROTBC` is on branch `codex/certasurv-unified-forward` with uncommitted tracked edits and untracked files, so it remains a substantive release blocker.
+- `WV_COURTHOUSE_RESEARCHER` is on branch `codex/wv-courthouse-researcher-cabell-lessons` with active edits and no `origin`, so upstream creation/selection is still required.
 - `CERTASURV_WEB_APP` is the active local workspace name; any lingering `New project2` references should be treated as legacy docs only.
-- GitHub CLI is installed locally but was unauthenticated during the June 17, 2026 release-ops pass, so private-repo workflow inspection still requires `gh auth login`.
+- GitHub CLI is installed locally but remains unauthenticated on this host, so private-repo workflow inspection still requires `gh auth login`.
