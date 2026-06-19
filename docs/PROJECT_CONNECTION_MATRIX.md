@@ -1,6 +1,6 @@
 # Certa Project Connection Matrix
 
-Last updated: 2026-06-17 11:30
+Last updated: 2026-06-19 12:05
 
 This file is the working standard for making sure every active Certa/CertaSurv project has both outside connections and in-house production connections.
 
@@ -21,7 +21,7 @@ This file is the working standard for making sure every active Certa/CertaSurv p
 
 | Project | Path | Outside Connections | In-House Connections | Current Status |
 | --- | --- | --- | --- | --- |
-| CERTAHEALTH | `C:\Users\SimpS\OneDrive\Documents\CERTAHEALTH` | `origin` -> `https://github.com/jarredsimpkins-bot/CERTASURV.git`; planned dedicated repo exists as `certahealth.git` | Laptop load manager, project provisioning scripts | Active local control repo; remote-target decision still open |
+| CERTAHEALTH | `C:\Users\SimpS\OneDrive\Documents\CERTAHEALTH` | `origin` -> `https://github.com/jarredsimpkins-bot/CERTASURV.git`; planned dedicated target `certahealth.git` currently returns `repository not found` | Laptop load manager, project provisioning scripts | Active local control repo; remote-target decision still open and dedicated target is not yet provisioned |
 | CERTARD | `C:\Users\SimpS\OneDrive\Documents\CERTARD` | Shared-drive mount helpers; needs Git remote | Project watchlist, staging scripts | Active coordination repo |
 | MACROTBC | `C:\Users\SimpS\OneDrive\Documents\MACROTBC` | AppSheet, Google Drive, command-center manifest; `origin` -> `https://github.com/jarredsimpkins-bot/macrotbc.git` | TBC macros, CAD resources, installers, sync scripts | Active production integration repo |
 | AUTOMATIONS | `C:\Users\SimpS\OneDrive\Documents\AUTOMATIONS` | Google Apps Script, Drive API, test shared drive automation; `origin` -> `https://github.com/jarredsimpkins-bot/certasurv-automations.git` | Reproducible automation package | Active automation repo |
@@ -35,9 +35,10 @@ This file is the working standard for making sure every active Certa/CertaSurv p
 | Gap | Impact | Fix Path |
 | --- | --- | --- |
 | Shared drive mounted and staged | Outside system-of-record folders are now available locally | Latest stage log: `G:\Shared drives\CERTASURV_PROJECT DRIVE\00_CERTASURV_COMMAND_CENTER\08_REPORTS_EXPORTS\drive-stage-log-20260522-194113.txt` |
-| CERTAHEALTH remote target is unresolved | Release notes and automation still need a final answer on whether the control repo stays on public `CERTASURV.git` or moves to `certahealth.git` | Decide the permanent GitHub destination before final launch cutover |
+| CERTAHEALTH remote target is unresolved and dedicated target is absent | Release notes and automation still need a final answer on whether the control repo stays on public `CERTASURV.git` or moves to `certahealth.git`; the dedicated repository URL is not live today | Decide the permanent GitHub destination and create `certahealth.git` before final launch cutover if that path is chosen |
 | GitHub CLI is installed but unauthenticated on this host | `gh`-driven release pushes and private workflow/log inspection are blocked until auth is restored | Run `gh auth login` with repo and workflow scopes |
 | `npm` is available on disk but can be missing from PATH in some shells | Node web tooling may work inconsistently outside the explicit Node install path | Normalize host PATH or install/reinstall Node.js LTS when the machine is not under production load |
+| `MACROTBC` and `WV_COURTHOUSE_RESEARCHER` remain dirty implementation lanes | Stack launch readiness is now constrained more by those repos than by `CERTARD` or `CERTASURV_WEB_APP` | Finish, review, or explicitly defer those repo changes before launch cutover |
 
 ## Operating Rule
 
