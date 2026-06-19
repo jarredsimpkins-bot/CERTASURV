@@ -53,6 +53,12 @@ $repos = @(
         Description = 'CertaSurv land opportunity radar, parcel, estimate, and dashboard app.'
         Path = $webAppPath
         Branch = 'codex/land-opportunity-radar-mvp'
+    },
+    @{
+        Name = 'wv-courthouse-researcher'
+        Description = 'West Virginia courthouse research workflows, runbooks, and release prep package.'
+        Path = 'C:\Users\SimpS\OneDrive\Documents\WV_COURTHOUSE_RESEARCHER'
+        Branch = 'codex/wv-courthouse-researcher-cabell-lessons'
     }
 )
 
@@ -87,6 +93,21 @@ $results = foreach ($repo in $repos) {
 
     $remote = "https://github.com/$fullName.git"
     $remotes = git -C $repo.Path remote
+    $branch = git -C $repo.Path branch --show-current
+    if (-not $branch) {
+        $branch = $repo.Branch
+    }
+
+    if (-not $branch) {
+        [pscustomobject]@{
+            Repo = $fullName
+            Created = $created
+            Branch = ''
+            Pushed = $false
+            Url = "https://github.com/$fullName"
+        }
+        continue
+    }
 
     if ($remotes -contains 'origin') {
         git -C $repo.Path remote set-url origin $remote
@@ -95,13 +116,13 @@ $results = foreach ($repo in $repos) {
         git -C $repo.Path remote add origin $remote
     }
 
-    git -C $repo.Path push -u origin $repo.Branch
+    git -C $repo.Path push -u origin $branch
     $pushOk = ($LASTEXITCODE -eq 0)
 
     [pscustomobject]@{
         Repo = $fullName
         Created = $created
-        Branch = $repo.Branch
+        Branch = $branch
         Pushed = $pushOk
         Url = "https://github.com/$fullName"
     }

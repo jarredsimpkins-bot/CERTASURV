@@ -19,6 +19,7 @@ $projects = @(
     @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC'; Type = 'tbc-integration' },
     @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS'; Type = 'automation' },
     @{ Name = 'CERTASURV_WEB_APP'; Path = $webAppPath; Type = 'local-app' },
+    @{ Name = 'WV_COURTHOUSE_RESEARCHER'; Path = Join-Path $documents 'WV_COURTHOUSE_RESEARCHER'; Type = 'research' },
     @{ Name = 'TBC Live Macros'; Path = Join-Path $documents 'Trimble Business Center\MacroCommands3\CertaSurv'; Type = 'tbc-live' },
     @{ Name = 'Feature Definition Manager'; Path = Join-Path $documents 'Feature Definition Manager'; Type = 'cad-standards' },
     @{ Name = 'TBC Templates Matrix'; Path = 'C:\ProgramData\Trimble\CONVERSE_FULL_DRAFTING_MATRIX_FROM_PAPERSPACE'; Type = 'tbc-templates' }
@@ -59,6 +60,21 @@ $toolRows = foreach ($tool in $toolNames) {
     }
 }
 
+$ghAuth = $false
+if (($toolRows | Where-Object { $_.Name -eq 'gh' -and $_.Status -eq 'OK' })) {
+    & 'C:\Program Files\GitHub CLI\gh.exe' auth status *> $null
+    $ghAuth = ($LASTEXITCODE -eq 0)
+}
+
+$authRows = @(
+    [pscustomobject]@{
+        Area = 'Auth'
+        Name = 'gh-auth'
+        Status = if ($ghAuth) { 'OK' } else { 'AUTH_REQUIRED' }
+        Detail = 'GitHub CLI authentication for private repo and workflow access'
+    }
+)
+
 $connectionRows = foreach ($connection in $connections) {
     [pscustomobject]@{
         Area = 'Connection'
@@ -70,15 +86,12 @@ $connectionRows = foreach ($connection in $connections) {
 
 $projectRows = foreach ($project in $projects) {
     $exists = Test-Path -LiteralPath $project.Path
-    $gitPath = Join-Path $project.Path '.git'
-    $hasGit = $exists -and (Test-Path -LiteralPath $gitPath)
+    $hasGit = $exists -and (Test-Path -LiteralPath (Join-Path $project.Path '.git'))
     $hasRemote = $false
 
     if ($hasGit) {
-        $gitConfig = Join-Path $gitPath 'config'
-        if (Test-Path -LiteralPath $gitConfig -PathType Leaf) {
-            $hasRemote = Select-String -LiteralPath $gitConfig -Pattern '^\s*\[remote "' -Quiet -ErrorAction SilentlyContinue
-        }
+        $remotes = @(git -C $project.Path remote 2>$null)
+        $hasRemote = ($remotes.Count -gt 0)
     }
 
     [pscustomobject]@{
@@ -89,7 +102,7 @@ $projectRows = foreach ($project in $projects) {
     }
 }
 
-$allRows = @($toolRows) + @($connectionRows) + @($projectRows)
+$allRows = @($toolRows) + @($authRows) + @($connectionRows) + @($projectRows)
 $allRows | Sort-Object Area,Name | Format-Table -AutoSize -Wrap
 
 $missing = $allRows | Where-Object { $_.Status -ne 'OK' }
