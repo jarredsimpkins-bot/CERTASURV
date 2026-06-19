@@ -47,3 +47,24 @@ jobs:
               throw "Missing required file: $path"
             }
           }
+
+      - name: Guard launch doc remote alignment
+        shell: pwsh
+        run: |
+          $matrixPath = 'docs/PROJECT_CONNECTION_MATRIX.md'
+          $gitSituationPath = 'docs/GIT_SITUATION.md'
+          $matrix = Get-Content -Raw $matrixPath
+          $gitSituation = Get-Content -Raw $gitSituationPath
+
+          if ($matrix -match 'CERTARD.+needs Git remote') {
+            throw "Stale CERTARD remote status found in $matrixPath"
+          }
+
+          $expectedCertardRemote = 'https://github.com/jarredsimpkins-bot/certard.git'
+          if ($matrix -notmatch [regex]::Escape($expectedCertardRemote)) {
+            throw "Missing CERTARD origin reference in $matrixPath"
+          }
+
+          if ($gitSituation -notmatch [regex]::Escape($expectedCertardRemote)) {
+            throw "Missing CERTARD origin reference in $gitSituationPath"
+          }
