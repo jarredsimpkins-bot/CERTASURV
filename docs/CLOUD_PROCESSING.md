@@ -1,6 +1,6 @@
 # Cloud Processing Plan
 
-Last updated: 2026-06-18
+Last updated: 2026-06-20
 
 ## What Moves To Cloud
 
@@ -33,6 +33,7 @@ The subscription is now used in parallel launch lanes:
 | Certa launch supervisor | Hourly | Cross-repo launch readiness review |
 | Certa launch implementer | Hourly | Safe repo-local launch fixes across the stack |
 | MACROTBC implementation worker | Hourly | TBC integration hardening that does not require live TBC |
+| WV courthouse researcher worker | Hourly | County-records runbook, remote readiness, and basemap workflow hardening |
 | Drive automation implementation worker | Hourly | Apps Script, registry, and Drive automation hardening |
 | Web app implementation worker | Hourly | App/dashboard tests, package, and CI readiness |
 | Certa release ops worker | Hourly | Release docs, runbooks, workflow/handoff readiness |
@@ -47,14 +48,16 @@ The workflows are prepared locally and pushed to GitHub. They run on each pushed
 1. `CERTASURV` / `CERTAHEALTH`: public control repo, `main`.
 2. `certard`: private coordination repo, `main`.
 3. `macrotbc`: private TBC production integration repo, `codex/certasurv-command-center`.
-4. `certasurv-automations`: private Drive/AppScript automation repo, `codex/onboard-everything`.
-5. `certasurv-web-app`: private app/dashboard repo, `codex/land-opportunity-radar-mvp`.
+4. `wv-courthouse-researcher`: private county-research repo, pending remote setup from `WV_COURTHOUSE_RESEARCHER`.
+5. `certasurv-automations`: private Drive/AppScript automation repo, `codex/onboard-everything`.
+6. `certasurv-web-app`: private app/dashboard repo, `codex/land-opportunity-radar-mvp`.
 
 The cloud offload runner pushes committed branches every 10 minutes. It intentionally does not auto-stage or auto-commit live work.
 
 ## Current Control-Repo Signal
 
-- Public control-repo workflow `CertaHealth Control Checks` is visible on GitHub and the latest public run observed on June 18, 2026 was successful.
-- The latest visible overall run is `#40` on branch `main`, commit `e0cd20b`, success.
-- The latest visible prior feature-branch run is `#39` on branch `codex/adaptive-worktree-launch-hardening-20260618`, commit `422cbb5`, success.
+- Public control-repo workflow `CertaHealth Control Checks` is visible on GitHub and the latest public runs observed on June 20, 2026 were successful.
+- The latest visible overall run is `#103` on branch `codex/release-control-webapp-path-guard-20260620`, commit `da60bcf`, success.
+- The latest visible `main` run is `#41`, commit `6f40b64`, success.
+- Current release focus is no longer broad path cleanup: CERTARD and CERTASURV_WEB_APP mainly need push/review timing, while MACROTBC and WV_COURTHOUSE_RESEARCHER remain the material cloud-release blockers.
 - Private-repo workflow outputs remain unavailable from this host until `gh` authentication is restored.
