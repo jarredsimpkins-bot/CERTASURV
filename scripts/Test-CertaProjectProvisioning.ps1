@@ -4,6 +4,30 @@ param(
 
 $ErrorActionPreference = 'Continue'
 
+function Test-GitWorkTree {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    if (-not (Test-Path -LiteralPath $Path -PathType Container)) {
+        return $false
+    }
+
+    $result = git -C $Path rev-parse --is-inside-work-tree 2>$null
+    return ($LASTEXITCODE -eq 0 -and $result -eq 'true')
+}
+
+function Test-GitOriginRemote {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    git -C $Path remote get-url origin 2>$null | Out-Null
+    return ($LASTEXITCODE -eq 0)
+}
+
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
 $webAppCandidates = @(
     Join-Path $documents 'CERTASURV_WEB_APP'
@@ -39,7 +63,7 @@ $connections = @(
     @{ Name = 'Feature Definition Manager'; Path = Join-Path $documents 'Feature Definition Manager'; Lane = 'in-house-cad' }
 )
 
-$toolNames = @('git', 'gh', 'python', 'node', 'npm', 'powershell')
+$toolNames = @('git', 'gh', 'python', 'node', 'npm', 'powershell', 'pwsh')
 $toolRows = foreach ($tool in $toolNames) {
     $cmd = Get-Command $tool -ErrorAction SilentlyContinue
     if (-not $cmd -and $tool -eq 'gh' -and (Test-Path 'C:\Program Files\GitHub CLI\gh.exe')) {
@@ -70,16 +94,8 @@ $connectionRows = foreach ($connection in $connections) {
 
 $projectRows = foreach ($project in $projects) {
     $exists = Test-Path -LiteralPath $project.Path
-    $gitPath = Join-Path $project.Path '.git'
-    $hasGit = $exists -and (Test-Path -LiteralPath $gitPath)
-    $hasRemote = $false
-
-    if ($hasGit) {
-        $gitConfig = Join-Path $gitPath 'config'
-        if (Test-Path -LiteralPath $gitConfig -PathType Leaf) {
-            $hasRemote = Select-String -LiteralPath $gitConfig -Pattern '^\s*\[remote "' -Quiet -ErrorAction SilentlyContinue
-        }
-    }
+    $hasGit = $exists -and (Test-GitWorkTree -Path $project.Path)
+    $hasRemote = $hasGit -and (Test-GitOriginRemote -Path $project.Path)
 
     [pscustomobject]@{
         Area = 'Project'
