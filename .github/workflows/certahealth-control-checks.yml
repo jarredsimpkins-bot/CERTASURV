@@ -47,3 +47,25 @@ jobs:
               throw "Missing required file: $path"
             }
           }
+
+      - name: Guard canonical workspace paths
+        shell: pwsh
+        run: |
+          $legacyScriptRefs = Get-ChildItem scripts -Recurse -File |
+            Select-String -Pattern 'New project|New project2'
+          if ($legacyScriptRefs) {
+            $legacyScriptRefs | ForEach-Object {
+              Write-Error "Legacy workspace path in script: $($_.Path):$($_.LineNumber)"
+            }
+            exit 1
+          }
+
+          $requiredRefs = @(
+            'CERTASURV_WEB_APP',
+            'WV_COURTHOUSE_RESEARCHER'
+          )
+          foreach ($ref in $requiredRefs) {
+            if (-not (Select-String -Path 'scripts/*.ps1','docs/*.md' -Pattern $ref -Quiet)) {
+              throw "Missing required launch-control reference: $ref"
+            }
+          }
