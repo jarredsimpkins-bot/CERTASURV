@@ -20,39 +20,38 @@ $headers = @{
 }
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
-$webAppCandidates = @(
-    Join-Path $documents 'CERTASURV_WEB_APP'
-    Join-Path $documents 'New project2'
-)
-$webAppPath = $webAppCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-if (-not $webAppPath) {
-    $webAppPath = $webAppCandidates[0]
-}
+$webAppPath = Join-Path $documents 'CERTASURV_WEB_APP'
 
 $repos = @(
     @{
         Name = 'certard'
         Description = 'CERTARD project watcher and coordination companion.'
         Path = 'C:\Users\SimpS\OneDrive\Documents\CERTARD'
-        Branch = 'main'
+        Branch = 'codex/certasurv-unified-forward'
     },
     @{
         Name = 'macrotbc'
         Description = 'CertaSurv TBC macro, command center, and local production integration.'
         Path = 'C:\Users\SimpS\OneDrive\Documents\MACROTBC'
-        Branch = 'codex/certasurv-command-center'
+        Branch = 'codex/certasurv-unified-forward'
+    },
+    @{
+        Name = 'wv-courthouse-researcher'
+        Description = 'CertaSurv courthouse records, assessor, ortho, LiDAR, and field prep research toolkit.'
+        Path = 'C:\Users\SimpS\OneDrive\Documents\WV_COURTHOUSE_RESEARCHER'
+        Branch = 'codex/wv-courthouse-researcher-cabell-lessons'
     },
     @{
         Name = 'certasurv-automations'
         Description = 'CertaSurv Google Drive, Apps Script, and operations automation package.'
         Path = 'C:\Users\SimpS\OneDrive\Documents\AUTOMATIONS'
-        Branch = 'codex/onboard-everything'
+        Branch = 'codex/certasurv-unified-forward'
     },
     @{
         Name = 'certasurv-web-app'
         Description = 'CertaSurv land opportunity radar, parcel, estimate, and dashboard app.'
         Path = $webAppPath
-        Branch = 'codex/land-opportunity-radar-mvp'
+        Branch = 'codex/certasurv-unified-forward'
     }
 )
 

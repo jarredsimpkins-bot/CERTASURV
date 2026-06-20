@@ -1,6 +1,6 @@
 # Cloud Processing Plan
 
-Last updated: 2026-06-18
+Last updated: 2026-06-20
 
 ## What Moves To Cloud
 
@@ -9,6 +9,7 @@ Last updated: 2026-06-18
 | Python app tests for `CERTASURV_WEB_APP` | GitHub Actions | Keeps dependency install and pytest load off the laptop |
 | PowerShell syntax checks for control/TBC scripts | GitHub Actions on Windows runners | Catches broken scripts without touching local production |
 | JSON/config validation for command-center and Drive automation packages | GitHub Actions | Verifies package integrity before handoff |
+| WV courthouse researcher docs/tooling checks | GitHub Actions after remote setup | Moves courthouse research toolkit validation into reviewable CI |
 | Drive file routing and scraper jobs | Google Apps Script triggers | Runs near Drive data instead of depending on laptop uptime |
 | Shared-drive package artifacts | GitHub Actions artifacts after push | Gives downloadable release packages outside OneDrive |
 
@@ -33,6 +34,7 @@ The subscription is now used in parallel launch lanes:
 | Certa launch supervisor | Hourly | Cross-repo launch readiness review |
 | Certa launch implementer | Hourly | Safe repo-local launch fixes across the stack |
 | MACROTBC implementation worker | Hourly | TBC integration hardening that does not require live TBC |
+| WV courthouse researcher worker | Hourly | Courthouse/assessor/ortho-LiDAR research toolkit hardening once remote is configured |
 | Drive automation implementation worker | Hourly | Apps Script, registry, and Drive automation hardening |
 | Web app implementation worker | Hourly | App/dashboard tests, package, and CI readiness |
 | Certa release ops worker | Hourly | Release docs, runbooks, workflow/handoff readiness |
@@ -45,10 +47,11 @@ Cloud workers may commit and push scoped repo-local fixes. They must not touch l
 The workflows are prepared locally and pushed to GitHub. They run on each pushed repo/branch:
 
 1. `CERTASURV` / `CERTAHEALTH`: public control repo, `main`.
-2. `certard`: private coordination repo, `main`.
-3. `macrotbc`: private TBC production integration repo, `codex/certasurv-command-center`.
-4. `certasurv-automations`: private Drive/AppScript automation repo, `codex/onboard-everything`.
-5. `certasurv-web-app`: private app/dashboard repo, `codex/land-opportunity-radar-mvp`.
+2. `certard`: private coordination repo, `codex/certasurv-unified-forward`.
+3. `macrotbc`: private TBC production integration repo, `codex/certasurv-unified-forward`.
+4. `wv-courthouse-researcher`: private courthouse research repo, `codex/wv-courthouse-researcher-cabell-lessons`, pending remote/upstream setup.
+5. `certasurv-automations`: private Drive/AppScript automation repo, `codex/certasurv-unified-forward`.
+6. `certasurv-web-app`: private app/dashboard repo, `codex/certasurv-unified-forward`.
 
 The cloud offload runner pushes committed branches every 10 minutes. It intentionally does not auto-stage or auto-commit live work.
 
