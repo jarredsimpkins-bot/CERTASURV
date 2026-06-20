@@ -22,7 +22,7 @@ Last updated: 2026-06-18
 
 ## Adaptive Rule
 
-`CERTA Laptop Load Manager` now runs in `Auto` mode every minute. If TBC/Trimble is active, local priority shifts to TBC and nonessential browser/Codex/helper work is parked. If TBC is not active, local dev helpers are allowed back to normal priority so Codex/local tooling can take more work. `CERTA Cloud Offload Runner` checks every 5 minutes and pushes already-committed branches once Git remotes and Git Credential Manager access are available.
+`CERTA Laptop Load Manager` now runs in `Auto` mode every minute. If TBC/Trimble is active, local priority shifts to TBC and nonessential browser/Codex/helper work is parked. If TBC is not active, local dev helpers are allowed back to normal priority so Codex/local tooling can take more work. `CERTA Cloud Offload Runner` checks every 5 minutes and pushes already-committed branches once Git remotes and Git Credential Manager access are available. Repos on detached `HEAD` are skipped intentionally and reported as a branch-state fix instead of causing a malformed push attempt.
 
 ## Codex Cloud Utilization
 
@@ -50,7 +50,7 @@ The workflows are prepared locally and pushed to GitHub. They run on each pushed
 4. `certasurv-automations`: private Drive/AppScript automation repo, `codex/onboard-everything`.
 5. `certasurv-web-app`: private app/dashboard repo, `codex/land-opportunity-radar-mvp`.
 
-The cloud offload runner pushes committed branches every 10 minutes. It intentionally does not auto-stage or auto-commit live work.
+The cloud offload runner pushes committed branches every 10 minutes. It intentionally does not auto-stage or auto-commit live work, and it skips detached-`HEAD` repos until they are attached to a named branch.
 
 ## Current Control-Repo Signal
 

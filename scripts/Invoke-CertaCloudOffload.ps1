@@ -5,6 +5,18 @@ param(
 $ErrorActionPreference = 'Continue'
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
+
+function Test-GitRepository {
+    param([string]$Path)
+
+    if (-not (Test-Path -LiteralPath $Path)) {
+        return $false
+    }
+
+    $inside = git -C $Path rev-parse --is-inside-work-tree 2>$null
+    return ($LASTEXITCODE -eq 0 -and $inside -eq 'true')
+}
+
 $webAppCandidates = @(
     Join-Path $documents 'CERTASURV_WEB_APP'
     Join-Path $documents 'New project2'
@@ -22,8 +34,7 @@ $repos = @(
 )
 
 $rows = foreach ($repo in $repos) {
-    $gitDir = Join-Path $repo.Path '.git'
-    if (-not (Test-Path -LiteralPath $gitDir)) {
+    if (-not (Test-GitRepository -Path $repo.Path)) {
         [pscustomobject]@{ Repo = $repo.Name; Status = 'missing-git'; Branch = ''; Remote = ''; Detail = $repo.Path }
         continue
     }
@@ -31,6 +42,11 @@ $rows = foreach ($repo in $repos) {
     $branch = git -C $repo.Path branch --show-current
     $remote = git -C $repo.Path remote get-url origin 2>$null
     $dirty = git -C $repo.Path status --porcelain
+
+    if (-not $branch) {
+        [pscustomobject]@{ Repo = $repo.Name; Status = 'detached-head'; Branch = ''; Remote = $remote; Detail = 'Skipped push because this checkout is not on a branch' }
+        continue
+    }
 
     if (-not $remote) {
         [pscustomobject]@{ Repo = $repo.Name; Status = 'no-remote'; Branch = $branch; Remote = ''; Detail = 'Run Set-CertaGitRemotes.ps1 -Apply after repositories exist' }
@@ -58,6 +74,10 @@ if (-not $Quiet) {
 }
 
 if ($rows.Status -contains 'push-failed') {
+    exit 1
+}
+
+if ($rows.Status -contains 'detached-head') {
     exit 1
 }
 
