@@ -1,6 +1,6 @@
 # Cloud Processing Plan
 
-Last updated: 2026-06-18
+Last updated: 2026-06-20
 
 ## What Moves To Cloud
 
@@ -54,7 +54,14 @@ The cloud offload runner pushes committed branches every 10 minutes. It intentio
 
 ## Current Control-Repo Signal
 
-- Public control-repo workflow `CertaHealth Control Checks` is visible on GitHub and the latest public run observed on June 18, 2026 was successful.
-- The latest visible overall run is `#40` on branch `main`, commit `e0cd20b`, success.
-- The latest visible prior feature-branch run is `#39` on branch `codex/adaptive-worktree-launch-hardening-20260618`, commit `422cbb5`, success.
+- Public control-repo workflow `CertaHealth Control Checks` is visible on GitHub and the latest public run observed on June 20, 2026 was successful.
+- The latest visible overall run is `#94` on branch `codex/release-control-webapp-path-strict-20260620`, commit `7285e83`, success.
+- The preceding visible public runs `#93`, `#92`, `#91`, and `#90` also succeeded on June 20, 2026 feature branches.
+- The current local `origin/main` is `6f40b64`, `docs: refresh control workflow status`.
 - Private-repo workflow outputs remain unavailable from this host until `gh` authentication is restored.
+
+## Current Cloud/Local Split Blockers
+
+- `MACROTBC` and `WV_COURTHOUSE_RESEARCHER` remain the substantive launch blockers because both have active uncommitted release-lane work.
+- `CERTARD` and `CERTASURV_WEB_APP` are comparatively clean launch lanes; they mainly need push/review timing once current doc changes are finalized.
+- Local verification is incomplete while the shared drive is unmounted and Node/npm are absent from PATH. Use cloud runners for repo checks where possible, but restore local paths before final handoff verification.
