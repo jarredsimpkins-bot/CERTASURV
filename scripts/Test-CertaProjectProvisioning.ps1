@@ -19,6 +19,7 @@ $projects = @(
     @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC'; Type = 'tbc-integration' },
     @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS'; Type = 'automation' },
     @{ Name = 'CERTASURV_WEB_APP'; Path = $webAppPath; Type = 'local-app' },
+    @{ Name = 'WV_COURTHOUSE_RESEARCHER'; Path = Join-Path $documents 'WV_COURTHOUSE_RESEARCHER'; Type = 'courthouse-research' },
     @{ Name = 'TBC Live Macros'; Path = Join-Path $documents 'Trimble Business Center\MacroCommands3\CertaSurv'; Type = 'tbc-live' },
     @{ Name = 'Feature Definition Manager'; Path = Join-Path $documents 'Feature Definition Manager'; Type = 'cad-standards' },
     @{ Name = 'TBC Templates Matrix'; Path = 'C:\ProgramData\Trimble\CONVERSE_FULL_DRAFTING_MATRIX_FROM_PAPERSPACE'; Type = 'tbc-templates' }
@@ -51,11 +52,22 @@ $toolRows = foreach ($tool in $toolNames) {
     if (-not $cmd -and $tool -eq 'npm' -and (Test-Path 'C:\Program Files\nodejs\npm.cmd')) {
         $cmd = Get-Item 'C:\Program Files\nodejs\npm.cmd'
     }
+    $status = if ($cmd) { 'OK' } else { 'MISSING' }
+    $detail = if ($cmd.Source) { $cmd.Source } elseif ($cmd.FullName) { $cmd.FullName } else { 'Not on PATH' }
+
+    if ($tool -eq 'gh' -and $cmd) {
+        gh auth status 2>$null
+        if ($LASTEXITCODE -ne 0) {
+            $status = 'UNAUTHENTICATED'
+            $detail = "$detail; run gh auth login with repo and workflow scopes"
+        }
+    }
+
     [pscustomobject]@{
         Area = 'Tool'
         Name = $tool
-        Status = if ($cmd) { 'OK' } else { 'MISSING' }
-        Detail = if ($cmd.Source) { $cmd.Source } elseif ($cmd.FullName) { $cmd.FullName } else { 'Not on PATH' }
+        Status = $status
+        Detail = $detail
     }
 }
 
@@ -72,20 +84,17 @@ $projectRows = foreach ($project in $projects) {
     $exists = Test-Path -LiteralPath $project.Path
     $gitPath = Join-Path $project.Path '.git'
     $hasGit = $exists -and (Test-Path -LiteralPath $gitPath)
-    $hasRemote = $false
+    $remoteUrl = ''
 
     if ($hasGit) {
-        $gitConfig = Join-Path $gitPath 'config'
-        if (Test-Path -LiteralPath $gitConfig -PathType Leaf) {
-            $hasRemote = Select-String -LiteralPath $gitConfig -Pattern '^\s*\[remote "' -Quiet -ErrorAction SilentlyContinue
-        }
+        $remoteUrl = git -C $project.Path remote get-url origin 2>$null
     }
 
     [pscustomobject]@{
         Area = 'Project'
         Name = $project.Name
-        Status = if (-not $exists) { 'MISSING' } elseif ($hasGit -and -not $hasRemote) { 'LOCAL_ONLY' } else { 'OK' }
-        Detail = if ($hasGit) { "git remote: $hasRemote; $($project.Path)" } else { $project.Path }
+        Status = if (-not $exists) { 'MISSING' } elseif ($hasGit -and -not $remoteUrl) { 'LOCAL_ONLY' } else { 'OK' }
+        Detail = if ($hasGit) { "origin: $remoteUrl; $($project.Path)" } else { $project.Path }
     }
 }
 

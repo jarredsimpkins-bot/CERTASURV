@@ -1,6 +1,6 @@
 # Git Situation
 
-Last updated: 2026-06-17
+Last updated: 2026-06-20
 
 ## Fixed Locally
 
@@ -18,6 +18,7 @@ Last updated: 2026-06-17
 | MACROTBC | `C:\Users\SimpS\OneDrive\Documents\MACROTBC` | `origin` -> `https://github.com/jarredsimpkins-bot/macrotbc.git` |
 | AUTOMATIONS | `C:\Users\SimpS\OneDrive\Documents\AUTOMATIONS` | `origin` -> `https://github.com/jarredsimpkins-bot/certasurv-automations.git` |
 | CERTASURV_WEB_APP | `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` | `origin` -> `https://github.com/jarredsimpkins-bot/certasurv-web-app.git` |
+| WV_COURTHOUSE_RESEARCHER | `C:\Users\SimpS\OneDrive\Documents\WV_COURTHOUSE_RESEARCHER` | No `origin` configured |
 
 ## Planned Remote Names
 
@@ -35,4 +36,6 @@ All planned repositories now exist. `CERTASURV` is public; the remaining launch 
 
 - `CERTAHEALTH` currently pushes to public `CERTASURV.git`, but the planned dedicated target remains `certahealth.git`.
 - `CERTASURV_WEB_APP` is the active local workspace name; any lingering `New project2` references should be treated as legacy docs only.
-- GitHub CLI is installed locally but was unauthenticated during the June 17, 2026 release-ops pass, so private-repo workflow inspection still requires `gh auth login`.
+- `CERTARD` and `CERTASURV_WEB_APP` have configured remotes and are in push/review timing rather than core blocker status.
+- `WV_COURTHOUSE_RESEARCHER` needs a remote decision and review of its current uncommitted operational/runbook changes before it can be treated as launch-ready.
+- GitHub CLI is installed locally but was unauthenticated during the June 20, 2026 release-ops pass, so private-repo workflow inspection still requires `gh auth login`.
