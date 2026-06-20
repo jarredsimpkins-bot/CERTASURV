@@ -20,14 +20,7 @@ $headers = @{
 }
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
-$webAppCandidates = @(
-    Join-Path $documents 'CERTASURV_WEB_APP'
-    Join-Path $documents 'New project2'
-)
-$webAppPath = $webAppCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-if (-not $webAppPath) {
-    $webAppPath = $webAppCandidates[0]
-}
+$webAppPath = Join-Path $documents 'CERTASURV_WEB_APP'
 
 $repos = @(
     @{
@@ -55,6 +48,12 @@ $repos = @(
         Branch = 'codex/land-opportunity-radar-mvp'
     }
 )
+
+foreach ($repo in $repos) {
+    if (-not (Test-Path -LiteralPath (Join-Path $repo.Path '.git'))) {
+        throw "Missing local git repository for $($repo.Name): $($repo.Path)"
+    }
+}
 
 $results = foreach ($repo in $repos) {
     $fullName = "jarredsimpkins-bot/$($repo.Name)"
