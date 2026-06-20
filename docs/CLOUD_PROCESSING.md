@@ -1,6 +1,6 @@
 # Cloud Processing Plan
 
-Last updated: 2026-06-18
+Last updated: 2026-06-20
 
 ## What Moves To Cloud
 
@@ -46,7 +46,7 @@ The workflows are prepared locally and pushed to GitHub. They run on each pushed
 
 1. `CERTASURV` / `CERTAHEALTH`: public control repo, `main`.
 2. `certard`: private coordination repo, `main`.
-3. `macrotbc`: private TBC production integration repo, `codex/certasurv-command-center`.
+3. `macrotbc`: private TBC production integration repo, `codex/certasurv-unified-forward`.
 4. `certasurv-automations`: private Drive/AppScript automation repo, `codex/onboard-everything`.
 5. `certasurv-web-app`: private app/dashboard repo, `codex/land-opportunity-radar-mvp`.
 
@@ -55,6 +55,6 @@ The cloud offload runner pushes committed branches every 10 minutes. It intentio
 ## Current Control-Repo Signal
 
 - Public control-repo workflow `CertaHealth Control Checks` is visible on GitHub and the latest public run observed on June 18, 2026 was successful.
-- The latest visible overall run is `#40` on branch `main`, commit `e0cd20b`, success.
-- The latest visible prior feature-branch run is `#39` on branch `codex/adaptive-worktree-launch-hardening-20260618`, commit `422cbb5`, success.
+- The latest visible overall run observed during this pass is `#73` on branch `codex/certard-remote-alignment-20260619`, commit `4bf4f8b`, success on June 19, 2026.
+- The latest visible `main` run is `#41`, commit `6f40b64`, success on June 18, 2026.
 - Private-repo workflow outputs remain unavailable from this host until `gh` authentication is restored.
