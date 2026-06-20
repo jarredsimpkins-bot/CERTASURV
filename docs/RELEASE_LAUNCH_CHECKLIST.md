@@ -8,7 +8,7 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 
 | Gate | What to confirm | Current state |
 | --- | --- | --- |
-| Workflow green | Latest public `CertaHealth Control Checks` run is successful | Verified on June 20, 2026: run `#95`, branch `codex/release-ops-blocker-map-20260620b`, commit `b667b15`, success |
+| Workflow green | Latest public `CertaHealth Control Checks` run is successful | Verified on June 20, 2026: run `#97`, branch `codex/release-control-webapp-path-strict-20260620b`, commit `6b2ed53`, success |
 | Docs present | Release readiness, connection matrix, git situation, cloud processing, and this checklist are committed | Required by workflow |
 | PowerShell syntax clean | All tracked `.ps1` files parse without errors | Required by workflow |
 | Workspace path aligned | Operator-facing web app path uses `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` | Verified in current repo docs/scripts |
@@ -42,5 +42,5 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 ## Evidence References
 
 - Public workflow: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/workflows/certahealth-control-checks.yml`
-- Latest verified run: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/runs/27872786268`
-- Latest verified overall run during this pass: `#95` on branch `codex/release-ops-blocker-map-20260620b`, success on June 20, 2026; recent runs `#91` through `#95` also succeeded
+- Latest verified run: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/runs/27880140644`
+- Latest verified overall run during this pass: `#97` on branch `codex/release-control-webapp-path-strict-20260620b`, success on June 20, 2026; recent runs `#90` through `#97` also succeeded
