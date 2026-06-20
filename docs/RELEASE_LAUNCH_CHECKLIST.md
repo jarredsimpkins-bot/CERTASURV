@@ -20,7 +20,7 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 ## Operator Sequence
 
 1. Run `git status --short` in `CERTAHEALTH` and confirm only intended release-ops edits are present.
-2. Run `pwsh -File .\scripts\Test-CertaProjectProvisioning.ps1 -Detailed` and record any missing tools or mounts.
+2. Run `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Test-CertaProjectProvisioning.ps1 -Detailed` and record any missing tools or mounts.
 3. Confirm the latest public control workflow run on `main` is green before handing off notes or switching remotes.
 4. Verify external handoff references remain read-only unless copying from committed repo docs.
 5. Decide the permanent control-repo remote before final launch cutover so release notes, automation, and operator docs all point to one destination.
@@ -40,4 +40,4 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 
 - Public workflow: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/workflows/certahealth-control-checks.yml`
 - Latest verified `main` run: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/runs/27773432493`
-- Latest verified overall run during this pass: `#85` on branch `codex/provisioning-webapp-path-guard-20260620`, success on June 20, 2026; latest verified `main` run `#41` also succeeded
+- Latest verified overall run during this pass: `#86` on branch `codex/release-ops-blocker-map-20260620`, success on June 20, 2026; latest verified `main` run `#41` also succeeded
