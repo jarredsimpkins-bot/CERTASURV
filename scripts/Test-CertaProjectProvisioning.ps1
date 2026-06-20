@@ -1,17 +1,15 @@
 param(
-    [switch]$Detailed
+    [switch]$Detailed,
+    [switch]$AllowLegacyWebAppPath
 )
 
 $ErrorActionPreference = 'Continue'
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
-$webAppCandidates = @(
-    Join-Path $documents 'CERTASURV_WEB_APP'
-    Join-Path $documents 'New project2'
-)
-$webAppPath = $webAppCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-if (-not $webAppPath) {
-    $webAppPath = $webAppCandidates[0]
+$webAppPath = Join-Path $documents 'CERTASURV_WEB_APP'
+$legacyWebAppPath = Join-Path $documents 'New project2'
+if ((-not (Test-Path -LiteralPath $webAppPath)) -and (Test-Path -LiteralPath $legacyWebAppPath)) {
+    $webAppPath = $legacyWebAppPath
 }
 $projects = @(
     @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH'; Type = 'control' },
@@ -70,6 +68,7 @@ $connectionRows = foreach ($connection in $connections) {
 
 $projectRows = foreach ($project in $projects) {
     $exists = Test-Path -LiteralPath $project.Path
+    $usesLegacyWebAppPath = $project.Name -eq 'CERTASURV_WEB_APP' -and $project.Path -eq $legacyWebAppPath
     $gitPath = Join-Path $project.Path '.git'
     $hasGit = $exists -and (Test-Path -LiteralPath $gitPath)
     $hasRemote = $false
@@ -84,7 +83,7 @@ $projectRows = foreach ($project in $projects) {
     [pscustomobject]@{
         Area = 'Project'
         Name = $project.Name
-        Status = if (-not $exists) { 'MISSING' } elseif ($hasGit -and -not $hasRemote) { 'LOCAL_ONLY' } else { 'OK' }
+        Status = if (-not $exists) { 'MISSING' } elseif ($usesLegacyWebAppPath -and -not $AllowLegacyWebAppPath) { 'LEGACY_PATH' } elseif ($hasGit -and -not $hasRemote) { 'LOCAL_ONLY' } else { 'OK' }
         Detail = if ($hasGit) { "git remote: $hasRemote; $($project.Path)" } else { $project.Path }
     }
 }
