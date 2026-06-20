@@ -59,6 +59,30 @@ $toolRows = foreach ($tool in $toolNames) {
     }
 }
 
+function Test-GitRepository {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    if (-not (Test-Path -LiteralPath $Path -PathType Container)) {
+        return $false
+    }
+
+    $gitDir = git -C $Path rev-parse --git-dir 2>$null
+    return ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($gitDir))
+}
+
+function Test-GitOriginRemote {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    $remote = git -C $Path remote get-url origin 2>$null
+    return ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($remote))
+}
+
 $connectionRows = foreach ($connection in $connections) {
     [pscustomobject]@{
         Area = 'Connection'
@@ -70,15 +94,11 @@ $connectionRows = foreach ($connection in $connections) {
 
 $projectRows = foreach ($project in $projects) {
     $exists = Test-Path -LiteralPath $project.Path
-    $gitPath = Join-Path $project.Path '.git'
-    $hasGit = $exists -and (Test-Path -LiteralPath $gitPath)
+    $hasGit = $exists -and (Test-GitRepository -Path $project.Path)
     $hasRemote = $false
 
     if ($hasGit) {
-        $gitConfig = Join-Path $gitPath 'config'
-        if (Test-Path -LiteralPath $gitConfig -PathType Leaf) {
-            $hasRemote = Select-String -LiteralPath $gitConfig -Pattern '^\s*\[remote "' -Quiet -ErrorAction SilentlyContinue
-        }
+        $hasRemote = Test-GitOriginRemote -Path $project.Path
     }
 
     [pscustomobject]@{

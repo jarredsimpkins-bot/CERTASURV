@@ -1,6 +1,6 @@
 # Certa Control Repo Launch Checklist
 
-Last updated: 2026-06-18
+Last updated: 2026-06-20
 
 Use this checklist for the control-repo side of a Certa/CertaSurv launch or release handoff. This stays repo-local and should be updated before copying any generated release notes into external systems.
 
@@ -8,11 +8,13 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 
 | Gate | What to confirm | Current state |
 | --- | --- | --- |
-| Workflow green on `main` | Latest public `CertaHealth Control Checks` run for `main` is successful | Verified on June 18, 2026: run `#40`, commit `e0cd20b`, success |
+| Workflow green on `main` | Latest public `CertaHealth Control Checks` run for `main` is successful | Verified on June 20, 2026: latest `main` run `#41`, commit `6f40b64`, success |
 | Docs present | Release readiness, connection matrix, git situation, cloud processing, and this checklist are committed | Required by workflow |
 | PowerShell syntax clean | All tracked `.ps1` files parse without errors | Required by workflow |
+| Provisioning check is worktree-safe | Git remotes are detected through `git -C <path>` instead of direct `.git/config` inspection | Verified locally on June 20, 2026 |
 | Workspace path aligned | Operator-facing web app path uses `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` | Verified in current repo docs/scripts |
-| Shared-drive handoff references intact | External staging/deploy references still point to `G:\Shared drives\CERTASURV_PROJECT DRIVE` | Verified read-only on June 17, 2026 |
+| Shared-drive handoff references intact | External staging/deploy references still point to `G:\Shared drives\CERTASURV_PROJECT DRIVE` | Blocked locally until `G:` shared drive is mounted |
+| Node/npm available for app-adjacent checks | Local shell can run Node/npm when release control calls app tooling | Blocked on this host; not on `PATH` |
 | GitHub access for private repos | `gh` is authenticated with repo/workflow access on the host used for release operations | Blocked on this host |
 | Control repo destination decided | Final answer exists for `CERTASURV.git` vs `certahealth.git` | Decision still open |
 
@@ -27,11 +29,13 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 
 ## Current Launch Blockers
 
-1. `gh` is not authenticated on this host, so private workflow runs/logs cannot be inspected here.
-2. The permanent GitHub destination for `CERTAHEALTH` is still unresolved between public `CERTASURV.git` and dedicated `certahealth.git`.
+1. `G:\Shared drives\CERTASURV_PROJECT DRIVE` is not mounted on this host, so shared-drive release checks cannot pass locally.
+2. `node` and `npm` are not on `PATH`, so app-adjacent local checks need PATH repair or a different host.
+3. `gh` is not authenticated on this host, so private workflow runs/logs cannot be inspected here.
+4. The permanent GitHub destination for `CERTAHEALTH` is still unresolved between public `CERTASURV.git` and dedicated `certahealth.git`.
 
 ## Evidence References
 
 - Public workflow: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/workflows/certahealth-control-checks.yml`
-- Latest verified `main` run: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/runs/27769753846`
-- Latest verified overall run during this pass: `#40` on branch `main`, success on June 18, 2026; prior feature-branch run `#39` also succeeded
+- Latest verified `main` run: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/runs/27773432493`
+- Latest verified overall run during this pass: `#81` on branch `codex/release-ops-tooling-evidence-20260620`, success on June 20, 2026
