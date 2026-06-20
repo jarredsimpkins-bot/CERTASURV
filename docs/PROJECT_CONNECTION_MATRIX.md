@@ -23,7 +23,7 @@ This file is the working standard for making sure every active Certa/CertaSurv p
 | --- | --- | --- | --- | --- |
 | CERTAHEALTH | `C:\Users\SimpS\OneDrive\Documents\CERTAHEALTH` | `origin` -> `https://github.com/jarredsimpkins-bot/CERTASURV.git`; planned dedicated repo exists as `certahealth.git` | Laptop load manager, project provisioning scripts | Active local control repo; remote-target decision still open |
 | CERTARD | `C:\Users\SimpS\OneDrive\Documents\CERTARD` | Shared-drive mount helpers; `origin` -> `https://github.com/jarredsimpkins-bot/certard.git` | Project watchlist, staging scripts | Active coordination repo; push/review timing item |
-| MACROTBC | `C:\Users\SimpS\OneDrive\Documents\MACROTBC` | AppSheet, Google Drive, command-center manifest; `origin` -> `https://github.com/jarredsimpkins-bot/macrotbc.git` | TBC macros, CAD resources, installers, sync scripts | Active production integration repo; substantive release blocker |
+| MACROTBC | `C:\Users\SimpS\OneDrive\Documents\MACROTBC` | AppSheet, Google Drive, command-center manifest; `origin` -> `https://github.com/jarredsimpkins-bot/macrotbc.git` | TBC macros, CAD resources, installers, sync scripts | Active production integration repo; clean locally this pass but still needs release review/signoff |
 | AUTOMATIONS | `C:\Users\SimpS\OneDrive\Documents\AUTOMATIONS` | Google Apps Script, Drive API, test shared drive automation; `origin` -> `https://github.com/jarredsimpkins-bot/certasurv-automations.git` | Reproducible automation package | Active automation repo |
 | CERTASURV_WEB_APP | `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` | Shared-drive project data and estimate folders; `origin` -> `https://github.com/jarredsimpkins-bot/certasurv-web-app.git` | Local Python app/dashboard tools | Active local app project after workspace rename from `New project2`; push/review timing item |
 | WV_COURTHOUSE_RESEARCHER | `C:\Users\SimpS\OneDrive\Documents\WV_COURTHOUSE_RESEARCHER` | No remote configured; upstream unresolved | Toolkit runbooks, deed/TBC prep, release setup docs | Active Release 1 blocker |
@@ -35,12 +35,12 @@ This file is the working standard for making sure every active Certa/CertaSurv p
 
 | Gap | Impact | Fix Path |
 | --- | --- | --- |
-| Shared drive mounted and staged | Outside system-of-record folders are now available locally | Latest stage log: `G:\Shared drives\CERTASURV_PROJECT DRIVE\00_CERTASURV_COMMAND_CENTER\08_REPORTS_EXPORTS\drive-stage-log-20260522-194113.txt` |
+| Shared drive mount unavailable in this session | Repo-local handoff references exist, but live system-of-record folders could not be verified from this host during the June 20 pass | Remount `G:\Shared drives\CERTASURV_PROJECT DRIVE` before copying release materials or validating staged installer contents |
 | CERTAHEALTH remote target is unresolved | Release notes and automation still need a final answer on whether the control repo stays on public `CERTASURV.git` or moves to `certahealth.git` | Decide the permanent GitHub destination before final launch cutover |
 | GitHub CLI is installed but unauthenticated on this host | `gh`-driven release pushes and private workflow/log inspection are blocked until auth is restored | Run `gh auth login` with repo and workflow scopes |
-| `MACROTBC` still has substantive local release work | TBC integration cannot be treated as launch-ready until those tracked and untracked changes are reviewed, committed, and pushed | Finish/review the MACROTBC branch before final release handoff |
+| `MACROTBC` still needs release review/signoff | TBC integration cannot be treated as launch-ready on local cleanliness alone | Review the tracked branch and confirm TBC integration behavior before final release handoff |
 | `WV_COURTHOUSE_RESEARCHER` has no remote or upstream | Launch review cannot push, compare, or open PRs for the repo from this host | Decide the GitHub destination and configure `origin` before Release 1 cutover |
-| `npm` is available on disk but can be missing from PATH in some shells | Node web tooling may work inconsistently outside the explicit Node install path | Normalize host PATH or install/reinstall Node.js LTS when the machine is not under production load |
+| `node`, `npm`, and `pwsh` are missing from PATH in this session | Node/web tooling and the documented `pwsh -File` provisioning command cannot run from this shell | Normalize host PATH or install/reinstall Node.js LTS and PowerShell 7 when the machine is not under production load |
 
 ## Operating Rule
 
