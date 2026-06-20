@@ -18,6 +18,7 @@ Last updated: 2026-06-20
 | MACROTBC | `C:\Users\SimpS\OneDrive\Documents\MACROTBC` | `origin` -> `https://github.com/jarredsimpkins-bot/macrotbc.git` |
 | AUTOMATIONS | `C:\Users\SimpS\OneDrive\Documents\AUTOMATIONS` | `origin` -> `https://github.com/jarredsimpkins-bot/certasurv-automations.git` |
 | CERTASURV_WEB_APP | `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` | `origin` -> `https://github.com/jarredsimpkins-bot/certasurv-web-app.git` |
+| WV_COURTHOUSE_RESEARCHER | `C:\Users\SimpS\OneDrive\Documents\WV_COURTHOUSE_RESEARCHER` | No remote configured in this checkout |
 
 ## Planned Remote Names
 
@@ -28,6 +29,7 @@ Last updated: 2026-06-20
 | MACROTBC | `https://github.com/jarredsimpkins-bot/macrotbc.git` |
 | AUTOMATIONS | `https://github.com/jarredsimpkins-bot/certasurv-automations.git` |
 | CERTASURV_WEB_APP | `https://github.com/jarredsimpkins-bot/certasurv-web-app.git` |
+| WV_COURTHOUSE_RESEARCHER | Decision needed before publish/review |
 
 All planned repositories now exist. `CERTASURV` is public; the remaining launch support repositories are private.
 
@@ -35,4 +37,5 @@ All planned repositories now exist. `CERTASURV` is public; the remaining launch 
 
 - `CERTAHEALTH` currently pushes to public `CERTASURV.git`, but the planned dedicated target remains `certahealth.git`.
 - `CERTASURV_WEB_APP` is the active local workspace name; any lingering `New project2` references should be treated as legacy docs only.
+- `WV_COURTHOUSE_RESEARCHER` is currently on local branch `codex/wv-courthouse-researcher-cabell-lessons` with uncommitted launch-toolkit edits and no configured remote/upstream, so it remains a release blocker until repository ownership and push target are set.
 - GitHub CLI is installed locally but was still unauthenticated during the June 20, 2026 release-ops pass, so private-repo workflow inspection still requires `gh auth login`.
