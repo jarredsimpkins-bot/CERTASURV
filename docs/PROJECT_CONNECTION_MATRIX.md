@@ -1,6 +1,6 @@
 # Certa Project Connection Matrix
 
-Last updated: 2026-06-19 23:55
+Last updated: 2026-06-20 00:15
 
 This file is the working standard for making sure every active Certa/CertaSurv project has both outside connections and in-house production connections.
 
@@ -22,8 +22,8 @@ This file is the working standard for making sure every active Certa/CertaSurv p
 | Project | Path | Outside Connections | In-House Connections | Current Status |
 | --- | --- | --- | --- | --- |
 | CERTAHEALTH | `C:\Users\SimpS\OneDrive\Documents\CERTAHEALTH` | `origin` -> `https://github.com/jarredsimpkins-bot/CERTASURV.git`; planned dedicated repo exists as `certahealth.git` | Laptop load manager, project provisioning scripts | Active local control repo; remote-target decision still open |
-| CERTARD | `C:\Users\SimpS\OneDrive\Documents\CERTARD` | Shared-drive mount helpers; `origin` -> `https://github.com/jarredsimpkins-bot/certard.git` | Project watchlist, staging scripts | Active coordination repo; locally clean pending push/review timing |
-| MACROTBC | `C:\Users\SimpS\OneDrive\Documents\MACROTBC` | AppSheet, Google Drive, command-center manifest; `origin` -> `https://github.com/jarredsimpkins-bot/macrotbc.git` | TBC macros, CAD resources, installers, sync scripts | Active production integration repo |
+| CERTARD | `C:\Users\SimpS\OneDrive\Documents\CERTARD` | Shared-drive mount helpers; `origin` -> `https://github.com/jarredsimpkins-bot/certard.git` | Project watchlist, staging scripts | Active coordination repo; remote/upstream present, release lane is not a primary blocker |
+| MACROTBC | `C:\Users\SimpS\OneDrive\Documents\MACROTBC` | AppSheet, Google Drive, command-center manifest; `origin` -> `https://github.com/jarredsimpkins-bot/macrotbc.git` | TBC macros, CAD resources, installers, sync scripts | Active production integration repo; substantive blocker until private workflow/review evidence is inspected |
 | WV_COURTHOUSE_RESEARCHER | `C:\Users\SimpS\OneDrive\Documents\WV_COURTHOUSE_RESEARCHER` | Planned `origin` -> `https://github.com/jarredsimpkins-bot/wv-courthouse-researcher.git`; no remote configured locally | Deed, parcel, IDX/browser capture, research packet, and surveyor-review workflow source | Active courthouse research repo; launch blocker until remote/upstream exists |
 | AUTOMATIONS | `C:\Users\SimpS\OneDrive\Documents\AUTOMATIONS` | Google Apps Script, Drive API, test shared drive automation; `origin` -> `https://github.com/jarredsimpkins-bot/certasurv-automations.git` | Reproducible automation package | Active automation repo |
 | CERTASURV_WEB_APP | `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` | Shared-drive project data and estimate folders; `origin` -> `https://github.com/jarredsimpkins-bot/certasurv-web-app.git` | Local Python app/dashboard tools | Active local app project after workspace rename from `New project2` |
@@ -37,6 +37,7 @@ This file is the working standard for making sure every active Certa/CertaSurv p
 | --- | --- | --- |
 | Shared drive not mounted on this host | Outside system-of-record folders cannot be validated locally until Drive Desktop exposes `G:` again | Restore `G:\Shared drives\CERTASURV_PROJECT DRIVE` before final release handoff validation |
 | CERTAHEALTH remote target is unresolved | Release notes and automation still need a final answer on whether the control repo stays on public `CERTASURV.git` or moves to `certahealth.git` | Decide the permanent GitHub destination before final launch cutover |
+| MACROTBC private release evidence not inspectable here | It remains a substantive release blocker until private checks/logs and review state are verified | Authenticate `gh`, then inspect `macrotbc` branch/check output and handoff docs |
 | WV_COURTHOUSE_RESEARCHER has no configured remote/upstream | Courthouse research source cannot be pushed for release review even though it is one of the active blocker lanes | Create/provide `wv-courthouse-researcher.git`, then run `scripts\Set-CertaGitRemotes.ps1 -Apply` and push the active branch |
 | GitHub CLI is installed but unauthenticated on this host | `gh`-driven release pushes and private workflow/log inspection are blocked until auth is restored | Run `gh auth login` with repo and workflow scopes |
 | `node`/`npm` are missing from PATH in this shell | Node web tooling may work inconsistently outside the explicit Node install path | Normalize host PATH or install/reinstall Node.js LTS when the machine is not under production load |
