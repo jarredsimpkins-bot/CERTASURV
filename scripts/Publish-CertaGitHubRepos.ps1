@@ -40,7 +40,13 @@ $repos = @(
         Name = 'macrotbc'
         Description = 'CertaSurv TBC macro, command center, and local production integration.'
         Path = 'C:\Users\SimpS\OneDrive\Documents\MACROTBC'
-        Branch = 'codex/certasurv-command-center'
+        Branch = 'codex/certasurv-unified-forward'
+    },
+    @{
+        Name = 'wv-courthouse-researcher'
+        Description = 'CertaSurv WV courthouse research, deed, GIS, and field-to-finish support package.'
+        Path = 'C:\Users\SimpS\OneDrive\Documents\WV_COURTHOUSE_RESEARCHER'
+        Branch = 'codex/wv-courthouse-researcher-cabell-lessons'
     },
     @{
         Name = 'certasurv-automations'
