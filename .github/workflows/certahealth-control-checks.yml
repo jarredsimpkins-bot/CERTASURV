@@ -40,10 +40,21 @@ jobs:
             'docs/RELEASE_LAUNCH_CHECKLIST.md',
             'scripts/Test-CertaProjectProvisioning.ps1',
             'scripts/Set-CertaGitRemotes.ps1',
+            'scripts/Publish-CertaGitHubRepos.ps1',
+            'scripts/Invoke-CertaCloudOffload.ps1',
             'scripts/Manage-CertaLaptopLoad.ps1'
           )
           foreach ($path in $required) {
             if (-not (Test-Path $path)) {
               throw "Missing required file: $path"
             }
+          }
+
+      - name: Guard canonical workspace paths
+        shell: pwsh
+        run: |
+          $legacyHits = Select-String -Path 'scripts/*.ps1' -Pattern 'New project2' -SimpleMatch
+          if ($legacyHits) {
+            $legacyHits | ForEach-Object { Write-Error "$($_.Path):$($_.LineNumber): legacy CERTASURV_WEB_APP path fallback found" }
+            exit 1
           }
