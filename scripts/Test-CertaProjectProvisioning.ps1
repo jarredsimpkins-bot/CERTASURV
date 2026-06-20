@@ -39,7 +39,7 @@ $connections = @(
     @{ Name = 'Feature Definition Manager'; Path = Join-Path $documents 'Feature Definition Manager'; Lane = 'in-house-cad' }
 )
 
-$toolNames = @('git', 'gh', 'python', 'node', 'npm', 'powershell')
+$toolNames = @('git', 'gh', 'python', 'node', 'npm', 'powershell', 'pwsh')
 $toolRows = foreach ($tool in $toolNames) {
     $cmd = Get-Command $tool -ErrorAction SilentlyContinue
     if (-not $cmd -and $tool -eq 'gh' -and (Test-Path 'C:\Program Files\GitHub CLI\gh.exe')) {

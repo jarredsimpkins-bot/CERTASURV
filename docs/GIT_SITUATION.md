@@ -1,6 +1,6 @@
 # Git Situation
 
-Last updated: 2026-06-17
+Last updated: 2026-06-20
 
 ## Fixed Locally
 
@@ -29,10 +29,11 @@ Last updated: 2026-06-17
 | AUTOMATIONS | `https://github.com/jarredsimpkins-bot/certasurv-automations.git` |
 | CERTASURV_WEB_APP | `https://github.com/jarredsimpkins-bot/certasurv-web-app.git` |
 
-All planned repositories now exist. `CERTASURV` is public; the remaining launch support repositories are private.
+`CERTASURV` is public; the remaining launch support repositories are private. Because `gh` is unauthenticated on this host, private repository existence and workflow status cannot be verified from this shell.
 
 ## Current Release-Ops Notes
 
 - `CERTAHEALTH` currently pushes to public `CERTASURV.git`, but the planned dedicated target remains `certahealth.git`.
 - `CERTASURV_WEB_APP` is the active local workspace name; any lingering `New project2` references should be treated as legacy docs only.
-- GitHub CLI is installed locally but was unauthenticated during the June 17, 2026 release-ops pass, so private-repo workflow inspection still requires `gh auth login`.
+- GitHub CLI is installed locally but was unauthenticated during the June 20, 2026 release-ops pass, so private-repo workflow inspection still requires `gh auth login`.
+- This worktree is detached at `origin/main`; create or check out an explicit release-ops branch before committing changes for push.
