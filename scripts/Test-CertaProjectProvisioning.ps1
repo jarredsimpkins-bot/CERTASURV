@@ -14,14 +14,14 @@ if (-not $webAppPath) {
     $webAppPath = $webAppCandidates[0]
 }
 $projects = @(
-    @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH'; Type = 'control' },
-    @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD'; Type = 'coordination' },
-    @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC'; Type = 'tbc-integration' },
-    @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS'; Type = 'automation' },
-    @{ Name = 'CERTASURV_WEB_APP'; Path = $webAppPath; Type = 'local-app' },
-    @{ Name = 'TBC Live Macros'; Path = Join-Path $documents 'Trimble Business Center\MacroCommands3\CertaSurv'; Type = 'tbc-live' },
-    @{ Name = 'Feature Definition Manager'; Path = Join-Path $documents 'Feature Definition Manager'; Type = 'cad-standards' },
-    @{ Name = 'TBC Templates Matrix'; Path = 'C:\ProgramData\Trimble\CONVERSE_FULL_DRAFTING_MATRIX_FROM_PAPERSPACE'; Type = 'tbc-templates' }
+    @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH'; Type = 'control'; RequiresGit = $true },
+    @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD'; Type = 'coordination'; RequiresGit = $true },
+    @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC'; Type = 'tbc-integration'; RequiresGit = $true },
+    @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS'; Type = 'automation'; RequiresGit = $true },
+    @{ Name = 'CERTASURV_WEB_APP'; Path = $webAppPath; Type = 'local-app'; RequiresGit = $true },
+    @{ Name = 'TBC Live Macros'; Path = Join-Path $documents 'Trimble Business Center\MacroCommands3\CertaSurv'; Type = 'tbc-live'; RequiresGit = $false },
+    @{ Name = 'Feature Definition Manager'; Path = Join-Path $documents 'Feature Definition Manager'; Type = 'cad-standards'; RequiresGit = $false },
+    @{ Name = 'TBC Templates Matrix'; Path = 'C:\ProgramData\Trimble\CONVERSE_FULL_DRAFTING_MATRIX_FROM_PAPERSPACE'; Type = 'tbc-templates'; RequiresGit = $false }
 )
 
 $connections = @(
@@ -70,22 +70,24 @@ $connectionRows = foreach ($connection in $connections) {
 
 $projectRows = foreach ($project in $projects) {
     $exists = Test-Path -LiteralPath $project.Path
-    $gitPath = Join-Path $project.Path '.git'
-    $hasGit = $exists -and (Test-Path -LiteralPath $gitPath)
+    $hasGit = $false
     $hasRemote = $false
+    $remoteUrl = ''
 
-    if ($hasGit) {
-        $gitConfig = Join-Path $gitPath 'config'
-        if (Test-Path -LiteralPath $gitConfig -PathType Leaf) {
-            $hasRemote = Select-String -LiteralPath $gitConfig -Pattern '^\s*\[remote "' -Quiet -ErrorAction SilentlyContinue
+    if ($exists -and $project.RequiresGit) {
+        $insideWorkTree = git -C $project.Path rev-parse --is-inside-work-tree 2>$null
+        $hasGit = $LASTEXITCODE -eq 0 -and $insideWorkTree -eq 'true'
+        if ($hasGit) {
+            $remoteUrl = git -C $project.Path remote get-url origin 2>$null
+            $hasRemote = $LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($remoteUrl)
         }
     }
 
     [pscustomobject]@{
         Area = 'Project'
         Name = $project.Name
-        Status = if (-not $exists) { 'MISSING' } elseif ($hasGit -and -not $hasRemote) { 'LOCAL_ONLY' } else { 'OK' }
-        Detail = if ($hasGit) { "git remote: $hasRemote; $($project.Path)" } else { $project.Path }
+        Status = if (-not $exists) { 'MISSING' } elseif ($project.RequiresGit -and -not $hasGit) { 'NO_GIT' } elseif ($project.RequiresGit -and -not $hasRemote) { 'LOCAL_ONLY' } else { 'OK' }
+        Detail = if ($project.RequiresGit) { "git remote: $hasRemote; $remoteUrl; $($project.Path)" } else { $project.Path }
     }
 }
 
