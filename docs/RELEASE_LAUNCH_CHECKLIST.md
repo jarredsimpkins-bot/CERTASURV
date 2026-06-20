@@ -1,6 +1,6 @@
 # Certa Control Repo Launch Checklist
 
-Last updated: 2026-06-18
+Last updated: 2026-06-20
 
 Use this checklist for the control-repo side of a Certa/CertaSurv launch or release handoff. This stays repo-local and should be updated before copying any generated release notes into external systems.
 
@@ -12,6 +12,7 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 | Docs present | Release readiness, connection matrix, git situation, cloud processing, and this checklist are committed | Required by workflow |
 | PowerShell syntax clean | All tracked `.ps1` files parse without errors | Required by workflow |
 | Workspace path aligned | Operator-facing web app path uses `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` | Verified in current repo docs/scripts |
+| WV research repo inventoried | Release-control scripts include `WV_COURTHOUSE_RESEARCHER` without assuming a configured remote | Verified in current repo docs/scripts |
 | Shared-drive handoff references intact | External staging/deploy references still point to `G:\Shared drives\CERTASURV_PROJECT DRIVE` | Verified read-only on June 17, 2026 |
 | GitHub access for private repos | `gh` is authenticated with repo/workflow access on the host used for release operations | Blocked on this host |
 | Control repo destination decided | Final answer exists for `CERTASURV.git` vs `certahealth.git` | Decision still open |

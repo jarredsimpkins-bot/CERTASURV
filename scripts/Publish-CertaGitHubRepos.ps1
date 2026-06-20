@@ -20,14 +20,7 @@ $headers = @{
 }
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
-$webAppCandidates = @(
-    Join-Path $documents 'CERTASURV_WEB_APP'
-    Join-Path $documents 'New project2'
-)
-$webAppPath = $webAppCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-if (-not $webAppPath) {
-    $webAppPath = $webAppCandidates[0]
-}
+$webAppPath = Join-Path $documents 'CERTASURV_WEB_APP'
 
 $repos = @(
     @{
@@ -49,6 +42,12 @@ $repos = @(
         Branch = 'codex/onboard-everything'
     },
     @{
+        Name = 'wv-courthouse-researcher'
+        Description = 'CertaSurv courthouse research and record-package tooling.'
+        Path = 'C:\Users\SimpS\OneDrive\Documents\WV_COURTHOUSE_RESEARCHER'
+        Branch = 'main'
+    },
+    @{
         Name = 'certasurv-web-app'
         Description = 'CertaSurv land opportunity radar, parcel, estimate, and dashboard app.'
         Path = $webAppPath
@@ -57,6 +56,44 @@ $repos = @(
 )
 
 $results = foreach ($repo in $repos) {
+    if (-not (Test-Path -LiteralPath $repo.Path)) {
+        [pscustomobject]@{
+            Repo = "jarredsimpkins-bot/$($repo.Name)"
+            Created = $false
+            Branch = $repo.Branch
+            Pushed = $false
+            Url = ''
+            Status = 'missing-local-path'
+        }
+        continue
+    }
+
+    git -C $repo.Path rev-parse --is-inside-work-tree *> $null
+    if ($LASTEXITCODE -ne 0) {
+        [pscustomobject]@{
+            Repo = "jarredsimpkins-bot/$($repo.Name)"
+            Created = $false
+            Branch = $repo.Branch
+            Pushed = $false
+            Url = ''
+            Status = 'missing-local-git'
+        }
+        continue
+    }
+
+    $branch = git -C $repo.Path branch --show-current
+    if (-not $branch) {
+        [pscustomobject]@{
+            Repo = "jarredsimpkins-bot/$($repo.Name)"
+            Created = $false
+            Branch = $repo.Branch
+            Pushed = $false
+            Url = ''
+            Status = 'detached-head-skip'
+        }
+        continue
+    }
+
     $fullName = "jarredsimpkins-bot/$($repo.Name)"
     $exists = $false
 
@@ -95,15 +132,16 @@ $results = foreach ($repo in $repos) {
         git -C $repo.Path remote add origin $remote
     }
 
-    git -C $repo.Path push -u origin $repo.Branch
+    git -C $repo.Path push -u origin $branch
     $pushOk = ($LASTEXITCODE -eq 0)
 
     [pscustomobject]@{
         Repo = $fullName
         Created = $created
-        Branch = $repo.Branch
+        Branch = $branch
         Pushed = $pushOk
         Url = "https://github.com/$fullName"
+        Status = if ($pushOk) { 'pushed' } else { 'push-failed' }
     }
 }
 

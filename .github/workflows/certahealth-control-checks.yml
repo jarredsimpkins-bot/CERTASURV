@@ -47,3 +47,17 @@ jobs:
               throw "Missing required file: $path"
             }
           }
+
+      - name: Guard canonical workspace paths
+        shell: pwsh
+        run: |
+          $legacyMatches = Select-String -Path 'scripts/*.ps1' -Pattern 'New project2' -SimpleMatch
+          if ($legacyMatches) {
+            $legacyMatches | ForEach-Object { Write-Error "Legacy web app path reference: $($_.Path):$($_.LineNumber)" }
+            exit 1
+          }
+
+          $requiredMatches = Select-String -Path 'scripts/*.ps1' -Pattern 'CERTASURV_WEB_APP' -SimpleMatch
+          if (-not $requiredMatches) {
+            throw 'Expected scripts to reference canonical CERTASURV_WEB_APP workspace path.'
+          }
