@@ -1,6 +1,6 @@
 # Cloud Processing Plan
 
-Last updated: 2026-06-18
+Last updated: 2026-06-20
 
 ## What Moves To Cloud
 
@@ -9,6 +9,7 @@ Last updated: 2026-06-18
 | Python app tests for `CERTASURV_WEB_APP` | GitHub Actions | Keeps dependency install and pytest load off the laptop |
 | PowerShell syntax checks for control/TBC scripts | GitHub Actions on Windows runners | Catches broken scripts without touching local production |
 | JSON/config validation for command-center and Drive automation packages | GitHub Actions | Verifies package integrity before handoff |
+| WV courthouse/deed/GIS research checks | GitHub Actions after remote setup | Keeps research package validation and artifact review off the laptop |
 | Drive file routing and scraper jobs | Google Apps Script triggers | Runs near Drive data instead of depending on laptop uptime |
 | Shared-drive package artifacts | GitHub Actions artifacts after push | Gives downloadable release packages outside OneDrive |
 
@@ -46,9 +47,10 @@ The workflows are prepared locally and pushed to GitHub. They run on each pushed
 
 1. `CERTASURV` / `CERTAHEALTH`: public control repo, `main`.
 2. `certard`: private coordination repo, `main`.
-3. `macrotbc`: private TBC production integration repo, `codex/certasurv-command-center`.
-4. `certasurv-automations`: private Drive/AppScript automation repo, `codex/onboard-everything`.
-5. `certasurv-web-app`: private app/dashboard repo, `codex/land-opportunity-radar-mvp`.
+3. `macrotbc`: private TBC production integration repo, `codex/certasurv-unified-forward`.
+4. `wv-courthouse-researcher`: planned private courthouse/deed/GIS research repo, `codex/wv-courthouse-researcher-cabell-lessons`.
+5. `certasurv-automations`: private Drive/AppScript automation repo, `codex/onboard-everything`.
+6. `certasurv-web-app`: private app/dashboard repo, `codex/land-opportunity-radar-mvp`.
 
 The cloud offload runner pushes committed branches every 10 minutes. It intentionally does not auto-stage or auto-commit live work.
 
@@ -58,3 +60,4 @@ The cloud offload runner pushes committed branches every 10 minutes. It intentio
 - The latest visible overall run is `#40` on branch `main`, commit `e0cd20b`, success.
 - The latest visible prior feature-branch run is `#39` on branch `codex/adaptive-worktree-launch-hardening-20260618`, commit `422cbb5`, success.
 - Private-repo workflow outputs remain unavailable from this host until `gh` authentication is restored.
+- WV courthouse cloud offload remains blocked until its GitHub remote/upstream is configured and local changes are reviewed.

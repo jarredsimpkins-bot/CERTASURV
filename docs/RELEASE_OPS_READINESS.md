@@ -1,6 +1,6 @@
 # Certa Release Ops Readiness
 
-Last updated: 2026-06-18 11:33
+Last updated: 2026-06-20 09:40
 
 ## Launch Snapshot
 
@@ -10,6 +10,8 @@ Last updated: 2026-06-18 11:33
 | Control repo docs | Core launch docs are present in repo and now tracked by workflow required-file validation, including a repo-local launch checklist | Ready |
 | Shared-drive handoff docs | Shared-drive staging and Apps Script deployment references exist outside this repo and remain read-only during release ops | Ready with external dependency |
 | Web app workspace naming | Active local folder is `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP`; legacy `New project2` references were a release risk | Ready after this alignment |
+| MACROTBC release lane | Local repo exists with `origin` set to `https://github.com/jarredsimpkins-bot/macrotbc.git`; branch observed as `codex/certasurv-unified-forward` | Needs push/review timing |
+| WV courthouse researcher lane | Local repo exists on `codex/wv-courthouse-researcher-cabell-lessons`, but no `origin` was visible during this pass and local changes are present | Blocked on remote/upstream setup |
 | GitHub CLI access | `gh` is installed locally but unauthenticated on this host | Blocked |
 | Final control-repo destination | `CERTAHEALTH` still points at public `CERTASURV.git`; planned `certahealth.git` exists | Decision needed |
 
@@ -32,6 +34,8 @@ These references still align on the shared-drive root `G:\Shared drives\CERTASUR
 
 1. Authenticate `gh` on this host with repo and workflow scopes so private workflow runs and logs can be inspected directly.
 2. Decide whether the control repo should keep using public `CERTASURV.git` or switch to the planned dedicated `certahealth.git` remote before launch cutover.
+3. Add/confirm the `WV_COURTHOUSE_RESEARCHER` GitHub remote and upstream branch before expecting cloud offload or private workflow checks to cover that lane.
+4. Resolve the current uncommitted local changes in `WV_COURTHOUSE_RESEARCHER` before treating that package as release-ready.
 
 ## Non-Blocking Follow-Up
 
