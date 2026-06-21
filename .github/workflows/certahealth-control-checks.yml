@@ -47,3 +47,15 @@ jobs:
               throw "Missing required file: $path"
             }
           }
+
+      - name: Guard against legacy web app path
+        shell: pwsh
+        run: |
+          $legacyPath = 'New' + ' project2'
+          $matches = Get-ChildItem scripts -Recurse -File |
+            Where-Object { $_.FullName -notmatch '\\.git\\' } |
+            Select-String -Pattern $legacyPath -SimpleMatch
+          if ($matches) {
+            $matches | ForEach-Object { Write-Error "$($_.Path):$($_.LineNumber): legacy web app path reference found" }
+            exit 1
+          }
