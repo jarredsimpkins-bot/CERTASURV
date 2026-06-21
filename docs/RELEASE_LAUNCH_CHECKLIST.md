@@ -14,8 +14,8 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 | Local release shell available | `pwsh` is available for operator commands, or Windows PowerShell fallback is recorded | `pwsh` is now reported by provisioning checks |
 | Workspace path aligned | Operator-facing web app path uses `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` | Verified in current repo docs/scripts |
 | Shared-drive handoff references intact | External staging/deploy references still point to `G:\Shared drives\CERTASURV_PROJECT DRIVE` | Repo-local references checked June 20, 2026 ET; current host provisioning reports the `G:` mount missing |
-| MACROTBC release branch intentional | Dirty local TBC command-center and generated artifacts are sorted into commit/ignore/defer buckets before push | Blocking |
-| WV courthouse repo remotely publishable | `WV_COURTHOUSE_RESEARCHER` has a configured `origin` and a reviewed release branch | Blocking |
+| MACROTBC release branch intentional | Root-file deletions, command-center CSV changes, and generated/cache outputs are sorted into commit/restore/ignore/defer buckets before push | Blocking |
+| WV courthouse repo remotely publishable | `WV_COURTHOUSE_RESEARCHER` has a configured `origin` and the dirty runbook/toolbox changes are reviewed as one release branch | Blocking |
 | GitHub access for private repos | `gh` is authenticated with repo/workflow access on the host used for release operations | Blocked on this host |
 | Control repo destination decided | Final answer exists for `CERTASURV.git` vs `certahealth.git` | Decision still open |
 
@@ -25,15 +25,15 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 2. Run `pwsh -File .\scripts\Test-CertaProjectProvisioning.ps1 -Detailed` and record any missing tools or mounts. If `pwsh` is unavailable on this host, use `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Test-CertaProjectProvisioning.ps1 -Detailed` and keep `pwsh` in the gap list.
 3. Confirm the latest public control workflow run on `main` is green before handing off notes or switching remotes.
 4. Verify external handoff references remain read-only unless copying from committed repo docs.
-5. For MACROTBC, capture the intended release branch and explicitly separate generated/cache output from handoff docs, command-center config, and macro source changes.
-6. For WV_COURTHOUSE_RESEARCHER, configure the remote, review the dirty docs/scripts, then push the selected release branch.
+5. For MACROTBC, recover or intentionally keep local deletions of `.gitattributes`, `.gitignore`, `README.md`, `package.json`, and `certasurv_shared_drive.json`; then separate generated/cache output from handoff docs, command-center config, and macro source changes.
+6. For WV_COURTHOUSE_RESEARCHER, configure the remote, review the dirty runbook/toolbox/registry changes, then push the selected release branch.
 7. Decide the permanent control-repo remote before final launch cutover so release notes, automation, and operator docs all point to one destination.
 8. Authenticate `gh` before any private workflow/log inspection or release push that depends on GitHub CLI.
 
 ## Current Launch Blockers
 
-1. MACROTBC has a dirty local release branch and needs an intentional publish/cleanup decision before TBC handoff.
-2. WV_COURTHOUSE_RESEARCHER has no observed `origin` and needs remote setup plus release-branch review.
+1. MACROTBC has a dirty local release branch with tracked root-file deletions and generated outputs mixed into the tree; it needs an intentional publish/cleanup decision before TBC handoff.
+2. WV_COURTHOUSE_RESEARCHER has no observed `origin` and dirty runbook/toolbox files; it needs remote setup plus release-branch review.
 3. Local release execution is blocked until missing tools/mounts reported by `Test-CertaProjectProvisioning.ps1` are restored or explicitly deferred: shared-drive `G:` mount, MACROTBC shared-drive config, `node`, `npm`, and `pwsh`.
 4. `gh` is not authenticated on this host, so private workflow runs/logs cannot be inspected here.
 5. The permanent GitHub destination for `CERTAHEALTH` is still unresolved between public `CERTASURV.git` and dedicated `certahealth.git`.
