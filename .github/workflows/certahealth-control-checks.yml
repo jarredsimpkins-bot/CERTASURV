@@ -47,3 +47,12 @@ jobs:
               throw "Missing required file: $path"
             }
           }
+
+      - name: Guard active workspace paths
+        shell: pwsh
+        run: |
+          $legacyHits = Select-String -Path 'scripts/*.ps1' -Pattern 'New project2' -SimpleMatch -ErrorAction SilentlyContinue
+          if ($legacyHits) {
+            $legacyHits | ForEach-Object { Write-Error "Legacy web app path reference: $($_.Path):$($_.LineNumber)" }
+            exit 1
+          }
