@@ -1,6 +1,6 @@
 # Certa Release Ops Readiness
 
-Last updated: 2026-06-21 20:15
+Last updated: 2026-06-21 20:55
 
 ## Launch Snapshot
 
@@ -14,6 +14,7 @@ Last updated: 2026-06-21 20:15
 | Final control-repo destination | `CERTAHEALTH` still points at public `CERTASURV.git`; planned `certahealth.git` exists | Decision needed |
 | MACROTBC release state | Local `MACROTBC` branch `codex/certasurv-unified-forward` has deleted tracked root files plus generated/untracked artifacts; remote exists | Blocked until local tree is triaged |
 | WV courthouse researcher state | Local `WV_COURTHOUSE_RESEARCHER` branch `codex/wv-courthouse-researcher-cabell-lessons` has release-relevant edits and no `origin` remote configured | Blocked until remote is added and branch is pushed |
+| Provisioning check behavior | `scripts\Test-CertaProjectProvisioning.ps1` now validates the actual `origin` URL through `git -C <repo> remote get-url origin` instead of reading `.git\config` directly | Ready |
 
 ## External Handoff References Checked
 
@@ -37,6 +38,12 @@ These references still align on the shared-drive root `G:\Shared drives\CERTASUR
 2. Decide whether the control repo should keep using public `CERTASURV.git` or switch to the planned dedicated `certahealth.git` remote before launch cutover.
 3. Triage `MACROTBC` local deletions and generated artifacts before release review; do not sweep `%TEMP%`, caches, `dist`, `models`, backups, or command logs into a release commit without explicit intent.
 4. Add/push the `WV_COURTHOUSE_RESEARCHER` remote after confirming the intended private GitHub slug, then review and commit the current runbook/toolkit edits.
+
+## Blocker Handoff Detail
+
+- MACROTBC is a source-control hygiene blocker, not a missing-remote blocker: keep `origin` as `https://github.com/jarredsimpkins-bot/macrotbc.git`, then split intentional source/config/runbook changes from generated outputs before review.
+- WV_COURTHOUSE_RESEARCHER is a remote-readiness blocker: confirm the private destination slug, add `origin`, and push `codex/wv-courthouse-researcher-cabell-lessons` before treating its docs/toolkit changes as launch-reviewable.
+- CERTARD and CERTASURV_WEB_APP already have `origin` remotes; their current role in release ops is timing/review coordination, not remote provisioning.
 
 ## Non-Blocking Follow-Up
 

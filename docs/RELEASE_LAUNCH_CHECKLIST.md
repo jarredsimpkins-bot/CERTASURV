@@ -28,6 +28,16 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 6. Authenticate `gh` before any private workflow/log inspection or release push that depends on GitHub CLI.
 7. Run `.\scripts\Set-CertaGitRemotes.ps1` before applying remote changes; confirm `WV_COURTHOUSE_RESEARCHER` maps to the intended private repository.
 8. Before MACROTBC review, inspect `git status --short` and separate source/runbook changes from generated folders, command logs, caches, and build output.
+9. Treat `CERTARD` and `CERTASURV_WEB_APP` as push/review timing lanes unless a fresh provisioning check shows a missing `origin`.
+
+## Blocker-Specific Release Handling
+
+| Repo | Safe next action | Do not do |
+| --- | --- | --- |
+| MACROTBC | Preserve `origin`, review the dirty tree, and commit only intentional source/config/runbook changes | Do not bulk-add `%TEMP%`, `dist`, `models`, backups, caches, command usage logs, or root deletions without explicit review |
+| WV_COURTHOUSE_RESEARCHER | Confirm the private GitHub slug, add `origin`, then push `codex/wv-courthouse-researcher-cabell-lessons` for review | Do not assume the local-only branch is release-visible before a remote is configured |
+| CERTARD | Coordinate push/review timing on the existing `origin` remote | Do not treat it as a missing-remote blocker in the current launch lane |
+| CERTASURV_WEB_APP | Coordinate push/review timing on the existing `origin` remote and keep the renamed workspace path | Do not reintroduce `New project2` in operator-facing release docs |
 
 ## Current Launch Blockers
 

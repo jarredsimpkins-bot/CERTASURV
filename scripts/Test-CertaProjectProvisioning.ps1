@@ -74,20 +74,20 @@ $projectRows = foreach ($project in $projects) {
     $exists = Test-Path -LiteralPath $project.Path
     $gitPath = Join-Path $project.Path '.git'
     $hasGit = $exists -and (Test-Path -LiteralPath $gitPath)
-    $hasRemote = $false
+    $originUrl = ''
 
-    if ($hasGit) {
-        $gitConfig = Join-Path $gitPath 'config'
-        if (Test-Path -LiteralPath $gitConfig -PathType Leaf) {
-            $hasRemote = Select-String -LiteralPath $gitConfig -Pattern '^\s*\[remote "' -Quiet -ErrorAction SilentlyContinue
+    if ($exists -and $hasGit) {
+        $originUrl = git -C $project.Path remote get-url origin 2>$null
+        if ($LASTEXITCODE -ne 0) {
+            $originUrl = ''
         }
     }
 
     [pscustomobject]@{
         Area = 'Project'
         Name = $project.Name
-        Status = if (-not $exists) { 'MISSING' } elseif ($hasGit -and -not $hasRemote) { 'LOCAL_ONLY' } else { 'OK' }
-        Detail = if ($hasGit) { "git remote: $hasRemote; $($project.Path)" } else { $project.Path }
+        Status = if (-not $exists) { 'MISSING' } elseif ($hasGit -and -not $originUrl) { 'LOCAL_ONLY' } else { 'OK' }
+        Detail = if ($hasGit -and $originUrl) { "origin: $originUrl; $($project.Path)" } elseif ($hasGit) { "origin: missing; $($project.Path)" } else { $project.Path }
     }
 }
 
