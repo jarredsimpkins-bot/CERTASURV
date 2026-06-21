@@ -20,14 +20,7 @@ $headers = @{
 }
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
-$webAppCandidates = @(
-    Join-Path $documents 'CERTASURV_WEB_APP'
-    Join-Path $documents 'New project2'
-)
-$webAppPath = $webAppCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-if (-not $webAppPath) {
-    $webAppPath = $webAppCandidates[0]
-}
+$webAppPath = Join-Path $documents 'CERTASURV_WEB_APP'
 
 $repos = @(
     @{
@@ -47,6 +40,12 @@ $repos = @(
         Description = 'CertaSurv Google Drive, Apps Script, and operations automation package.'
         Path = 'C:\Users\SimpS\OneDrive\Documents\AUTOMATIONS'
         Branch = 'codex/onboard-everything'
+    },
+    @{
+        Name = 'wv-courthouse-researcher'
+        Description = 'CertaSurv courthouse deed, title, legal description, and county-record research tooling.'
+        Path = Join-Path $documents 'WV_COURTHOUSE_RESEARCHER'
+        Branch = 'main'
     },
     @{
         Name = 'certasurv-web-app'
@@ -86,6 +85,11 @@ $results = foreach ($repo in $repos) {
     }
 
     $remote = "https://github.com/$fullName.git"
+    git -C $repo.Path rev-parse --is-inside-work-tree *> $null
+    if ($LASTEXITCODE -ne 0) {
+        throw "Local repo is missing or is not a Git worktree: $($repo.Path)"
+    }
+
     $remotes = git -C $repo.Path remote
 
     if ($remotes -contains 'origin') {
