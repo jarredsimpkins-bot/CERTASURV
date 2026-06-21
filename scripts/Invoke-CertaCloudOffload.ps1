@@ -5,25 +5,19 @@ param(
 $ErrorActionPreference = 'Continue'
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
-$webAppCandidates = @(
-    Join-Path $documents 'CERTASURV_WEB_APP'
-    Join-Path $documents 'New project2'
-)
-$webAppPath = $webAppCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-if (-not $webAppPath) {
-    $webAppPath = $webAppCandidates[0]
-}
+$webAppPath = Join-Path $documents 'CERTASURV_WEB_APP'
 $repos = @(
     @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH' },
     @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD' },
     @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC' },
     @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS' },
+    @{ Name = 'WV_COURTHOUSE_RESEARCHER'; Path = Join-Path $documents 'WV_COURTHOUSE_RESEARCHER' },
     @{ Name = 'CERTASURV_WEB_APP'; Path = $webAppPath }
 )
 
 $rows = foreach ($repo in $repos) {
-    $gitDir = Join-Path $repo.Path '.git'
-    if (-not (Test-Path -LiteralPath $gitDir)) {
+    git -C $repo.Path rev-parse --is-inside-work-tree *> $null
+    if ($LASTEXITCODE -ne 0) {
         [pscustomobject]@{ Repo = $repo.Name; Status = 'missing-git'; Branch = ''; Remote = ''; Detail = $repo.Path }
         continue
     }
@@ -31,6 +25,11 @@ $rows = foreach ($repo in $repos) {
     $branch = git -C $repo.Path branch --show-current
     $remote = git -C $repo.Path remote get-url origin 2>$null
     $dirty = git -C $repo.Path status --porcelain
+
+    if (-not $branch) {
+        [pscustomobject]@{ Repo = $repo.Name; Status = 'detached-head'; Branch = ''; Remote = $remote; Detail = 'Checkout a branch before cloud offload push' }
+        continue
+    }
 
     if (-not $remote) {
         [pscustomobject]@{ Repo = $repo.Name; Status = 'no-remote'; Branch = $branch; Remote = ''; Detail = 'Run Set-CertaGitRemotes.ps1 -Apply after repositories exist' }
@@ -58,6 +57,10 @@ if (-not $Quiet) {
 }
 
 if ($rows.Status -contains 'push-failed') {
+    exit 1
+}
+
+if ($rows.Status -contains 'detached-head') {
     exit 1
 }
 

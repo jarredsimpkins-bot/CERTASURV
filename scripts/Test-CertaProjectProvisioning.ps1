@@ -5,19 +5,13 @@ param(
 $ErrorActionPreference = 'Continue'
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
-$webAppCandidates = @(
-    Join-Path $documents 'CERTASURV_WEB_APP'
-    Join-Path $documents 'New project2'
-)
-$webAppPath = $webAppCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-if (-not $webAppPath) {
-    $webAppPath = $webAppCandidates[0]
-}
+$webAppPath = Join-Path $documents 'CERTASURV_WEB_APP'
 $projects = @(
     @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH'; Type = 'control' },
     @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD'; Type = 'coordination' },
     @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC'; Type = 'tbc-integration' },
     @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS'; Type = 'automation' },
+    @{ Name = 'WV_COURTHOUSE_RESEARCHER'; Path = Join-Path $documents 'WV_COURTHOUSE_RESEARCHER'; Type = 'county-research' },
     @{ Name = 'CERTASURV_WEB_APP'; Path = $webAppPath; Type = 'local-app' },
     @{ Name = 'TBC Live Macros'; Path = Join-Path $documents 'Trimble Business Center\MacroCommands3\CertaSurv'; Type = 'tbc-live' },
     @{ Name = 'Feature Definition Manager'; Path = Join-Path $documents 'Feature Definition Manager'; Type = 'cad-standards' },
@@ -39,7 +33,7 @@ $connections = @(
     @{ Name = 'Feature Definition Manager'; Path = Join-Path $documents 'Feature Definition Manager'; Lane = 'in-house-cad' }
 )
 
-$toolNames = @('git', 'gh', 'python', 'node', 'npm', 'powershell')
+$toolNames = @('git', 'gh', 'python', 'node', 'npm', 'powershell', 'pwsh')
 $toolRows = foreach ($tool in $toolNames) {
     $cmd = Get-Command $tool -ErrorAction SilentlyContinue
     if (-not $cmd -and $tool -eq 'gh' -and (Test-Path 'C:\Program Files\GitHub CLI\gh.exe')) {
@@ -70,14 +64,17 @@ $connectionRows = foreach ($connection in $connections) {
 
 $projectRows = foreach ($project in $projects) {
     $exists = Test-Path -LiteralPath $project.Path
-    $gitPath = Join-Path $project.Path '.git'
-    $hasGit = $exists -and (Test-Path -LiteralPath $gitPath)
+    $hasGit = $false
     $hasRemote = $false
+    $remoteUrl = ''
 
-    if ($hasGit) {
-        $gitConfig = Join-Path $gitPath 'config'
-        if (Test-Path -LiteralPath $gitConfig -PathType Leaf) {
-            $hasRemote = Select-String -LiteralPath $gitConfig -Pattern '^\s*\[remote "' -Quiet -ErrorAction SilentlyContinue
+    if ($exists) {
+        git -C $project.Path rev-parse --is-inside-work-tree *> $null
+        $hasGit = ($LASTEXITCODE -eq 0)
+
+        if ($hasGit) {
+            $remoteUrl = git -C $project.Path remote get-url origin 2>$null
+            $hasRemote = ($LASTEXITCODE -eq 0) -and -not [string]::IsNullOrWhiteSpace($remoteUrl)
         }
     }
 
@@ -85,7 +82,7 @@ $projectRows = foreach ($project in $projects) {
         Area = 'Project'
         Name = $project.Name
         Status = if (-not $exists) { 'MISSING' } elseif ($hasGit -and -not $hasRemote) { 'LOCAL_ONLY' } else { 'OK' }
-        Detail = if ($hasGit) { "git remote: $hasRemote; $($project.Path)" } else { $project.Path }
+        Detail = if ($hasGit) { "origin: $remoteUrl; $($project.Path)" } else { $project.Path }
     }
 }
 

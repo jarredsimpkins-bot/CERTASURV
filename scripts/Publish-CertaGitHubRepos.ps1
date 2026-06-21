@@ -20,14 +20,7 @@ $headers = @{
 }
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
-$webAppCandidates = @(
-    Join-Path $documents 'CERTASURV_WEB_APP'
-    Join-Path $documents 'New project2'
-)
-$webAppPath = $webAppCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-if (-not $webAppPath) {
-    $webAppPath = $webAppCandidates[0]
-}
+$webAppPath = Join-Path $documents 'CERTASURV_WEB_APP'
 
 $repos = @(
     @{
@@ -49,6 +42,12 @@ $repos = @(
         Branch = 'codex/onboard-everything'
     },
     @{
+        Name = 'wv-courthouse-researcher'
+        Description = 'CertaSurv courthouse research tooling and county records package.'
+        Path = 'C:\Users\SimpS\OneDrive\Documents\WV_COURTHOUSE_RESEARCHER'
+        Branch = 'main'
+    },
+    @{
         Name = 'certasurv-web-app'
         Description = 'CertaSurv land opportunity radar, parcel, estimate, and dashboard app.'
         Path = $webAppPath
@@ -57,6 +56,15 @@ $repos = @(
 )
 
 $results = foreach ($repo in $repos) {
+    if (-not (Test-Path -LiteralPath $repo.Path)) {
+        throw "Missing local repository path for $($repo.Name): $($repo.Path)"
+    }
+
+    git -C $repo.Path rev-parse --is-inside-work-tree *> $null
+    if ($LASTEXITCODE -ne 0) {
+        throw "Local path is not a Git worktree for $($repo.Name): $($repo.Path)"
+    }
+
     $fullName = "jarredsimpkins-bot/$($repo.Name)"
     $exists = $false
 
