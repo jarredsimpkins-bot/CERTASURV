@@ -47,3 +47,12 @@ jobs:
               throw "Missing required file: $path"
             }
           }
+
+      - name: Guard active workspace path
+        shell: pwsh
+        run: |
+          $legacyHits = Select-String -Path 'scripts/*.ps1' -Pattern 'New project2' -SimpleMatch
+          if ($legacyHits) {
+            $legacyHits | ForEach-Object { Write-Error "$($_.Path):$($_.LineNumber): legacy CERTASURV_WEB_APP path fallback found" }
+            exit 1
+          }
