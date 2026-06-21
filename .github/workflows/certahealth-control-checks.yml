@@ -38,6 +38,7 @@ jobs:
             'docs/CLOUD_PROCESSING.md',
             'docs/RELEASE_OPS_READINESS.md',
             'docs/RELEASE_LAUNCH_CHECKLIST.md',
+            'docs/RELEASE_BLOCKER_EXIT_CRITERIA_2026-06-21.md',
             'scripts/Test-CertaProjectProvisioning.ps1',
             'scripts/Set-CertaGitRemotes.ps1',
             'scripts/Manage-CertaLaptopLoad.ps1'
@@ -46,4 +47,13 @@ jobs:
             if (-not (Test-Path $path)) {
               throw "Missing required file: $path"
             }
+          }
+
+      - name: Guard retired web app path
+        shell: pwsh
+        run: |
+          $matches = Select-String -Path scripts/*.ps1 -Pattern 'New project2' -SimpleMatch
+          if ($matches) {
+            $matches | ForEach-Object { Write-Error "$($_.Path):$($_.LineNumber) still references retired New project2 path" }
+            exit 1
           }
