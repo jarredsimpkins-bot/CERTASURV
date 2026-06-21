@@ -47,3 +47,12 @@ jobs:
               throw "Missing required file: $path"
             }
           }
+
+      - name: Guard renamed web app path
+        shell: pwsh
+        run: |
+          $scriptMatches = Select-String -Path 'scripts/*.ps1' -Pattern 'New project2' -SimpleMatch
+          if ($scriptMatches) {
+            $scriptMatches | ForEach-Object { Write-Error "$($_.Path):$($_.LineNumber): legacy web app path reference remains" }
+            exit 1
+          }
