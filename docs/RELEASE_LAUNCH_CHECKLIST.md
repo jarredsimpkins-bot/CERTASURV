@@ -13,7 +13,7 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 | PowerShell syntax clean | All tracked `.ps1` files parse without errors | Required by workflow |
 | Local release shell available | `pwsh` is available for operator commands, or Windows PowerShell fallback is recorded | `pwsh` is now reported by provisioning checks |
 | Workspace path aligned | Operator-facing web app path uses `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` | Verified in current repo docs/scripts |
-| Shared-drive handoff references intact | External staging/deploy references still point to `G:\Shared drives\CERTASURV_PROJECT DRIVE` | Repo-local references checked June 20, 2026; live contents not modified |
+| Shared-drive handoff references intact | External staging/deploy references still point to `G:\Shared drives\CERTASURV_PROJECT DRIVE` | Repo-local references checked June 20, 2026 ET; current host provisioning reports the `G:` mount missing |
 | MACROTBC release branch intentional | Dirty local TBC command-center and generated artifacts are sorted into commit/ignore/defer buckets before push | Blocking |
 | WV courthouse repo remotely publishable | `WV_COURTHOUSE_RESEARCHER` has a configured `origin` and a reviewed release branch | Blocking |
 | GitHub access for private repos | `gh` is authenticated with repo/workflow access on the host used for release operations | Blocked on this host |
@@ -34,7 +34,7 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 
 1. MACROTBC has a dirty local release branch and needs an intentional publish/cleanup decision before TBC handoff.
 2. WV_COURTHOUSE_RESEARCHER has no observed `origin` and needs remote setup plus release-branch review.
-3. Local release execution is blocked until missing tools/mounts reported by `Test-CertaProjectProvisioning.ps1` are restored or explicitly deferred.
+3. Local release execution is blocked until missing tools/mounts reported by `Test-CertaProjectProvisioning.ps1` are restored or explicitly deferred: shared-drive `G:` mount, MACROTBC shared-drive config, `node`, `npm`, and `pwsh`.
 4. `gh` is not authenticated on this host, so private workflow runs/logs cannot be inspected here.
 5. The permanent GitHub destination for `CERTAHEALTH` is still unresolved between public `CERTASURV.git` and dedicated `certahealth.git`.
 
@@ -42,4 +42,4 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 
 - Public workflow: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/workflows/certahealth-control-checks.yml`
 - Latest verified `main` run: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/runs/27773432493`
-- Latest verified overall run during this pass: `#105` on branch `codex/release-control-webapp-strict-main-20260620b`, success on June 21, 2026 UTC; latest `main` run `#41` also succeeded
+- Latest verified overall run during this pass: `#107` on branch `codex/release-control-webapp-strict-main-20260621`, success on June 21, 2026 UTC; latest `main` run `#41` also succeeded

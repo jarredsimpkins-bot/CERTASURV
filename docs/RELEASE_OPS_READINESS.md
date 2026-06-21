@@ -1,18 +1,19 @@
 # Certa Release Ops Readiness
 
-Last updated: 2026-06-20 20:35 ET
+Last updated: 2026-06-20 21:35 ET
 
 ## Launch Snapshot
 
 | Area | Current Signal | Readiness |
 | --- | --- | --- |
-| Control repo workflow | Public API shows latest overall run `#105` on June 21, 2026 UTC succeeded on `codex/release-control-webapp-strict-main-20260620b`; latest `main` run `#41` also succeeded | Ready with GitHub CLI blocker |
+| Control repo workflow | Public API shows latest overall run `#107` on June 21, 2026 UTC succeeded on `codex/release-control-webapp-strict-main-20260621`; latest `main` run `#41` also succeeded | Ready with GitHub CLI blocker |
 | Control repo docs | Core launch docs are present in repo and now tracked by workflow required-file validation, including a repo-local launch checklist | Ready |
-| Shared-drive handoff docs | Repo-local references still point at the shared-drive system of record; live shared-drive contents were not modified during this pass | Ready with external dependency |
+| Shared-drive handoff docs | Repo-local references still point at the shared-drive system of record, but `Test-CertaProjectProvisioning.ps1` now reports the `G:` shared-drive mount missing on this host | Blocked locally |
 | Web app workspace naming | Active local folder is `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP`; control scripts now use that canonical path instead of falling back to legacy `New project2` | Ready |
 | CERTARD and CERTASURV_WEB_APP | Local release focus is push/review timing; both observed with configured `origin` remotes and dirty/generated local state outside this control repo | Ready with review timing |
 | MACROTBC | Local repo has substantial dirty/generated state on `codex/certasurv-unified-forward` while `origin` points to `macrotbc.git`; release handoff still needs an intentional cleanup/publish decision | Blocking |
-| WV_COURTHOUSE_RESEARCHER | Local repo exists on `codex/wv-courthouse-researcher-cabell-lessons` with dirty docs/scripts and no configured remote observed from this host | Blocking |
+| WV_COURTHOUSE_RESEARCHER | Local repo exists on `codex/wv-courthouse-researcher-cabell-lessons` with dirty docs/scripts and no configured remote observed again from this host on June 20, 2026 ET | Blocking |
+| Local release tools | Windows PowerShell and `gh` are installed; `node`, `npm`, and `pwsh` are not currently on PATH | Blocked locally |
 | GitHub CLI access | `gh` is installed locally but unauthenticated on this host | Blocked |
 | Final control-repo destination | `CERTAHEALTH` still points at public `CERTASURV.git`; planned `certahealth.git` exists | Decision needed |
 
@@ -28,16 +29,17 @@ These references still align on the expected shared-drive root `G:\Shared drives
 ## Current Verified Workflow Signal
 
 - Workflow file: `.github/workflows/certahealth-control-checks.yml`
-- Latest verified overall public run: `#105`, branch `codex/release-control-webapp-strict-main-20260620b`, commit `52bfea2`, created `2026-06-21T00:16:44Z`, conclusion `success`
+- Latest verified overall public run: `#107`, branch `codex/release-control-webapp-strict-main-20260621`, commit `11baa9e`, created `2026-06-21T01:18:29Z`, conclusion `success`
 - Latest verified `main` run: `#41`, branch `main`, commit `6f40b64`, created `2026-06-18T16:17:45Z`, conclusion `success`
-- Verified job summary for run `#105`: single job `powershell-and-docs` succeeded, including PowerShell syntax and required control-file checks
+- Verified job summary for run `#107`: single job `powershell-and-docs` succeeded, including PowerShell syntax and required control-file checks
 
 ## Launch Blockers
 
 1. Resolve MACROTBC release state: decide what to preserve from the dirty local tree, publish the intended branch to `macrotbc.git`, and verify any workflow/runbook outputs needed for TBC handoff.
 2. Resolve WV_COURTHOUSE_RESEARCHER remote readiness: set the GitHub remote, decide which local docs/scripts are release material, push the branch, and add workflow visibility once available.
-3. Authenticate `gh` on this host with repo and workflow scopes so private workflow runs and logs can be inspected directly.
-4. Decide whether the control repo should keep using public `CERTASURV.git` or switch to the planned dedicated `certahealth.git` remote before launch cutover.
+3. Restore the local release execution environment: remount `G:\Shared drives\CERTASURV_PROJECT DRIVE`, restore/regenerate `C:\Users\SimpS\OneDrive\Documents\MACROTBC\certasurv_shared_drive.json`, and put `node`, `npm`, and `pwsh` back on PATH or explicitly use recorded fallbacks.
+4. Authenticate `gh` on this host with repo and workflow scopes so private workflow runs and logs can be inspected directly.
+5. Decide whether the control repo should keep using public `CERTASURV.git` or switch to the planned dedicated `certahealth.git` remote before launch cutover.
 
 ## Non-Blocking Follow-Up
 
