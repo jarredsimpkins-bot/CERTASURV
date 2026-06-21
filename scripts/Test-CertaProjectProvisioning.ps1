@@ -5,23 +5,44 @@ param(
 $ErrorActionPreference = 'Continue'
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
-$webAppCandidates = @(
-    Join-Path $documents 'CERTASURV_WEB_APP'
-    Join-Path $documents 'New project2'
-)
-$webAppPath = $webAppCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-if (-not $webAppPath) {
-    $webAppPath = $webAppCandidates[0]
+$webAppPath = Join-Path $documents 'CERTASURV_WEB_APP'
+
+function Test-GitWorkTree {
+    param([string]$Path)
+
+    if (-not (Test-Path -LiteralPath $Path)) {
+        return $false
+    }
+
+    $inside = git -C $Path rev-parse --is-inside-work-tree 2>$null
+    return ($LASTEXITCODE -eq 0 -and $inside -eq 'true')
 }
+
+function Get-OriginRemote {
+    param([string]$Path)
+
+    if (-not (Test-GitWorkTree -Path $Path)) {
+        return ''
+    }
+
+    $remote = git -C $Path remote get-url origin 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        return ''
+    }
+
+    return $remote
+}
+
 $projects = @(
-    @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH'; Type = 'control' },
-    @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD'; Type = 'coordination' },
-    @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC'; Type = 'tbc-integration' },
-    @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS'; Type = 'automation' },
-    @{ Name = 'CERTASURV_WEB_APP'; Path = $webAppPath; Type = 'local-app' },
-    @{ Name = 'TBC Live Macros'; Path = Join-Path $documents 'Trimble Business Center\MacroCommands3\CertaSurv'; Type = 'tbc-live' },
-    @{ Name = 'Feature Definition Manager'; Path = Join-Path $documents 'Feature Definition Manager'; Type = 'cad-standards' },
-    @{ Name = 'TBC Templates Matrix'; Path = 'C:\ProgramData\Trimble\CONVERSE_FULL_DRAFTING_MATRIX_FROM_PAPERSPACE'; Type = 'tbc-templates' }
+    @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH'; Type = 'control'; RequiresGit = $true },
+    @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD'; Type = 'coordination'; RequiresGit = $true },
+    @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC'; Type = 'tbc-integration'; RequiresGit = $true },
+    @{ Name = 'WV_COURTHOUSE_RESEARCHER'; Path = Join-Path $documents 'WV_COURTHOUSE_RESEARCHER'; Type = 'courthouse-research'; RequiresGit = $true },
+    @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS'; Type = 'automation'; RequiresGit = $true },
+    @{ Name = 'CERTASURV_WEB_APP'; Path = $webAppPath; Type = 'local-app'; RequiresGit = $true },
+    @{ Name = 'TBC Live Macros'; Path = Join-Path $documents 'Trimble Business Center\MacroCommands3\CertaSurv'; Type = 'tbc-live'; RequiresGit = $false },
+    @{ Name = 'Feature Definition Manager'; Path = Join-Path $documents 'Feature Definition Manager'; Type = 'cad-standards'; RequiresGit = $false },
+    @{ Name = 'TBC Templates Matrix'; Path = 'C:\ProgramData\Trimble\CONVERSE_FULL_DRAFTING_MATRIX_FROM_PAPERSPACE'; Type = 'tbc-templates'; RequiresGit = $false }
 )
 
 $connections = @(
@@ -70,22 +91,14 @@ $connectionRows = foreach ($connection in $connections) {
 
 $projectRows = foreach ($project in $projects) {
     $exists = Test-Path -LiteralPath $project.Path
-    $gitPath = Join-Path $project.Path '.git'
-    $hasGit = $exists -and (Test-Path -LiteralPath $gitPath)
-    $hasRemote = $false
-
-    if ($hasGit) {
-        $gitConfig = Join-Path $gitPath 'config'
-        if (Test-Path -LiteralPath $gitConfig -PathType Leaf) {
-            $hasRemote = Select-String -LiteralPath $gitConfig -Pattern '^\s*\[remote "' -Quiet -ErrorAction SilentlyContinue
-        }
-    }
+    $hasGit = $exists -and (Test-GitWorkTree -Path $project.Path)
+    $remote = if ($hasGit) { Get-OriginRemote -Path $project.Path } else { '' }
 
     [pscustomobject]@{
         Area = 'Project'
         Name = $project.Name
-        Status = if (-not $exists) { 'MISSING' } elseif ($hasGit -and -not $hasRemote) { 'LOCAL_ONLY' } else { 'OK' }
-        Detail = if ($hasGit) { "git remote: $hasRemote; $($project.Path)" } else { $project.Path }
+        Status = if (-not $exists) { 'MISSING' } elseif ($project.RequiresGit -and -not $hasGit) { 'MISSING_GIT' } elseif ($project.RequiresGit -and -not $remote) { 'LOCAL_ONLY' } else { 'OK' }
+        Detail = if ($hasGit) { "origin: $remote; $($project.Path)" } else { $project.Path }
     }
 }
 
