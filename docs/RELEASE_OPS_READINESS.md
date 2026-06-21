@@ -9,7 +9,7 @@ Last updated: 2026-06-18 11:33
 | Control repo workflow | Public API now shows latest overall run `#40` on June 18, 2026 succeeded on `main`; the preceding feature-branch run `#39` also succeeded | Ready |
 | Control repo docs | Core launch docs are present in repo and now tracked by workflow required-file validation, including a repo-local launch checklist | Ready |
 | Shared-drive handoff docs | Shared-drive staging and Apps Script deployment references exist outside this repo and remain read-only during release ops | Ready with external dependency |
-| Web app workspace naming | Active local folder is `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP`; legacy `New project2` references were a release risk | Ready after this alignment |
+| Web app workspace naming | Active local folder is `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP`; legacy web app folder references were a release risk | Ready after this alignment |
 | GitHub CLI access | `gh` is installed locally but unauthenticated on this host | Blocked |
 | Final control-repo destination | `CERTAHEALTH` still points at public `CERTASURV.git`; planned `certahealth.git` exists | Decision needed |
 
