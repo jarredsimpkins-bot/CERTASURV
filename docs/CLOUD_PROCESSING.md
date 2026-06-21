@@ -1,6 +1,6 @@
 # Cloud Processing Plan
 
-Last updated: 2026-06-18
+Last updated: 2026-06-21
 
 ## What Moves To Cloud
 
@@ -33,6 +33,7 @@ The subscription is now used in parallel launch lanes:
 | Certa launch supervisor | Hourly | Cross-repo launch readiness review |
 | Certa launch implementer | Hourly | Safe repo-local launch fixes across the stack |
 | MACROTBC implementation worker | Hourly | TBC integration hardening that does not require live TBC |
+| WV courthouse researcher worker | Hourly | Courthouse research toolkit hardening and remote-readiness cleanup |
 | Drive automation implementation worker | Hourly | Apps Script, registry, and Drive automation hardening |
 | Web app implementation worker | Hourly | App/dashboard tests, package, and CI readiness |
 | Certa release ops worker | Hourly | Release docs, runbooks, workflow/handoff readiness |
@@ -55,6 +56,6 @@ The cloud offload runner pushes committed branches every 10 minutes. It intentio
 ## Current Control-Repo Signal
 
 - Public control-repo workflow `CertaHealth Control Checks` is visible on GitHub and the latest public run observed on June 18, 2026 was successful.
-- The latest visible overall run is `#40` on branch `main`, commit `e0cd20b`, success.
-- The latest visible prior feature-branch run is `#39` on branch `codex/adaptive-worktree-launch-hardening-20260618`, commit `422cbb5`, success.
+- The latest visible overall run is `#137` on branch `codex/release-control-webapp-path-guard-20260621-2115`, commit `d008373`, success.
+- The latest visible `main` run is `#41`, commit `6f40b64`, success.
 - Private-repo workflow outputs remain unavailable from this host until `gh` authentication is restored.
