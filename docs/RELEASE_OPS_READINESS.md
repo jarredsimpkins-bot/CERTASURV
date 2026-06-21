@@ -6,7 +6,7 @@ Last updated: 2026-06-21 00:52
 
 | Area | Current Signal | Readiness |
 | --- | --- | --- |
-| Control repo workflow | Public API shows latest `main` run `#41` on June 18, 2026 succeeded; latest visible feature-branch run `#113` on June 21, 2026 also succeeded | Ready |
+| Control repo workflow | Public API shows latest `main` run `#41` on June 18, 2026 succeeded; latest visible feature-branch run `#115` on June 21, 2026 also succeeded | Ready |
 | Control repo docs | Core launch docs are present in repo and now tracked by workflow required-file validation, including a repo-local launch checklist | Ready |
 | Shared-drive handoff docs | Shared-drive staging and Apps Script deployment references exist outside this repo, but `G:\Shared drives\CERTASURV_PROJECT DRIVE` was not mounted during the June 21 provisioning check | Blocked until mount is restored |
 | Web app workspace naming | Active local folder is `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP`; legacy `New project2` references remain in older sibling-repo background docs only | Ready |
@@ -29,7 +29,7 @@ These references still align on the shared-drive root `G:\Shared drives\CERTASUR
 
 - Workflow file: `.github/workflows/certahealth-control-checks.yml`
 - Latest verified `main` public run: `#41`, branch `main`, commit `6f40b64`, created `2026-06-18T16:17:45Z`, conclusion `success`
-- Latest verified overall public run: `#113`, branch `codex/release-control-webapp-path-guard-20260621`, commit `672734f`, created `2026-06-21T04:20:49Z`, conclusion `success`
+- Latest verified overall public run: `#115`, branch `codex/release-control-webapp-path-guard-20260621-2`, commit `4e6d45c`, created `2026-06-21T05:21:12Z`, conclusion `success`
 - Local provisioning check on June 21, 2026 failed on operational dependencies: missing shared-drive mount, missing MACROTBC shared-drive config in the working tree, and `node`/`npm` not on PATH.
 
 ## Launch Blockers

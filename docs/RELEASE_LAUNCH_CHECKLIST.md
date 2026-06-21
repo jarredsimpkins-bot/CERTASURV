@@ -41,5 +41,5 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 
 - Public workflow: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/workflows/certahealth-control-checks.yml`
 - Latest verified `main` run: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/runs/27773432493`
-- Latest verified overall run during this pass: `#113` on branch `codex/release-control-webapp-path-guard-20260621`, success on June 21, 2026
+- Latest verified overall run during this pass: `#115` on branch `codex/release-control-webapp-path-guard-20260621-2`, success on June 21, 2026
 - Blocker triage: `docs/RELEASE_BLOCKER_TRIAGE_2026-06-21.md`
