@@ -1,6 +1,6 @@
 # Git Situation
 
-Last updated: 2026-06-17
+Last updated: 2026-06-20
 
 ## Fixed Locally
 
@@ -35,4 +35,7 @@ All planned repositories now exist. `CERTASURV` is public; the remaining launch 
 
 - `CERTAHEALTH` currently pushes to public `CERTASURV.git`, but the planned dedicated target remains `certahealth.git`.
 - `CERTASURV_WEB_APP` is the active local workspace name; any lingering `New project2` references should be treated as legacy docs only.
-- GitHub CLI is installed locally but was unauthenticated during the June 17, 2026 release-ops pass, so private-repo workflow inspection still requires `gh auth login`.
+- GitHub CLI is installed locally but was unauthenticated during the June 20, 2026 release-ops pass, so private-repo workflow inspection still requires `gh auth login`.
+- `CERTAHEALTH` public workflow visibility is still available through the GitHub REST API; latest verified `main` run is `#41` for commit `6f40b64`, successful on June 18, 2026.
+- MACROTBC is the main repo-readiness blocker: active OneDrive branch `codex/certasurv-unified-forward` has deleted tracked root files, missing `certasurv_shared_drive.json`, modified telemetry CSVs, and untracked generated/runtime outputs.
+- WV_COURTHOUSE_RESEARCHER remains a substantive release blocker: active branch `codex/wv-courthouse-researcher-cabell-lessons` has modified docs, scripts, templates, and ortho/LiDAR workflow docs that need owner review before release.
