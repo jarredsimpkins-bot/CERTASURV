@@ -6,7 +6,7 @@ Last updated: 2026-06-21 13:05
 
 | Area | Current Signal | Readiness |
 | --- | --- | --- |
-| Control repo workflow | Public GitHub Actions API shows latest visible overall run `#128` on June 21, 2026 succeeded; latest verified `main` run is `#41` on June 18, 2026 | Ready |
+| Control repo workflow | Public GitHub Actions API showed release-ops baseline run `#128` on June 21, 2026 succeeded; latest verified `main` run is `#41` on June 18, 2026 | Ready |
 | Control repo docs | Core launch docs are present in repo and now tracked by workflow required-file validation, including a repo-local launch checklist | Ready |
 | Shared-drive handoff docs | Shared-drive staging and Apps Script deployment references exist outside this repo and remain read-only during release ops | Ready with external dependency |
 | Web app workspace naming | Active local folder is `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP`; control scripts now use that path directly | Ready |
@@ -29,7 +29,7 @@ These references still align on the shared-drive root `G:\Shared drives\CERTASUR
 ## Current Verified Workflow Signal
 
 - Workflow file: `.github/workflows/certahealth-control-checks.yml`
-- Latest visible overall public run: `#128`, branch `codex/release-ops-wv-macrotbc-control-readiness-20260621`, commit `dc80fd4`, triggered `2026-06-21T11:50:53Z`, conclusion `success`
+- Release-ops baseline public run: `#128`, branch `codex/release-ops-wv-macrotbc-control-readiness-20260621`, commit `dc80fd4`, triggered `2026-06-21T11:50:53Z`, conclusion `success`
 - Latest verified `main` run: `#41`, branch `main`, commit `6f40b64`, created `2026-06-18T16:17:45Z`, conclusion `success`
 - Verified job summary for run `#128`: single job `powershell-and-docs` succeeded
 
