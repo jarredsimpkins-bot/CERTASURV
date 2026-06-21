@@ -8,7 +8,7 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 
 | Gate | What to confirm | Current state |
 | --- | --- | --- |
-| Workflow visible and green | Latest visible public `CertaHealth Control Checks` run is successful; latest verified `main` run is also successful | Overall run `#128`, commit `dc80fd4`, success on June 21, 2026; `main` run `#41`, commit `6f40b64`, success on June 18, 2026 |
+| Workflow visible and green | Public `CertaHealth Control Checks` release-ops baseline is successful; latest verified `main` run is also successful | Baseline run `#128`, commit `dc80fd4`, success on June 21, 2026; `main` run `#41`, commit `6f40b64`, success on June 18, 2026 |
 | Docs present | Release readiness, connection matrix, git situation, cloud processing, and this checklist are committed | Required by workflow |
 | PowerShell syntax clean | All tracked `.ps1` files parse without errors | Required by workflow |
 | Workspace path aligned | Operator-facing web app path uses `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` | Verified in current repo docs/scripts |
@@ -41,6 +41,6 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 ## Evidence References
 
 - Public workflow: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/workflows/certahealth-control-checks.yml`
-- Latest visible overall run: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/runs/27903398654`
-- Latest verified overall run during this pass: `#128` on branch `codex/release-ops-wv-macrotbc-control-readiness-20260621`, success on June 21, 2026
+- Release-ops baseline run: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/runs/27903398654`
+- Verified baseline run during this pass: `#128` on branch `codex/release-ops-wv-macrotbc-control-readiness-20260621`, success on June 21, 2026
 - Latest verified `main` run: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/runs/27773432493`

@@ -57,6 +57,6 @@ The cloud offload runner pushes committed branches every 10 minutes. It intentio
 ## Current Control-Repo Signal
 
 - Public control-repo workflow `CertaHealth Control Checks` is visible on GitHub and the latest visible run observed on June 21, 2026 was successful.
-- The latest visible overall run is `#128` on branch `codex/release-ops-wv-macrotbc-control-readiness-20260621`, commit `dc80fd4`, success.
+- The release-ops baseline run is `#128` on branch `codex/release-ops-wv-macrotbc-control-readiness-20260621`, commit `dc80fd4`, success.
 - The latest verified `main` run is `#41` on branch `main`, commit `6f40b64`, success.
 - Private-repo workflow outputs remain unavailable from this host until `gh` authentication is restored.
