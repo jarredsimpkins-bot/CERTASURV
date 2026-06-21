@@ -40,6 +40,8 @@ jobs:
             'docs/RELEASE_LAUNCH_CHECKLIST.md',
             'scripts/Test-CertaProjectProvisioning.ps1',
             'scripts/Set-CertaGitRemotes.ps1',
+            'scripts/Invoke-CertaCloudOffload.ps1',
+            'scripts/Publish-CertaGitHubRepos.ps1',
             'scripts/Manage-CertaLaptopLoad.ps1'
           )
           foreach ($path in $required) {
