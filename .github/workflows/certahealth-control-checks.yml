@@ -47,3 +47,12 @@ jobs:
               throw "Missing required file: $path"
             }
           }
+
+      - name: Block legacy web app workspace fallback
+        shell: pwsh
+        run: |
+          $legacy = Select-String -Path 'scripts/*.ps1' -Pattern 'New project2' -SimpleMatch
+          if ($legacy) {
+            $legacy | ForEach-Object { Write-Error "$($_.Path):$($_.LineNumber): legacy web app path reference is not allowed in scripts" }
+            exit 1
+          }
