@@ -8,12 +8,12 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 
 | Gate | What to confirm | Current state |
 | --- | --- | --- |
-| Workflow green on `main` | Latest public `CertaHealth Control Checks` run for `main` is successful | Verified on June 18, 2026: run `#40`, commit `e0cd20b`, success |
+| Workflow green | Latest public `CertaHealth Control Checks` run is successful, with `main` checked before final cutover | Latest visible run verified on June 21, 2026: run `#119`, branch `codex/release-control-webapp-path-guard-20260621b`, commit `9f157f9`, success |
 | Docs present | Release readiness, connection matrix, git situation, cloud processing, and this checklist are committed | Required by workflow |
 | PowerShell syntax clean | All tracked `.ps1` files parse without errors | Required by workflow |
-| Workspace path aligned | Operator-facing web app path uses `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` | Verified in current repo docs/scripts |
-| Shared-drive handoff references intact | External staging/deploy references still point to `G:\Shared drives\CERTASURV_PROJECT DRIVE` | Verified read-only on June 17, 2026 |
-| CERTARD and web app lanes | Both repos have configured origins and are locally past cleanup | Ready pending push/review timing |
+| Workspace path aligned | Operator-facing web app path uses `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` | Verified in current repo docs/scripts; workflow now guards against `New project2` in scripts |
+| Shared-drive handoff references intact | External staging/deploy references still point to `G:\Shared drives\CERTASURV_PROJECT DRIVE` | References exist, but `G:` is not mounted on this host during the June 21 check |
+| CERTARD and web app lanes | Both repos have configured origins and remain push/review-timing lanes | Current sibling worktrees contain pre-existing local churn; do not sweep it into release-ops commits |
 | MACROTBC release lane | Production integration, private workflow evidence, and review are complete | Blocked |
 | WV courthouse lane | Upstream remote exists and active branch is pushed for review | Blocked: no `origin` observed June 21, 2026 |
 | GitHub access for private repos | `gh` is authenticated with repo/workflow access on the host used for release operations | Blocked on this host |
@@ -22,7 +22,7 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 ## Operator Sequence
 
 1. Run `git status --short` in `CERTAHEALTH` and confirm only intended release-ops edits are present.
-2. Run `pwsh -File .\scripts\Test-CertaProjectProvisioning.ps1 -Detailed` and record any missing tools or mounts.
+2. Run `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Test-CertaProjectProvisioning.ps1 -Detailed` and record any missing tools or mounts. Use `pwsh` on hosts where PowerShell 7 is installed.
 3. Confirm the latest public control workflow run on `main` is green before handing off notes or switching remotes.
 4. Verify external handoff references remain read-only unless copying from committed repo docs.
 5. Decide the permanent control-repo remote before final launch cutover so release notes, automation, and operator docs all point to one destination.
@@ -36,9 +36,10 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 2. The permanent GitHub destination for `CERTAHEALTH` is still unresolved between public `CERTASURV.git` and dedicated `certahealth.git`.
 3. `MACROTBC` still needs production integration review and private workflow evidence.
 4. `WV_COURTHOUSE_RESEARCHER` has no observed `origin` remote and has local changes that need upstream review.
+5. This host is missing the shared-drive mount, `MACROTBC\certasurv_shared_drive.json`, and `node`/`npm` on PATH.
 
 ## Evidence References
 
 - Public workflow: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/workflows/certahealth-control-checks.yml`
-- Latest verified `main` run: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/runs/27769753846`
-- Latest verified overall run during this pass: `#40` on branch `main`, success on June 18, 2026; prior feature-branch run `#39` also succeeded
+- Latest verified overall run: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/runs/27897131101`
+- Latest verified release-ops blocker-map run: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/runs/27895927562`
