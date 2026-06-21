@@ -29,6 +29,17 @@ jobs:
             exit 1
           }
 
+      - name: Block retired web app path in scripts
+        shell: pwsh
+        run: |
+          $matches = Select-String -Path 'scripts/*.ps1' -Pattern 'New project2' -SimpleMatch
+          if ($matches) {
+            $matches | ForEach-Object {
+              Write-Error "Retired web app path found in script: $($_.Path):$($_.LineNumber)"
+            }
+            exit 1
+          }
+
       - name: Verify required control files
         shell: pwsh
         run: |
