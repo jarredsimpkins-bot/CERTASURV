@@ -38,6 +38,7 @@ jobs:
             'docs/CLOUD_PROCESSING.md',
             'docs/RELEASE_OPS_READINESS.md',
             'docs/RELEASE_LAUNCH_CHECKLIST.md',
+            'docs/RELEASE_BLOCKER_TRIAGE_2026-06-21.md',
             'scripts/Test-CertaProjectProvisioning.ps1',
             'scripts/Set-CertaGitRemotes.ps1',
             'scripts/Manage-CertaLaptopLoad.ps1'
