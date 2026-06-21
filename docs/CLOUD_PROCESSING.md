@@ -1,6 +1,6 @@
 # Cloud Processing Plan
 
-Last updated: 2026-06-18
+Last updated: 2026-06-21
 
 ## What Moves To Cloud
 
@@ -36,6 +36,7 @@ The subscription is now used in parallel launch lanes:
 | Drive automation implementation worker | Hourly | Apps Script, registry, and Drive automation hardening |
 | Web app implementation worker | Hourly | App/dashboard tests, package, and CI readiness |
 | Certa release ops worker | Hourly | Release docs, runbooks, workflow/handoff readiness |
+| WV courthouse researcher worker | As scheduled | Deed, courthouse, ortho/LiDAR, and field-packet readiness after upstream is set |
 | Certa launch cloud health | Every 30 minutes | Thread health report for cloud/local routing |
 
 Cloud workers may commit and push scoped repo-local fixes. They must not touch live Trimble runtime folders, destructively modify shared-drive data, or sweep unrelated dirty local changes into commits.
@@ -49,6 +50,7 @@ The workflows are prepared locally and pushed to GitHub. They run on each pushed
 3. `macrotbc`: private TBC production integration repo, `codex/certasurv-command-center`.
 4. `certasurv-automations`: private Drive/AppScript automation repo, `codex/onboard-everything`.
 5. `certasurv-web-app`: private app/dashboard repo, `codex/land-opportunity-radar-mvp`.
+6. `WV_COURTHOUSE_RESEARCHER`: local branch `codex/wv-courthouse-researcher-cabell-lessons`; blocked from cloud activation until a GitHub upstream is chosen and `origin` is set.
 
 The cloud offload runner pushes committed branches every 10 minutes. It intentionally does not auto-stage or auto-commit live work.
 

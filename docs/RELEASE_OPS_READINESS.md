@@ -1,6 +1,6 @@
 # Certa Release Ops Readiness
 
-Last updated: 2026-06-18 11:33
+Last updated: 2026-06-21 08:00
 
 ## Launch Snapshot
 
@@ -10,6 +10,9 @@ Last updated: 2026-06-18 11:33
 | Control repo docs | Core launch docs are present in repo and now tracked by workflow required-file validation, including a repo-local launch checklist | Ready |
 | Shared-drive handoff docs | Shared-drive staging and Apps Script deployment references exist outside this repo and remain read-only during release ops | Ready with external dependency |
 | Web app workspace naming | Active local folder is `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP`; legacy `New project2` references were a release risk | Ready after this alignment |
+| CERTARD and web app lanes | Both have configured origins and are locally past the cleanup pass; remaining work is push/review timing | Ready pending review timing |
+| MACROTBC lane | Remote exists, but production integration hardening and workflow evidence remain launch-critical | Blocked |
+| WV courthouse research lane | Local workspace exists with active branch `codex/wv-courthouse-researcher-cabell-lessons`, local changes, and no observed `origin` | Blocked |
 | GitHub CLI access | `gh` is installed locally but unauthenticated on this host | Blocked |
 | Final control-repo destination | `CERTAHEALTH` still points at public `CERTASURV.git`; planned `certahealth.git` exists | Decision needed |
 
@@ -32,8 +35,9 @@ These references still align on the shared-drive root `G:\Shared drives\CERTASUR
 
 1. Authenticate `gh` on this host with repo and workflow scopes so private workflow runs and logs can be inspected directly.
 2. Decide whether the control repo should keep using public `CERTASURV.git` or switch to the planned dedicated `certahealth.git` remote before launch cutover.
+3. Finish MACROTBC release-blocking production integration review before declaring the TBC lane launch-ready.
+4. Create or confirm the `WV_COURTHOUSE_RESEARCHER` upstream, set `origin`, and push its active branch for review.
 
 ## Non-Blocking Follow-Up
 
-- Normalize any remaining operator-facing references to `CERTASURV_WEB_APP` across sibling repos so release handoff docs all use the same workspace name.
 - Keep using the public REST API as a fallback for public workflow visibility when `gh` remains unauthenticated on this host.

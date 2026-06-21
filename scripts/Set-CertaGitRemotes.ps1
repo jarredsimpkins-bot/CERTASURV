@@ -20,10 +20,21 @@ $repos = @(
     @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD'; Slug = 'certard' },
     @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC'; Slug = 'macrotbc' },
     @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS'; Slug = 'certasurv-automations' },
-    @{ Name = 'CERTASURV_WEB_APP'; Path = $webAppPath; Slug = 'certasurv-web-app' }
+    @{ Name = 'CERTASURV_WEB_APP'; Path = $webAppPath; Slug = 'certasurv-web-app' },
+    @{ Name = 'WV_COURTHOUSE_RESEARCHER'; Path = Join-Path $documents 'WV_COURTHOUSE_RESEARCHER'; Slug = $null }
 )
 
 $rows = foreach ($repo in $repos) {
+    if (-not $repo.Slug) {
+        [pscustomobject]@{
+            Repo = $repo.Name
+            Path = $repo.Path
+            Remote = ''
+            Status = 'remote-decision-needed'
+        }
+        continue
+    }
+
     if (-not (Test-Path (Join-Path $repo.Path '.git'))) {
         [pscustomobject]@{
             Repo = $repo.Name
