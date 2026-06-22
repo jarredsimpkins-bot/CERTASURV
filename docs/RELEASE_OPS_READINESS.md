@@ -1,17 +1,21 @@
 # Certa Release Ops Readiness
 
-Last updated: 2026-06-18 11:33
+Last updated: 2026-06-22 17:30
 
 ## Launch Snapshot
 
 | Area | Current Signal | Readiness |
 | --- | --- | --- |
-| Control repo workflow | Public API now shows latest overall run `#40` on June 18, 2026 succeeded on `main`; the preceding feature-branch run `#39` also succeeded | Ready |
+| Control repo workflow | Public API shows latest `main` run `#41` on June 18, 2026 succeeded at commit `6f40b64`; latest overall observed feature-branch run `#172` also succeeded on June 22, 2026 | Ready |
 | Control repo docs | Core launch docs are present in repo and now tracked by workflow required-file validation, including a repo-local launch checklist | Ready |
 | Shared-drive handoff docs | Shared-drive staging and Apps Script deployment references exist outside this repo and remain read-only during release ops | Ready with external dependency |
-| Web app workspace naming | Active local folder is `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP`; legacy `New project2` references were a release risk | Ready after this alignment |
-| GitHub CLI access | `gh` is installed locally but unauthenticated on this host | Blocked |
-| Final control-repo destination | `CERTAHEALTH` still points at public `CERTASURV.git`; planned `certahealth.git` exists | Decision needed |
+| Web app workspace naming | Active local folder is `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP`; control scripts now use that canonical path without the retired `New project2` fallback | Ready |
+| GitHub CLI access | `gh auth status` succeeds for `jarredsimpkins-bot`; private repo workflow metadata is visible for CERTARD, MACROTBC, and CERTASURV_WEB_APP | Ready for inspection |
+| CERTARD release lane | Private repo `jarredsimpkins-bot/certard` has latest observed `main` workflow run `27937122339` successful on June 22, 2026 | Ready pending normal push/review timing |
+| CERTASURV_WEB_APP release lane | Local repo is on `codex/certasurv-unified-forward` with large uncommitted/generated working-tree changes; latest observed private workflow run still failed on June 19, 2026 | Needs cleanup before release push/review |
+| MACROTBC release lane | Private repo `jarredsimpkins-bot/macrotbc` is reachable, but latest observed cloud-readiness run `27970712914` failed in `validate-package` / `Run documented repo validation` | Blocked |
+| WV_COURTHOUSE_RESEARCHER release lane | Local workspace exists on `codex/wv-courthouse-researcher-cabell-lessons` with uncommitted runbook/tool changes and no `origin` remote reported in this pass | Blocked |
+| Final control-repo destination | `CERTAHEALTH` still points at public `CERTASURV.git`; `jarredsimpkins-bot/certahealth` was not resolvable through `gh repo view` in this pass | Decision needed |
 
 ## External Handoff References Checked
 
@@ -24,16 +28,17 @@ These references still align on the shared-drive root `G:\Shared drives\CERTASUR
 ## Current Verified Workflow Signal
 
 - Workflow file: `.github/workflows/certahealth-control-checks.yml`
-- Latest verified overall public run: `#40`, branch `main`, commit `e0cd20b`, created `2026-06-18T15:17:34Z`, conclusion `success`
-- Latest verified prior feature-branch run: `#39`, branch `codex/adaptive-worktree-launch-hardening-20260618`, commit `422cbb5`, created `2026-06-18T14:19:31Z`, conclusion `success`
-- Verified job summary for run `#40`: single job `powershell-and-docs` succeeded, including `Validate PowerShell syntax` and `Verify required control files`
+- Latest verified `main` public run: `#41`, branch `main`, commit `6f40b64`, created `2026-06-18T16:17:45Z`, conclusion `success`
+- Latest verified overall public run observed during this pass: `#172`, branch `codex/release-ops-live-blockers-20260622-1230`, commit `3aa0977`, created `2026-06-22T16:36:17Z`, conclusion `success`
+- Verified control workflow gate remains the single `powershell-and-docs` job, including `Validate PowerShell syntax` and `Verify required control files`
 
 ## Launch Blockers
 
-1. Authenticate `gh` on this host with repo and workflow scopes so private workflow runs and logs can be inspected directly.
-2. Decide whether the control repo should keep using public `CERTASURV.git` or switch to the planned dedicated `certahealth.git` remote before launch cutover.
+1. Fix MACROTBC cloud-readiness validation: latest observed private run `27970712914` failed in `validate-package` at `Run documented repo validation`.
+2. Resolve WV_COURTHOUSE_RESEARCHER release ownership: local workspace has uncommitted runbook/tool changes and no `origin` remote reported during this pass.
+3. Decide whether the control repo should keep using public `CERTASURV.git` or switch to a dedicated `certahealth.git` remote before launch cutover; `gh repo view jarredsimpkins-bot/certahealth` did not resolve here.
 
 ## Non-Blocking Follow-Up
 
-- Normalize any remaining operator-facing references to `CERTASURV_WEB_APP` across sibling repos so release handoff docs all use the same workspace name.
-- Keep using the public REST API as a fallback for public workflow visibility when `gh` remains unauthenticated on this host.
+- Keep normalizing operator-facing references to `CERTASURV_WEB_APP` across sibling repos so release handoff docs all use the same workspace name.
+- Keep using the public REST API as a fallback for public workflow visibility if `gh` authentication is unavailable on another host.

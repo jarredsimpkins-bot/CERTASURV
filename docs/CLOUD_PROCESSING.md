@@ -1,6 +1,6 @@
 # Cloud Processing Plan
 
-Last updated: 2026-06-18
+Last updated: 2026-06-22
 
 ## What Moves To Cloud
 
@@ -54,7 +54,6 @@ The cloud offload runner pushes committed branches every 10 minutes. It intentio
 
 ## Current Control-Repo Signal
 
-- Public control-repo workflow `CertaHealth Control Checks` is visible on GitHub and the latest public run observed on June 18, 2026 was successful.
-- The latest visible overall run is `#40` on branch `main`, commit `e0cd20b`, success.
-- The latest visible prior feature-branch run is `#39` on branch `codex/adaptive-worktree-launch-hardening-20260618`, commit `422cbb5`, success.
-- Private-repo workflow outputs remain unavailable from this host until `gh` authentication is restored.
+- Public control-repo workflow `CertaHealth Control Checks` is visible on GitHub; latest observed `main` run `#41` was successful on June 18, 2026.
+- The latest visible overall run observed during this pass is `#172` on branch `codex/release-ops-live-blockers-20260622-1230`, commit `3aa0977`, success on June 22, 2026.
+- Private-repo workflow metadata is available from this host through authenticated `gh`; MACROTBC remains blocked by a failing cloud-readiness validation run.
