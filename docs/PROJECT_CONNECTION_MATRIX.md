@@ -35,9 +35,9 @@ This file is the working standard for making sure every active Certa/CertaSurv p
 
 | Gap | Impact | Fix Path |
 | --- | --- | --- |
-| Shared drive mounted and staged | Outside system-of-record folders are now available locally | Latest stage log: `G:\Shared drives\CERTASURV_PROJECT DRIVE\00_CERTASURV_COMMAND_CENTER\08_REPORTS_EXPORTS\drive-stage-log-20260522-194113.txt` |
+| Shared drive mount is unavailable on this host | Outside system-of-record validation and handoff copying are blocked until `G:` returns | Restore Google Drive Desktop/shared drive mount, then re-run provisioning before copying any staged package |
 | CERTAHEALTH remote target is unresolved | Release notes and automation still need a final answer on whether the control repo stays on public `CERTASURV.git` or moves to `certahealth.git` | Decide the permanent GitHub destination before final launch cutover |
-| GitHub CLI is installed but unauthenticated on this host | `gh`-driven release pushes and private workflow/log inspection are blocked until auth is restored | Run `gh auth login` with repo and workflow scopes |
+| GitHub CLI is authenticated for read/clone/push work | Private workflow lists can now be inspected from this host | Keep current credentials; confirm scopes before any workflow-file API write |
 | WV_COURTHOUSE_RESEARCHER remote readiness is not finalized | Courthouse/title tooling cannot be treated as release-ready until the local repo has a confirmed GitHub origin and reviewed branch target | Create/confirm `wv-courthouse-researcher`, set `origin`, push the intended launch branch, then verify workflow or package checks |
 | `npm` is available on disk but can be missing from PATH in some shells | Node web tooling may work inconsistently outside the explicit Node install path | Normalize host PATH or install/reinstall Node.js LTS when the machine is not under production load |
 

@@ -46,7 +46,7 @@ $repos = @(
         Name = 'wv-courthouse-researcher'
         Description = 'CertaSurv WV courthouse research, deed evidence, and surveyor-review package tooling.'
         Path = 'C:\Users\SimpS\OneDrive\Documents\WV_COURTHOUSE_RESEARCHER'
-        Branch = 'main'
+        Branch = 'codex/wv-courthouse-researcher-cabell-lessons'
     },
     @{
         Name = 'certasurv-automations'
