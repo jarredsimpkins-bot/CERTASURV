@@ -47,3 +47,12 @@ jobs:
               throw "Missing required file: $path"
             }
           }
+
+      - name: Block legacy web app path in scripts
+        shell: pwsh
+        run: |
+          $matches = Get-ChildItem scripts -Filter *.ps1 | Select-String -Pattern 'New project2'
+          if ($matches) {
+            $matches | ForEach-Object { Write-Error "$($_.Path):$($_.LineNumber): legacy web app path reference found" }
+            exit 1
+          }
