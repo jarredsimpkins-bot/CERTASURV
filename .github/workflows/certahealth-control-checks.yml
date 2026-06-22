@@ -47,3 +47,16 @@ jobs:
               throw "Missing required file: $path"
             }
           }
+
+      - name: Verify launch workspace inventory
+        shell: pwsh
+        run: |
+          $scriptText = Get-ChildItem scripts -Filter *.ps1 | ForEach-Object { Get-Content $_.FullName -Raw }
+          if ($scriptText -match 'New project2') {
+            throw 'Release-control scripts must not use legacy New project2 fallbacks.'
+          }
+          foreach ($required in @('CERTASURV_WEB_APP', 'WV_COURTHOUSE_RESEARCHER')) {
+            if (-not ($scriptText -match [regex]::Escape($required))) {
+              throw "Release-control scripts are missing required workspace inventory: $required"
+            }
+          }

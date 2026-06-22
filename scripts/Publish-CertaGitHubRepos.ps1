@@ -20,14 +20,7 @@ $headers = @{
 }
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
-$webAppCandidates = @(
-    Join-Path $documents 'CERTASURV_WEB_APP'
-    Join-Path $documents 'New project2'
-)
-$webAppPath = $webAppCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-if (-not $webAppPath) {
-    $webAppPath = $webAppCandidates[0]
-}
+$webAppPath = Join-Path $documents 'CERTASURV_WEB_APP'
 
 $repos = @(
     @{
@@ -53,10 +46,40 @@ $repos = @(
         Description = 'CertaSurv land opportunity radar, parcel, estimate, and dashboard app.'
         Path = $webAppPath
         Branch = 'codex/land-opportunity-radar-mvp'
+    },
+    @{
+        Name = 'WV_COURTHOUSE_RESEARCHER'
+        Description = 'WV courthouse research package is local-only until remote destination is approved.'
+        Path = 'C:\Users\SimpS\OneDrive\Documents\WV_COURTHOUSE_RESEARCHER'
+        Branch = ''
+        LocalOnly = $true
     }
 )
 
 $results = foreach ($repo in $repos) {
+    if ($repo.LocalOnly) {
+        [pscustomobject]@{
+            Repo = $repo.Name
+            Created = $false
+            Branch = 'local-only'
+            Pushed = $false
+            Url = 'remote-blocked'
+        }
+        continue
+    }
+
+    git -C $repo.Path rev-parse --is-inside-work-tree *> $null
+    if ($LASTEXITCODE -ne 0) {
+        [pscustomobject]@{
+            Repo = $repo.Name
+            Created = $false
+            Branch = $repo.Branch
+            Pushed = $false
+            Url = 'missing-local-git'
+        }
+        continue
+    }
+
     $fullName = "jarredsimpkins-bot/$($repo.Name)"
     $exists = $false
 
