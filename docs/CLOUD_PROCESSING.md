@@ -1,6 +1,6 @@
 # Cloud Processing Plan
 
-Last updated: 2026-06-18
+Last updated: 2026-06-22
 
 ## What Moves To Cloud
 
@@ -33,6 +33,7 @@ The subscription is now used in parallel launch lanes:
 | Certa launch supervisor | Hourly | Cross-repo launch readiness review |
 | Certa launch implementer | Hourly | Safe repo-local launch fixes across the stack |
 | MACROTBC implementation worker | Hourly | TBC integration hardening that does not require live TBC |
+| WV courthouse researcher worker | Hourly | Courthouse/title package readiness, remote setup, and surveyor-review handoff checks |
 | Drive automation implementation worker | Hourly | Apps Script, registry, and Drive automation hardening |
 | Web app implementation worker | Hourly | App/dashboard tests, package, and CI readiness |
 | Certa release ops worker | Hourly | Release docs, runbooks, workflow/handoff readiness |
@@ -47,8 +48,9 @@ The workflows are prepared locally and pushed to GitHub. They run on each pushed
 1. `CERTASURV` / `CERTAHEALTH`: public control repo, `main`.
 2. `certard`: private coordination repo, `main`.
 3. `macrotbc`: private TBC production integration repo, `codex/certasurv-command-center`.
-4. `certasurv-automations`: private Drive/AppScript automation repo, `codex/onboard-everything`.
-5. `certasurv-web-app`: private app/dashboard repo, `codex/land-opportunity-radar-mvp`.
+4. `wv-courthouse-researcher`: planned private courthouse/title repo, branch to confirm before launch.
+5. `certasurv-automations`: private Drive/AppScript automation repo, `codex/onboard-everything`.
+6. `certasurv-web-app`: private app/dashboard repo, `codex/land-opportunity-radar-mvp`.
 
 The cloud offload runner pushes committed branches every 10 minutes. It intentionally does not auto-stage or auto-commit live work.
 

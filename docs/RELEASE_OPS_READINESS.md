@@ -1,6 +1,6 @@
 # Certa Release Ops Readiness
 
-Last updated: 2026-06-18 11:33
+Last updated: 2026-06-22
 
 ## Launch Snapshot
 
@@ -12,6 +12,8 @@ Last updated: 2026-06-18 11:33
 | Web app workspace naming | Active local folder is `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP`; legacy `New project2` references were a release risk | Ready after this alignment |
 | GitHub CLI access | `gh` is installed locally but unauthenticated on this host | Blocked |
 | Final control-repo destination | `CERTAHEALTH` still points at public `CERTASURV.git`; planned `certahealth.git` exists | Decision needed |
+| Substantive release blockers | `MACROTBC` still needs production-integration package/workflow review; `WV_COURTHOUSE_RESEARCHER` needs remote/branch readiness and courthouse package review | Blocked |
+| Clean local repos | `CERTARD` and `CERTASURV_WEB_APP` are treated as push/review-timing lanes rather than substantive blockers | Timing dependent |
 
 ## External Handoff References Checked
 
@@ -32,6 +34,8 @@ These references still align on the shared-drive root `G:\Shared drives\CERTASUR
 
 1. Authenticate `gh` on this host with repo and workflow scopes so private workflow runs and logs can be inspected directly.
 2. Decide whether the control repo should keep using public `CERTASURV.git` or switch to the planned dedicated `certahealth.git` remote before launch cutover.
+3. Finish the MACROTBC launch package/workflow review before treating the TBC production-integration lane as releasable.
+4. Confirm the WV_COURTHOUSE_RESEARCHER GitHub remote, push branch, and courthouse/title package checks before release handoff.
 
 ## Non-Blocking Follow-Up
 
