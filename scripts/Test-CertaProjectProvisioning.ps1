@@ -5,14 +5,8 @@ param(
 $ErrorActionPreference = 'Continue'
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
-$webAppCandidates = @(
-    Join-Path $documents 'CERTASURV_WEB_APP'
-    Join-Path $documents 'New project2'
-)
-$webAppPath = $webAppCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-if (-not $webAppPath) {
-    $webAppPath = $webAppCandidates[0]
-}
+$webAppPath = Join-Path $documents 'CERTASURV_WEB_APP'
+$legacyWebAppPath = Join-Path $documents 'New project2'
 $projects = @(
     @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH'; Type = 'control' },
     @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD'; Type = 'coordination' },
@@ -68,6 +62,21 @@ $connectionRows = foreach ($connection in $connections) {
     }
 }
 
+$pathRows = @(
+    [pscustomobject]@{
+        Area = 'Path'
+        Name = 'CERTASURV_WEB_APP canonical path'
+        Status = if (Test-Path -LiteralPath $webAppPath) { 'OK' } else { 'MISSING' }
+        Detail = $webAppPath
+    },
+    [pscustomobject]@{
+        Area = 'Path'
+        Name = 'Retired New project2 path'
+        Status = if (Test-Path -LiteralPath $legacyWebAppPath) { 'LEGACY_PRESENT' } else { 'OK' }
+        Detail = $legacyWebAppPath
+    }
+)
+
 $projectRows = foreach ($project in $projects) {
     $exists = Test-Path -LiteralPath $project.Path
     $gitPath = Join-Path $project.Path '.git'
@@ -89,7 +98,7 @@ $projectRows = foreach ($project in $projects) {
     }
 }
 
-$allRows = @($toolRows) + @($connectionRows) + @($projectRows)
+$allRows = @($toolRows) + @($connectionRows) + @($pathRows) + @($projectRows)
 $allRows | Sort-Object Area,Name | Format-Table -AutoSize -Wrap
 
 $missing = $allRows | Where-Object { $_.Status -ne 'OK' }
