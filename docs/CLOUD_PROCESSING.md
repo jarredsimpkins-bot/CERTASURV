@@ -1,6 +1,6 @@
 # Cloud Processing Plan
 
-Last updated: 2026-06-18
+Last updated: 2026-06-22
 
 ## What Moves To Cloud
 
@@ -32,7 +32,8 @@ The subscription is now used in parallel launch lanes:
 | --- | --- | --- |
 | Certa launch supervisor | Hourly | Cross-repo launch readiness review |
 | Certa launch implementer | Hourly | Safe repo-local launch fixes across the stack |
-| MACROTBC implementation worker | Hourly | TBC integration hardening that does not require live TBC |
+| MACROTBC implementation worker | Hourly | TBC integration hardening that does not require live TBC; current release blocker until dirty tree is reconciled |
+| WV courthouse researcher worker | Hourly | Courthouse/title research runbook, toolkit, and registry hardening; current release blocker until local changes are reviewed |
 | Drive automation implementation worker | Hourly | Apps Script, registry, and Drive automation hardening |
 | Web app implementation worker | Hourly | App/dashboard tests, package, and CI readiness |
 | Certa release ops worker | Hourly | Release docs, runbooks, workflow/handoff readiness |
@@ -54,7 +55,7 @@ The cloud offload runner pushes committed branches every 10 minutes. It intentio
 
 ## Current Control-Repo Signal
 
-- Public control-repo workflow `CertaHealth Control Checks` is visible on GitHub and the latest public run observed on June 18, 2026 was successful.
-- The latest visible overall run is `#40` on branch `main`, commit `e0cd20b`, success.
-- The latest visible prior feature-branch run is `#39` on branch `codex/adaptive-worktree-launch-hardening-20260618`, commit `422cbb5`, success.
+- Public control-repo workflow `CertaHealth Control Checks` is visible on GitHub and the latest public runs observed on June 22, 2026 were successful.
+- The latest visible overall run is `#151` on branch `codex/release-control-wv-path-hardening-20260622`, commit `d2019e4`, success.
+- The latest five visible public runs, `#147` through `#151`, all completed successfully.
 - Private-repo workflow outputs remain unavailable from this host until `gh` authentication is restored.
