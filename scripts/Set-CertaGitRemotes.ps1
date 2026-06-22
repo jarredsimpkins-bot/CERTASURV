@@ -7,29 +7,39 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
-$webAppCandidates = @(
-    Join-Path $documents 'CERTASURV_WEB_APP'
-    Join-Path $documents 'New project2'
-)
-$webAppPath = $webAppCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-if (-not $webAppPath) {
-    $webAppPath = $webAppCandidates[0]
-}
+$webAppPath = Join-Path $documents 'CERTASURV_WEB_APP'
 $repos = @(
     @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH'; Slug = 'certahealth' },
     @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD'; Slug = 'certard' },
     @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC'; Slug = 'macrotbc' },
     @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS'; Slug = 'certasurv-automations' },
-    @{ Name = 'CERTASURV_WEB_APP'; Path = $webAppPath; Slug = 'certasurv-web-app' }
+    @{ Name = 'CERTASURV_WEB_APP'; Path = $webAppPath; Slug = 'certasurv-web-app' },
+    @{ Name = 'WV_COURTHOUSE_RESEARCHER'; Path = Join-Path $documents 'WV_COURTHOUSE_RESEARCHER'; Slug = $null }
 )
 
 $rows = foreach ($repo in $repos) {
-    if (-not (Test-Path (Join-Path $repo.Path '.git'))) {
+    git -C $repo.Path rev-parse --is-inside-work-tree *> $null
+    if ($LASTEXITCODE -ne 0) {
         [pscustomobject]@{
             Repo = $repo.Name
             Path = $repo.Path
             Remote = ''
             Status = 'missing-local-git'
+        }
+        continue
+    }
+
+    if (-not $repo.Slug) {
+        $current = ''
+        $remotes = git -C $repo.Path remote
+        if ($remotes -contains 'origin') {
+            $current = git -C $repo.Path remote get-url origin
+        }
+        [pscustomobject]@{
+            Repo = $repo.Name
+            Path = $repo.Path
+            Remote = if ($current) { $current } else { '' }
+            Status = if ($current) { 'existing-origin' } else { 'local-only-remote-blocked' }
         }
         continue
     }

@@ -20,14 +20,7 @@ $headers = @{
 }
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
-$webAppCandidates = @(
-    Join-Path $documents 'CERTASURV_WEB_APP'
-    Join-Path $documents 'New project2'
-)
-$webAppPath = $webAppCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-if (-not $webAppPath) {
-    $webAppPath = $webAppCandidates[0]
-}
+$webAppPath = Join-Path $documents 'CERTASURV_WEB_APP'
 
 $repos = @(
     @{
@@ -57,6 +50,19 @@ $repos = @(
 )
 
 $results = foreach ($repo in $repos) {
+    git -C $repo.Path rev-parse --is-inside-work-tree *> $null
+    if ($LASTEXITCODE -ne 0) {
+        [pscustomobject]@{
+            Repo = "jarredsimpkins-bot/$($repo.Name)"
+            Created = $false
+            Branch = $repo.Branch
+            Pushed = $false
+            Url = ''
+            Status = "missing-local-git: $($repo.Path)"
+        }
+        continue
+    }
+
     $fullName = "jarredsimpkins-bot/$($repo.Name)"
     $exists = $false
 
@@ -95,6 +101,19 @@ $results = foreach ($repo in $repos) {
         git -C $repo.Path remote add origin $remote
     }
 
+    $currentBranch = git -C $repo.Path branch --show-current
+    if (-not $currentBranch) {
+        [pscustomobject]@{
+            Repo = $fullName
+            Created = $created
+            Branch = $repo.Branch
+            Pushed = $false
+            Url = "https://github.com/$fullName"
+            Status = 'detached-head-skipped'
+        }
+        continue
+    }
+
     git -C $repo.Path push -u origin $repo.Branch
     $pushOk = ($LASTEXITCODE -eq 0)
 
@@ -104,6 +123,7 @@ $results = foreach ($repo in $repos) {
         Branch = $repo.Branch
         Pushed = $pushOk
         Url = "https://github.com/$fullName"
+        Status = if ($pushOk) { 'pushed' } else { 'push-failed' }
     }
 }
 

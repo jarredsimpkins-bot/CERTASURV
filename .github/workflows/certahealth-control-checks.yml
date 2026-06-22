@@ -47,3 +47,16 @@ jobs:
               throw "Missing required file: $path"
             }
           }
+
+      - name: Guard launch workspace inventory
+        shell: pwsh
+        run: |
+          $scriptText = Get-ChildItem -Path scripts -Filter *.ps1 | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }
+          if (($scriptText -join "`n") -match 'New project2') {
+            throw 'Legacy New project2 fallback found in release-control scripts.'
+          }
+          foreach ($requiredText in @('CERTASURV_WEB_APP', 'WV_COURTHOUSE_RESEARCHER')) {
+            if (($scriptText -join "`n") -notmatch [regex]::Escape($requiredText)) {
+              throw "Missing release-control workspace inventory entry: $requiredText"
+            }
+          }
