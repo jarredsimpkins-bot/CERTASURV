@@ -1,6 +1,6 @@
 # Git Situation
 
-Last updated: 2026-06-17
+Last updated: 2026-06-21
 
 ## Fixed Locally
 
@@ -18,6 +18,7 @@ Last updated: 2026-06-17
 | MACROTBC | `C:\Users\SimpS\OneDrive\Documents\MACROTBC` | `origin` -> `https://github.com/jarredsimpkins-bot/macrotbc.git` |
 | AUTOMATIONS | `C:\Users\SimpS\OneDrive\Documents\AUTOMATIONS` | `origin` -> `https://github.com/jarredsimpkins-bot/certasurv-automations.git` |
 | CERTASURV_WEB_APP | `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` | `origin` -> `https://github.com/jarredsimpkins-bot/certasurv-web-app.git` |
+| WV_COURTHOUSE_RESEARCHER | `C:\Users\SimpS\OneDrive\Documents\WV_COURTHOUSE_RESEARCHER` | No `origin` or upstream configured in the local checkout during the June 21, 2026 pass |
 
 ## Planned Remote Names
 
@@ -28,11 +29,15 @@ Last updated: 2026-06-17
 | MACROTBC | `https://github.com/jarredsimpkins-bot/macrotbc.git` |
 | AUTOMATIONS | `https://github.com/jarredsimpkins-bot/certasurv-automations.git` |
 | CERTASURV_WEB_APP | `https://github.com/jarredsimpkins-bot/certasurv-web-app.git` |
+| WV_COURTHOUSE_RESEARCHER | Proposed helper-script slug is `wv-courthouse-researcher`; final GitHub visibility/ownership still needs confirmation before release push |
 
 All planned repositories now exist. `CERTASURV` is public; the remaining launch support repositories are private.
 
 ## Current Release-Ops Notes
 
 - `CERTAHEALTH` currently pushes to public `CERTASURV.git`, but the planned dedicated target remains `certahealth.git`.
-- `CERTASURV_WEB_APP` is the active local workspace name; any lingering `New project2` references should be treated as legacy docs only.
-- GitHub CLI is installed locally but was unauthenticated during the June 17, 2026 release-ops pass, so private-repo workflow inspection still requires `gh auth login`.
+- `CERTASURV_WEB_APP` is the active local workspace name; control helper scripts no longer fall back to the legacy workspace path.
+- CERTARD and CERTASURV_WEB_APP have remotes and are not the main release blockers, but their sibling worktrees contain local generated/uncommitted changes that should be reviewed by the owning lane before push timing.
+- MACROTBC still blocks release packaging because `certasurv_shared_drive.json` was missing during the June 21, 2026 provisioning check.
+- WV_COURTHOUSE_RESEARCHER still blocks release readiness because no remote/upstream was configured during the June 21, 2026 git check.
+- GitHub CLI is installed locally but was unauthenticated during the June 21, 2026 release-ops pass, so private-repo workflow inspection still requires `gh auth login`.
