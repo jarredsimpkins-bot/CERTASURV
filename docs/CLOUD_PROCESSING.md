@@ -1,6 +1,6 @@
 # Cloud Processing Plan
 
-Last updated: 2026-06-18
+Last updated: 2026-06-22
 
 ## What Moves To Cloud
 
@@ -54,7 +54,15 @@ The cloud offload runner pushes committed branches every 10 minutes. It intentio
 
 ## Current Control-Repo Signal
 
-- Public control-repo workflow `CertaHealth Control Checks` is visible on GitHub and the latest public run observed on June 18, 2026 was successful.
-- The latest visible overall run is `#40` on branch `main`, commit `e0cd20b`, success.
-- The latest visible prior feature-branch run is `#39` on branch `codex/adaptive-worktree-launch-hardening-20260618`, commit `422cbb5`, success.
-- Private-repo workflow outputs remain unavailable from this host until `gh` authentication is restored.
+- Control-repo workflow `CertaHealth Control Checks` is visible through GitHub CLI and the latest visible run observed on June 22, 2026 was successful.
+- The latest visible control run is `27974270514` on branch `codex/release-control-webapp-path-guard-20260622-141558`, commit `a93a0d17bac095386acd0968ca7404e502972ba7`, success.
+- Private-repo workflow outputs are readable through `gh` on this host, but the authenticated token should be reviewed before workflow write or dispatch operations.
+
+## Current Cloud Blocker Signal
+
+- `certard`: latest visible `main` workflow run `27937122339` succeeded on June 22, 2026.
+- `certasurv-automations`: latest visible active-branch workflow run `27943592552` succeeded on June 22, 2026.
+- `macrotbc`: latest visible active-branch workflow run `27974315508` failed on June 22, 2026. The failing required checks are command registry, TBC operator workflow HTML, and TBC tabulated workflow.
+- `certasurv-web-app`: latest visible active-branch workflow run `27802010837` failed on June 19, 2026 in `tests/test_survey_storage.py::test_associated_drive_survey_export_dir_uses_active_project_lane`.
+- `WV_COURTHOUSE_RESEARCHER`: no remote is configured locally, so cloud CI cannot be used until a GitHub destination is assigned.
+- Local handoff staging: `G:\Shared drives\CERTASURV_PROJECT DRIVE` is not mounted on this host, so cloud/browser/API paths must carry release evidence until Google Drive for Desktop is restored.
