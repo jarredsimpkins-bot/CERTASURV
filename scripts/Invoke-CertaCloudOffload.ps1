@@ -5,30 +5,29 @@ param(
 $ErrorActionPreference = 'Continue'
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
-$webAppCandidates = @(
-    Join-Path $documents 'CERTASURV_WEB_APP'
-    Join-Path $documents 'New project2'
-)
-$webAppPath = $webAppCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-if (-not $webAppPath) {
-    $webAppPath = $webAppCandidates[0]
-}
+$webAppPath = Join-Path $documents 'CERTASURV_WEB_APP'
 $repos = @(
     @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH' },
     @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD' },
     @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC' },
     @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS' },
-    @{ Name = 'CERTASURV_WEB_APP'; Path = $webAppPath }
+    @{ Name = 'CERTASURV_WEB_APP'; Path = $webAppPath },
+    @{ Name = 'WV_COURTHOUSE_RESEARCHER'; Path = Join-Path $documents 'WV_COURTHOUSE_RESEARCHER' }
 )
 
 $rows = foreach ($repo in $repos) {
-    $gitDir = Join-Path $repo.Path '.git'
-    if (-not (Test-Path -LiteralPath $gitDir)) {
+    $insideWorkTree = git -C $repo.Path rev-parse --is-inside-work-tree 2>$null
+    if ($LASTEXITCODE -ne 0 -or $insideWorkTree -ne 'true') {
         [pscustomobject]@{ Repo = $repo.Name; Status = 'missing-git'; Branch = ''; Remote = ''; Detail = $repo.Path }
         continue
     }
 
     $branch = git -C $repo.Path branch --show-current
+    if ([string]::IsNullOrWhiteSpace($branch)) {
+        [pscustomobject]@{ Repo = $repo.Name; Status = 'detached-head'; Branch = ''; Remote = ''; Detail = 'Checkout a branch before pushing committed work' }
+        continue
+    }
+
     $remote = git -C $repo.Path remote get-url origin 2>$null
     $dirty = git -C $repo.Path status --porcelain
 
@@ -57,7 +56,7 @@ if (-not $Quiet) {
     $rows | Format-Table -AutoSize -Wrap
 }
 
-if ($rows.Status -contains 'push-failed') {
+if ($rows.Status -contains 'push-failed' -or $rows.Status -contains 'detached-head') {
     exit 1
 }
 

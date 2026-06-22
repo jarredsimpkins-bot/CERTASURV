@@ -20,14 +20,7 @@ $headers = @{
 }
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
-$webAppCandidates = @(
-    Join-Path $documents 'CERTASURV_WEB_APP'
-    Join-Path $documents 'New project2'
-)
-$webAppPath = $webAppCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-if (-not $webAppPath) {
-    $webAppPath = $webAppCandidates[0]
-}
+$webAppPath = Join-Path $documents 'CERTASURV_WEB_APP'
 
 $repos = @(
     @{
@@ -53,11 +46,30 @@ $repos = @(
         Description = 'CertaSurv land opportunity radar, parcel, estimate, and dashboard app.'
         Path = $webAppPath
         Branch = 'codex/land-opportunity-radar-mvp'
+    },
+    @{
+        Name = 'wv-courthouse-researcher'
+        Description = 'CertaSurv courthouse research tooling and release support package.'
+        Path = 'C:\Users\SimpS\OneDrive\Documents\WV_COURTHOUSE_RESEARCHER'
+        Branch = 'main'
     }
 )
 
 $results = foreach ($repo in $repos) {
     $fullName = "jarredsimpkins-bot/$($repo.Name)"
+    $insideWorkTree = git -C $repo.Path rev-parse --is-inside-work-tree 2>$null
+    if ($LASTEXITCODE -ne 0 -or $insideWorkTree -ne 'true') {
+        [pscustomobject]@{
+            Repo = $fullName
+            Created = $false
+            Branch = $repo.Branch
+            Pushed = $false
+            Url = "https://github.com/$fullName"
+            Status = 'missing-local-git'
+        }
+        continue
+    }
+
     $exists = $false
 
     try {
@@ -104,6 +116,7 @@ $results = foreach ($repo in $repos) {
         Branch = $repo.Branch
         Pushed = $pushOk
         Url = "https://github.com/$fullName"
+        Status = if ($pushOk) { 'pushed' } else { 'push-failed' }
     }
 }
 

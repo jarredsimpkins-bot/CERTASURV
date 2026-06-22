@@ -47,3 +47,19 @@ jobs:
               throw "Missing required file: $path"
             }
           }
+
+      - name: Guard canonical workspace paths
+        shell: pwsh
+        run: |
+          $legacyMatches = Select-String -Path 'scripts/*.ps1' -Pattern 'New project2' -SimpleMatch
+          if ($legacyMatches) {
+            $legacyMatches | ForEach-Object { Write-Error "$($_.Path):$($_.LineNumber): legacy New project2 path reference" }
+            exit 1
+          }
+
+          $remoteScript = Get-Content -Raw -Path 'scripts/Set-CertaGitRemotes.ps1'
+          foreach ($required in @('CERTASURV_WEB_APP', 'WV_COURTHOUSE_RESEARCHER')) {
+            if ($remoteScript -notmatch [regex]::Escape($required)) {
+              throw "Missing release-control remote coverage for $required"
+            }
+          }
