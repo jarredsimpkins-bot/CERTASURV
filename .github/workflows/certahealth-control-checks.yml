@@ -47,3 +47,33 @@ jobs:
               throw "Missing required file: $path"
             }
           }
+
+      - name: Verify launch workspace inventory
+        shell: pwsh
+        run: |
+          $scanRoots = @('docs', 'scripts')
+          $requiredTerms = @(
+            'CERTASURV_WEB_APP',
+            'MACROTBC',
+            'WV_COURTHOUSE_RESEARCHER'
+          )
+          $forbiddenTerms = @(
+            ('New' + ' project2')
+          )
+
+          $files = Get-ChildItem -Path $scanRoots -Recurse -File | Where-Object {
+            $_.Extension -in '.md', '.ps1'
+          }
+          $content = ($files | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
+
+          foreach ($term in $requiredTerms) {
+            if ($content -notmatch [regex]::Escape($term)) {
+              throw "Missing launch workspace reference: $term"
+            }
+          }
+
+          foreach ($term in $forbiddenTerms) {
+            if ($content -match [regex]::Escape($term)) {
+              throw "Forbidden legacy workspace reference found: $term"
+            }
+          }
