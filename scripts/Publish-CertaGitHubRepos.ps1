@@ -20,14 +20,7 @@ $headers = @{
 }
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
-$webAppCandidates = @(
-    Join-Path $documents 'CERTASURV_WEB_APP'
-    Join-Path $documents 'New project2'
-)
-$webAppPath = $webAppCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-if (-not $webAppPath) {
-    $webAppPath = $webAppCandidates[0]
-}
+$webAppPath = Join-Path $documents 'CERTASURV_WEB_APP'
 
 $repos = @(
     @{
@@ -40,7 +33,13 @@ $repos = @(
         Name = 'macrotbc'
         Description = 'CertaSurv TBC macro, command center, and local production integration.'
         Path = 'C:\Users\SimpS\OneDrive\Documents\MACROTBC'
-        Branch = 'codex/certasurv-command-center'
+        Branch = 'codex/certasurv-unified-forward'
+    },
+    @{
+        Name = 'wv-courthouse-researcher'
+        Description = 'CertaSurv WV courthouse research, deed, GIS, and field-to-finish support package.'
+        Path = 'C:\Users\SimpS\OneDrive\Documents\WV_COURTHOUSE_RESEARCHER'
+        Branch = 'codex/wv-courthouse-researcher-cabell-lessons'
     },
     @{
         Name = 'certasurv-automations'
