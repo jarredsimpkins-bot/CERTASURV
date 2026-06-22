@@ -47,3 +47,14 @@ jobs:
               throw "Missing required file: $path"
             }
           }
+
+      - name: Block retired web app workspace fallback in scripts
+        shell: pwsh
+        run: |
+          $matches = Select-String -Path 'scripts/*.ps1' -Pattern 'New project2' -SimpleMatch -ErrorAction SilentlyContinue
+          if ($matches) {
+            $matches | ForEach-Object {
+              Write-Error "Retired web app workspace fallback found in $($_.Path):$($_.LineNumber)"
+            }
+            exit 1
+          }
