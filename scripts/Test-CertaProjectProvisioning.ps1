@@ -4,15 +4,14 @@ param(
 
 $ErrorActionPreference = 'Continue'
 
-$documents = 'C:\Users\SimpS\OneDrive\Documents'
-$webAppCandidates = @(
-    Join-Path $documents 'CERTASURV_WEB_APP'
-    Join-Path $documents 'New project2'
-)
-$webAppPath = $webAppCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-if (-not $webAppPath) {
-    $webAppPath = $webAppCandidates[0]
+$legacyWebAppPathPattern = 'New' + ' project' + '2'
+$legacyWebAppScriptRefs = Select-String -Path (Join-Path $PSScriptRoot '*.ps1') -Pattern $legacyWebAppPathPattern -SimpleMatch -ErrorAction SilentlyContinue
+foreach ($match in $legacyWebAppScriptRefs) {
+    Write-Error "Legacy web app path found in $($match.Path):$($match.LineNumber)"
 }
+
+$documents = 'C:\Users\SimpS\OneDrive\Documents'
+$webAppPath = Join-Path $documents 'CERTASURV_WEB_APP'
 $projects = @(
     @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH'; Type = 'control' },
     @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD'; Type = 'coordination' },
@@ -93,10 +92,12 @@ $allRows = @($toolRows) + @($connectionRows) + @($projectRows)
 $allRows | Sort-Object Area,Name | Format-Table -AutoSize -Wrap
 
 $missing = $allRows | Where-Object { $_.Status -ne 'OK' }
-if ($missing) {
+if ($missing -or $legacyWebAppScriptRefs) {
     Write-Host ''
     Write-Host 'Provisioning gaps to fix:'
-    $missing | Sort-Object Area,Name | Format-Table -AutoSize -Wrap
+    if ($missing) {
+        $missing | Sort-Object Area,Name | Format-Table -AutoSize -Wrap
+    }
     exit 1
 }
 
