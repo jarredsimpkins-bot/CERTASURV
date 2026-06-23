@@ -5,14 +5,12 @@ param(
 $ErrorActionPreference = 'Continue'
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
-$webAppCandidates = @(
-    Join-Path $documents 'CERTASURV_WEB_APP'
-    Join-Path $documents 'New project2'
-)
-$webAppPath = $webAppCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-if (-not $webAppPath) {
-    $webAppPath = $webAppCandidates[0]
-}
+$webAppPath = Join-Path $documents 'CERTASURV_WEB_APP'
+$scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Join-Path (Get-Location) 'scripts' }
+$legacyWebAppPattern = ('New' + ' project2')
+$legacyWebAppMatches = Get-ChildItem -LiteralPath $scriptRoot -Filter '*.ps1' |
+    Select-String -Pattern $legacyWebAppPattern -SimpleMatch
+
 $projects = @(
     @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH'; Type = 'control' },
     @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD'; Type = 'coordination' },
@@ -68,6 +66,20 @@ $connectionRows = foreach ($connection in $connections) {
     }
 }
 
+$repositoryGuardRows = @(
+    [pscustomobject]@{
+        Area = 'Repository Guard'
+        Name = 'Legacy web app path fallback'
+        Status = if ($legacyWebAppMatches) { 'FOUND' } else { 'OK' }
+        Detail = if ($legacyWebAppMatches) {
+            ($legacyWebAppMatches | ForEach-Object { "$($_.Path):$($_.LineNumber)" }) -join '; '
+        }
+        else {
+            'Scripts use CERTASURV_WEB_APP only'
+        }
+    }
+)
+
 $projectRows = foreach ($project in $projects) {
     $exists = Test-Path -LiteralPath $project.Path
     $gitPath = Join-Path $project.Path '.git'
@@ -89,7 +101,7 @@ $projectRows = foreach ($project in $projects) {
     }
 }
 
-$allRows = @($toolRows) + @($connectionRows) + @($projectRows)
+$allRows = @($toolRows) + @($connectionRows) + @($repositoryGuardRows) + @($projectRows)
 $allRows | Sort-Object Area,Name | Format-Table -AutoSize -Wrap
 
 $missing = $allRows | Where-Object { $_.Status -ne 'OK' }
