@@ -1,6 +1,6 @@
 # Git Situation
 
-Last updated: 2026-06-17
+Last updated: 2026-06-23
 
 ## Fixed Locally
 
@@ -18,6 +18,7 @@ Last updated: 2026-06-17
 | MACROTBC | `C:\Users\SimpS\OneDrive\Documents\MACROTBC` | `origin` -> `https://github.com/jarredsimpkins-bot/macrotbc.git` |
 | AUTOMATIONS | `C:\Users\SimpS\OneDrive\Documents\AUTOMATIONS` | `origin` -> `https://github.com/jarredsimpkins-bot/certasurv-automations.git` |
 | CERTASURV_WEB_APP | `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` | `origin` -> `https://github.com/jarredsimpkins-bot/certasurv-web-app.git` |
+| WV_COURTHOUSE_RESEARCHER | `C:\Users\SimpS\OneDrive\Documents\WV_COURTHOUSE_RESEARCHER` | No `origin` observed during June 23 release-ops check |
 
 ## Planned Remote Names
 
@@ -28,11 +29,13 @@ Last updated: 2026-06-17
 | MACROTBC | `https://github.com/jarredsimpkins-bot/macrotbc.git` |
 | AUTOMATIONS | `https://github.com/jarredsimpkins-bot/certasurv-automations.git` |
 | CERTASURV_WEB_APP | `https://github.com/jarredsimpkins-bot/certasurv-web-app.git` |
+| WV_COURTHOUSE_RESEARCHER | Needs final GitHub remote decision; `jarredsimpkins-bot/wv-courthouse-researcher` was not accessible through `gh repo view` |
 
-All planned repositories now exist. `CERTASURV` is public; the remaining launch support repositories are private.
+The original planned repositories now exist. `CERTASURV` is public; the remaining launch support repositories are private. `WV_COURTHOUSE_RESEARCHER` still needs a confirmed upstream before it joins the normal release lane.
 
 ## Current Release-Ops Notes
 
 - `CERTAHEALTH` currently pushes to public `CERTASURV.git`, but the planned dedicated target remains `certahealth.git`.
 - `CERTASURV_WEB_APP` is the active local workspace name; any lingering `New project2` references should be treated as legacy docs only.
-- GitHub CLI is installed locally but was unauthenticated during the June 17, 2026 release-ops pass, so private-repo workflow inspection still requires `gh auth login`.
+- GitHub CLI is authenticated locally for `jarredsimpkins-bot` as of June 23, 2026 with `repo` scope. The token does not list `workflow` scope, so re-auth is still required before pushing workflow-file changes.
+- WV_COURTHOUSE_RESEARCHER remains outside the normal push/review lane until an upstream remote is configured and accessible.
