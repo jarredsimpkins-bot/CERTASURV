@@ -1,6 +1,6 @@
 # Cloud Processing Plan
 
-Last updated: 2026-06-18
+Last updated: 2026-06-23
 
 ## What Moves To Cloud
 
@@ -39,6 +39,15 @@ The subscription is now used in parallel launch lanes:
 | Certa launch cloud health | Every 30 minutes | Thread health report for cloud/local routing |
 
 Cloud workers may commit and push scoped repo-local fixes. They must not touch live Trimble runtime folders, destructively modify shared-drive data, or sweep unrelated dirty local changes into commits.
+
+## Current Cloud Review Priorities
+
+| Project | Current release-ops posture | Next cloud-safe action |
+| --- | --- | --- |
+| CERTARD | Clean locally per current launch focus | Time push/review; do not invent release blockers without a fresh dirty status |
+| CERTASURV_WEB_APP | Clean locally per current launch focus | Time push/review; keep workspace path as `CERTASURV_WEB_APP` |
+| MACROTBC | Substantive release blocker | Review dirty `command_center/tbc/command_usage_log.csv` and decide whether to commit as evidence |
+| WV_COURTHOUSE_RESEARCHER | Substantive release blocker | Review, verify, and push active docs/scripts/template registry branch |
 
 ## Activation Gate
 
