@@ -1,6 +1,6 @@
 # Cloud Processing Plan
 
-Last updated: 2026-06-18
+Last updated: 2026-06-23
 
 ## What Moves To Cloud
 
@@ -11,6 +11,7 @@ Last updated: 2026-06-18
 | JSON/config validation for command-center and Drive automation packages | GitHub Actions | Verifies package integrity before handoff |
 | Drive file routing and scraper jobs | Google Apps Script triggers | Runs near Drive data instead of depending on laptop uptime |
 | Shared-drive package artifacts | GitHub Actions artifacts after push | Gives downloadable release packages outside OneDrive |
+| WV courthouse research toolkit checks | GitHub Actions after remote setup | Moves parser/toolkit validation off the laptop once the repo has an upstream |
 
 ## What Stays Local
 
@@ -36,6 +37,7 @@ The subscription is now used in parallel launch lanes:
 | Drive automation implementation worker | Hourly | Apps Script, registry, and Drive automation hardening |
 | Web app implementation worker | Hourly | App/dashboard tests, package, and CI readiness |
 | Certa release ops worker | Hourly | Release docs, runbooks, workflow/handoff readiness |
+| WV courthouse researcher worker | Hourly | Courthouse toolkit, runbook, and basemap release hardening |
 | Certa launch cloud health | Every 30 minutes | Thread health report for cloud/local routing |
 
 Cloud workers may commit and push scoped repo-local fixes. They must not touch live Trimble runtime folders, destructively modify shared-drive data, or sweep unrelated dirty local changes into commits.
@@ -47,14 +49,14 @@ The workflows are prepared locally and pushed to GitHub. They run on each pushed
 1. `CERTASURV` / `CERTAHEALTH`: public control repo, `main`.
 2. `certard`: private coordination repo, `main`.
 3. `macrotbc`: private TBC production integration repo, `codex/certasurv-command-center`.
-4. `certasurv-automations`: private Drive/AppScript automation repo, `codex/onboard-everything`.
-5. `certasurv-web-app`: private app/dashboard repo, `codex/land-opportunity-radar-mvp`.
+4. `wv-courthouse-researcher`: planned private courthouse research repo, `codex/wv-courthouse-researcher-cabell-lessons`.
+5. `certasurv-automations`: private Drive/AppScript automation repo, `codex/onboard-everything`.
+6. `certasurv-web-app`: private app/dashboard repo, `codex/land-opportunity-radar-mvp`.
 
 The cloud offload runner pushes committed branches every 10 minutes. It intentionally does not auto-stage or auto-commit live work.
 
 ## Current Control-Repo Signal
 
-- Public control-repo workflow `CertaHealth Control Checks` is visible on GitHub and the latest public run observed on June 18, 2026 was successful.
-- The latest visible overall run is `#40` on branch `main`, commit `e0cd20b`, success.
-- The latest visible prior feature-branch run is `#39` on branch `codex/adaptive-worktree-launch-hardening-20260618`, commit `422cbb5`, success.
-- Private-repo workflow outputs remain unavailable from this host until `gh` authentication is restored.
+- Public control-repo workflow `CertaHealth Control Checks` is visible on GitHub and the latest visible runs observed on June 23, 2026 were successful.
+- The latest visible run during this pass is `28004863391` on branch `codex/release-control-path-gh-refresh-20260623-0125`, success.
+- `gh auth status` succeeds for `jarredsimpkins-bot` with `repo` scope; keep checking auth before private workflow/log inspection.

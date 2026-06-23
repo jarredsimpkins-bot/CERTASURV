@@ -43,6 +43,12 @@ $repos = @(
         Branch = 'codex/certasurv-command-center'
     },
     @{
+        Name = 'wv-courthouse-researcher'
+        Description = 'CertaSurv WV courthouse research, toolkit, and TBC basemap support package.'
+        Path = 'C:\Users\SimpS\OneDrive\Documents\WV_COURTHOUSE_RESEARCHER'
+        Branch = 'codex/wv-courthouse-researcher-cabell-lessons'
+    },
+    @{
         Name = 'certasurv-automations'
         Description = 'CertaSurv Google Drive, Apps Script, and operations automation package.'
         Path = 'C:\Users\SimpS\OneDrive\Documents\AUTOMATIONS'
