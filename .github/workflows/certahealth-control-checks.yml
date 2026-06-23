@@ -47,3 +47,23 @@ jobs:
               throw "Missing required file: $path"
             }
           }
+
+      - name: Guard launch workspace paths
+        shell: pwsh
+        run: |
+          $scriptRefs = Get-ChildItem scripts -Filter *.ps1 -Recurse | Select-String -Pattern 'New project2' -List
+          if ($scriptRefs) {
+            $scriptRefs | ForEach-Object { Write-Error "Legacy web app path reference in $($_.Path):$($_.LineNumber)" }
+            exit 1
+          }
+
+          $requiredRefs = @(
+            @{ Pattern = 'CERTASURV_WEB_APP'; Scope = 'scripts/*.ps1' },
+            @{ Pattern = 'WV_COURTHOUSE_RESEARCHER'; Scope = 'scripts/*.ps1' }
+          )
+          foreach ($ref in $requiredRefs) {
+            $found = Get-ChildItem scripts -Filter *.ps1 -Recurse | Select-String -Pattern $ref.Pattern -Quiet
+            if (-not $found) {
+              throw "Missing launch workspace reference '$($ref.Pattern)' in $($ref.Scope)"
+            }
+          }

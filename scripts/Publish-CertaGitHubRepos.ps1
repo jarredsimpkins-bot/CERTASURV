@@ -20,14 +20,7 @@ $headers = @{
 }
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
-$webAppCandidates = @(
-    Join-Path $documents 'CERTASURV_WEB_APP'
-    Join-Path $documents 'New project2'
-)
-$webAppPath = $webAppCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-if (-not $webAppPath) {
-    $webAppPath = $webAppCandidates[0]
-}
+$webAppPath = Join-Path $documents 'CERTASURV_WEB_APP'
 
 $repos = @(
     @{
@@ -49,6 +42,13 @@ $repos = @(
         Branch = 'codex/onboard-everything'
     },
     @{
+        Name = 'WV_COURTHOUSE_RESEARCHER'
+        Description = 'Local-only courthouse/title research source; remote creation is blocked until explicitly assigned.'
+        Path = 'C:\Users\SimpS\OneDrive\Documents\WV_COURTHOUSE_RESEARCHER'
+        Branch = ''
+        LocalOnly = $true
+    },
+    @{
         Name = 'certasurv-web-app'
         Description = 'CertaSurv land opportunity radar, parcel, estimate, and dashboard app.'
         Path = $webAppPath
@@ -57,6 +57,18 @@ $repos = @(
 )
 
 $results = foreach ($repo in $repos) {
+    if ($repo.LocalOnly) {
+        [pscustomobject]@{
+            Repo = $repo.Name
+            Created = $false
+            Branch = ''
+            Pushed = $false
+            Url = ''
+            Status = 'local-only-remote-blocked'
+        }
+        continue
+    }
+
     $fullName = "jarredsimpkins-bot/$($repo.Name)"
     $exists = $false
 
