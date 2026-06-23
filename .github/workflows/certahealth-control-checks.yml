@@ -47,3 +47,27 @@ jobs:
               throw "Missing required file: $path"
             }
           }
+
+      - name: Verify launch workspace inventory
+        shell: pwsh
+        run: |
+          $scriptRefs = Get-ChildItem -Path scripts -Filter *.ps1 -Recurse |
+            Select-String -SimpleMatch 'New project2'
+          if ($scriptRefs) {
+            $scriptRefs | ForEach-Object { Write-Error $_ }
+            throw 'Legacy New project2 fallback references are not allowed in release-control scripts.'
+          }
+
+          $requiredRefs = @(
+            @{ Path = 'scripts/Test-CertaProjectProvisioning.ps1'; Text = 'CERTASURV_WEB_APP' },
+            @{ Path = 'scripts/Test-CertaProjectProvisioning.ps1'; Text = 'WV_COURTHOUSE_RESEARCHER' },
+            @{ Path = 'scripts/Set-CertaGitRemotes.ps1'; Text = 'WV_COURTHOUSE_RESEARCHER' },
+            @{ Path = 'scripts/Invoke-CertaCloudOffload.ps1'; Text = 'WV_COURTHOUSE_RESEARCHER' },
+            @{ Path = 'docs/PROJECT_CONNECTION_MATRIX.md'; Text = 'WV_COURTHOUSE_RESEARCHER' }
+          )
+          foreach ($ref in $requiredRefs) {
+            $content = Get-Content -Raw -LiteralPath $ref.Path
+            if ($content -notlike "*$($ref.Text)*") {
+              throw "Missing required launch inventory reference '$($ref.Text)' in $($ref.Path)"
+            }
+          }
