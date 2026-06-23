@@ -1,6 +1,6 @@
 # Git Situation
 
-Last updated: 2026-06-17
+Last updated: 2026-06-23
 
 ## Fixed Locally
 
@@ -34,5 +34,6 @@ All planned repositories now exist. `CERTASURV` is public; the remaining launch 
 ## Current Release-Ops Notes
 
 - `CERTAHEALTH` currently pushes to public `CERTASURV.git`, but the planned dedicated target remains `certahealth.git`.
-- `CERTASURV_WEB_APP` is the active local workspace name; any lingering `New project2` references should be treated as legacy docs only.
-- GitHub CLI is installed locally but was unauthenticated during the June 17, 2026 release-ops pass, so private-repo workflow inspection still requires `gh auth login`.
+- `CERTASURV_WEB_APP` is the active local workspace name; retired web-app workspace names must not be used as release-script fallbacks.
+- GitHub CLI is installed and `gh auth status` reported authenticated access for `jarredsimpkins-bot` during the June 23, 2026 release-ops pass.
+- Current launch blockers are no longer GitHub CLI auth. They are MACROTBC dirty release-lane state, WV_COURTHOUSE_RESEARCHER remote/upstream plus dirty-worktree readiness, the missing `G:` shared-drive mount, and the unresolved final `CERTAHEALTH` remote decision.
