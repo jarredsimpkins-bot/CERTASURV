@@ -54,7 +54,7 @@ The cloud offload runner pushes committed branches every 10 minutes. It intentio
 
 ## Current Control-Repo Signal
 
-- Public control-repo workflow `CertaHealth Control Checks` is visible on GitHub and the latest public run observed on June 18, 2026 was successful.
-- The latest visible overall run is `#40` on branch `main`, commit `e0cd20b`, success.
-- The latest visible prior feature-branch run is `#39` on branch `codex/adaptive-worktree-launch-hardening-20260618`, commit `422cbb5`, success.
-- Private-repo workflow outputs remain unavailable from this host until `gh` authentication is restored.
+- Control-repo workflow `CertaHealth Control Checks` is visible through `gh`; latest verified `main` run `27773432493` succeeded on June 18, 2026 and latest release-control branch run `28000329578` succeeded on June 23, 2026.
+- CERTARD workflow visibility is restored through `gh`; latest visible `CERTARD Checks` run `27937122339` on `main` succeeded on June 22, 2026.
+- MACROTBC workflow visibility is restored through `gh`; latest visible `CertaSurv TBC Cloud Readiness` run `28000398484` failed on June 23, 2026 and remains a launch blocker.
+- CERTASURV_WEB_APP workflow visibility is restored through `gh`; latest visible `Land Radar Python CI` run `27802010837` failed on June 19, 2026 and should be rechecked after local/generated artifacts are cleaned or reviewed.
