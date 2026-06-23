@@ -1,6 +1,6 @@
 # Certa Project Connection Matrix
 
-Last updated: 2026-06-17 11:30
+Last updated: 2026-06-23 08:45
 
 This file is the working standard for making sure every active Certa/CertaSurv project has both outside connections and in-house production connections.
 
@@ -35,10 +35,11 @@ This file is the working standard for making sure every active Certa/CertaSurv p
 
 | Gap | Impact | Fix Path |
 | --- | --- | --- |
-| Shared drive mounted and staged | Outside system-of-record folders are now available locally | Latest stage log: `G:\Shared drives\CERTASURV_PROJECT DRIVE\00_CERTASURV_COMMAND_CENTER\08_REPORTS_EXPORTS\drive-stage-log-20260522-194113.txt` |
+| Shared drive mount missing on this host | Outside system-of-record package validation cannot run until Google Drive Desktop restores `G:` | Restore `G:\Shared drives\CERTASURV_PROJECT DRIVE`; last known stage log path remains `G:\Shared drives\CERTASURV_PROJECT DRIVE\00_CERTASURV_COMMAND_CENTER\08_REPORTS_EXPORTS\drive-stage-log-20260522-194113.txt` |
 | CERTAHEALTH remote target is unresolved | Release notes and automation still need a final answer on whether the control repo stays on public `CERTASURV.git` or moves to `certahealth.git` | Decide the permanent GitHub destination before final launch cutover |
 | WV_COURTHOUSE_RESEARCHER remote is intentionally blocked | Release-control automation must inventory the lane without creating or pushing a remote | Approve a destination repo before enabling publication |
-| GitHub CLI is installed but unauthenticated on this host | `gh`-driven release pushes and private workflow/log inspection are blocked until auth is restored | Run `gh auth login` with repo and workflow scopes |
+| GitHub CLI is authenticated on this host | `gh`-driven release pushes and private workflow/log inspection are available for `jarredsimpkins-bot` with `repo` scope | Keep public REST/API fallback documented for hosts where `gh` is unavailable |
+| MACROTBC command-center state needs release review | TBC production integration remains a substantive launch blocker even though the remote exists | Review and stabilize command-center changes before release handoff |
 | `npm` is available on disk but can be missing from PATH in some shells | Node web tooling may work inconsistently outside the explicit Node install path | Normalize host PATH or install/reinstall Node.js LTS when the machine is not under production load |
 
 ## Operating Rule

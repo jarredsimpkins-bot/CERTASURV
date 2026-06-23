@@ -54,7 +54,9 @@ The cloud offload runner pushes committed branches every 10 minutes. It intentio
 
 ## Current Control-Repo Signal
 
-- Public control-repo workflow `CertaHealth Control Checks` is visible on GitHub and the latest public run observed on June 18, 2026 was successful.
-- The latest visible overall run is `#40` on branch `main`, commit `e0cd20b`, success.
-- The latest visible prior feature-branch run is `#39` on branch `codex/adaptive-worktree-launch-hardening-20260618`, commit `422cbb5`, success.
-- Private-repo workflow outputs remain unavailable from this host until `gh` authentication is restored.
+- Public control-repo workflow `CertaHealth Control Checks` is visible on GitHub and the latest visible run observed on June 23, 2026 was successful.
+- The latest visible overall run is `#188` on branch `codex/release-control-strict-webapp-wv-20260623-1102`, commit `d457e02`, success.
+- The latest visible recent blocker-refresh run is `#187` on branch `codex/release-ops-current-blockers-20260623-0805`, commit `3bc4cf1`, success.
+- The latest verified `main` run remains `#40` on branch `main`, commit `e0cd20b`, success; refresh after release-control branches merge.
+- `gh` is authenticated on this host for `jarredsimpkins-bot` with `repo` scope, so private workflow/log inspection is no longer blocked here.
+- Local provisioning still reports `npm` missing from PATH and the `G:` shared-drive mount missing, so cloud checks can cover code/docs but cannot validate local Drive handoff paths from this host.
