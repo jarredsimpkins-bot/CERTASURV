@@ -8,7 +8,7 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 
 | Gate | What to confirm | Current state |
 | --- | --- | --- |
-| Workflow green on release branches | Latest visible `CertaHealth Control Checks` run is successful | Verified on June 24, 2026: run `#206`, commit `7520332`, success |
+| Workflow green on release branches | Latest visible `CertaHealth Control Checks` run is successful | Verified on June 24, 2026: run `#208`, commit `227a526`, success |
 | Docs present | Release readiness, connection matrix, git situation, cloud processing, and this checklist are committed | Required by workflow |
 | PowerShell syntax clean | All tracked `.ps1` files parse without errors | Required by workflow |
 | Workspace path aligned | Operator-facing web app path uses `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` | Verified in current repo docs/scripts |
@@ -27,6 +27,7 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 5. Decide the permanent control-repo remote before final launch cutover so release notes, automation, and operator docs all point to one destination.
 6. Re-check `gh auth status` before any private workflow/log inspection or release push that depends on GitHub CLI.
 7. Do not mark release green until MACROTBC and WV_COURTHOUSE_RESEARCHER have reviewable remote branches and passing readiness checks.
+8. Treat CERTASURV_WEB_APP as a cleanup/review lane until deleted repo files and generated data/cache artifacts are either committed intentionally or excluded.
 
 ## Current Launch Blockers
 
@@ -38,5 +39,5 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 ## Evidence References
 
 - Public workflow: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/workflows/certahealth-control-checks.yml`
-- Latest verified control run: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/runs/28069865207`
+- Latest verified control run: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/runs/28072097120`
 - Latest verified MACROTBC blocker run: `https://github.com/jarredsimpkins-bot/macrotbc/actions/runs/28069874521`
