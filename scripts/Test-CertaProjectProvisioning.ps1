@@ -5,14 +5,7 @@ param(
 $ErrorActionPreference = 'Continue'
 
 $documents = 'C:\Users\SimpS\OneDrive\Documents'
-$webAppCandidates = @(
-    Join-Path $documents 'CERTASURV_WEB_APP'
-    Join-Path $documents 'New project2'
-)
-$webAppPath = $webAppCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-if (-not $webAppPath) {
-    $webAppPath = $webAppCandidates[0]
-}
+$webAppPath = Join-Path $documents 'CERTASURV_WEB_APP'
 $projects = @(
     @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH'; Type = 'control' },
     @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD'; Type = 'coordination' },
@@ -59,6 +52,19 @@ $toolRows = foreach ($tool in $toolNames) {
     }
 }
 
+$legacyScriptPattern = 'New ' + 'project2'
+$legacyScriptHits = Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot '.') -Filter '*.ps1' -File |
+    Where-Object { $_.FullName -ne $PSCommandPath } |
+    Select-String -SimpleMatch -Pattern $legacyScriptPattern
+$pathGuardRows = @(
+    [pscustomobject]@{
+        Area = 'Guard'
+        Name = 'Release script paths'
+        Status = if ($legacyScriptHits) { 'MISSING' } else { 'OK' }
+        Detail = if ($legacyScriptHits) { 'Legacy CERTASURV_WEB_APP fallback references found in active scripts' } else { 'No legacy web-app fallback references in active scripts' }
+    }
+)
+
 $connectionRows = foreach ($connection in $connections) {
     [pscustomobject]@{
         Area = 'Connection'
@@ -89,7 +95,7 @@ $projectRows = foreach ($project in $projects) {
     }
 }
 
-$allRows = @($toolRows) + @($connectionRows) + @($projectRows)
+$allRows = @($toolRows) + @($pathGuardRows) + @($connectionRows) + @($projectRows)
 $allRows | Sort-Object Area,Name | Format-Table -AutoSize -Wrap
 
 $missing = $allRows | Where-Object { $_.Status -ne 'OK' }
