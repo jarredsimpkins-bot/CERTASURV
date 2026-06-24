@@ -1,6 +1,6 @@
 # Cloud Processing Plan
 
-Last updated: 2026-06-18
+Last updated: 2026-06-24
 
 ## What Moves To Cloud
 
@@ -37,6 +37,7 @@ The subscription is now used in parallel launch lanes:
 | Web app implementation worker | Hourly | App/dashboard tests, package, and CI readiness |
 | Certa release ops worker | Hourly | Release docs, runbooks, workflow/handoff readiness |
 | Certa launch cloud health | Every 30 minutes | Thread health report for cloud/local routing |
+| WV courthouse researcher worker | As needed until remote exists | Prepare courthouse/title/LiDAR/TBC basemap docs and scripts for a reviewable remote lane |
 
 Cloud workers may commit and push scoped repo-local fixes. They must not touch live Trimble runtime folders, destructively modify shared-drive data, or sweep unrelated dirty local changes into commits.
 
@@ -49,12 +50,14 @@ The workflows are prepared locally and pushed to GitHub. They run on each pushed
 3. `macrotbc`: private TBC production integration repo, `codex/certasurv-command-center`.
 4. `certasurv-automations`: private Drive/AppScript automation repo, `codex/onboard-everything`.
 5. `certasurv-web-app`: private app/dashboard repo, `codex/land-opportunity-radar-mvp`.
+6. `wv-courthouse-researcher`: not activated yet; local repo has no configured remote.
 
 The cloud offload runner pushes committed branches every 10 minutes. It intentionally does not auto-stage or auto-commit live work.
 
 ## Current Control-Repo Signal
 
-- Public control-repo workflow `CertaHealth Control Checks` is visible on GitHub and the latest public run observed on June 18, 2026 was successful.
-- The latest visible overall run is `#40` on branch `main`, commit `e0cd20b`, success.
-- The latest visible prior feature-branch run is `#39` on branch `codex/adaptive-worktree-launch-hardening-20260618`, commit `422cbb5`, success.
-- Private-repo workflow outputs remain unavailable from this host until `gh` authentication is restored.
+- Control-repo workflow `CertaHealth Control Checks` is visible on GitHub and the latest checked run `#206` on branch `codex/release-control-webapp-path-guard-20260624`, commit `7520332`, succeeded on June 24, 2026.
+- CERTARD latest checked `CERTARD Checks` run `#31` succeeded on `main`, commit `b2d1e59`, on June 22, 2026.
+- MACROTBC latest checked `CertaSurv TBC Cloud Readiness` run `#37` failed on June 24, 2026 because three required checks need attention: Command registry, TBC operator workflow HTML, and TBC tabulated workflow.
+- CERTASURV_WEB_APP latest visible CI run remains the June 19, 2026 failure in `tests/test_survey_storage.py::test_associated_drive_survey_export_dir_uses_active_project_lane`; treat web app as needing push/review timing plus CI confirmation.
+- WV_COURTHOUSE_RESEARCHER has no configured remote, so cloud workflow output is not available yet.
