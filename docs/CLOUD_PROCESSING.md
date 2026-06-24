@@ -1,6 +1,6 @@
 # Cloud Processing Plan
 
-Last updated: 2026-06-18
+Last updated: 2026-06-24
 
 ## What Moves To Cloud
 
@@ -11,6 +11,7 @@ Last updated: 2026-06-18
 | JSON/config validation for command-center and Drive automation packages | GitHub Actions | Verifies package integrity before handoff |
 | Drive file routing and scraper jobs | Google Apps Script triggers | Runs near Drive data instead of depending on laptop uptime |
 | Shared-drive package artifacts | GitHub Actions artifacts after push | Gives downloadable release packages outside OneDrive |
+| WV courthouse research runbook/toolkit checks | GitHub Actions after repository/remote creation | Keeps courthouse release validation reviewable outside the local workstation |
 
 ## What Stays Local
 
@@ -49,12 +50,13 @@ The workflows are prepared locally and pushed to GitHub. They run on each pushed
 3. `macrotbc`: private TBC production integration repo, `codex/certasurv-command-center`.
 4. `certasurv-automations`: private Drive/AppScript automation repo, `codex/onboard-everything`.
 5. `certasurv-web-app`: private app/dashboard repo, `codex/land-opportunity-radar-mvp`.
+6. `wv-courthouse-researcher`: pending private courthouse/title research repo once remote creation is confirmed.
 
 The cloud offload runner pushes committed branches every 10 minutes. It intentionally does not auto-stage or auto-commit live work.
 
 ## Current Control-Repo Signal
 
-- Public control-repo workflow `CertaHealth Control Checks` is visible on GitHub and the latest public run observed on June 18, 2026 was successful.
-- The latest visible overall run is `#40` on branch `main`, commit `e0cd20b`, success.
-- The latest visible prior feature-branch run is `#39` on branch `codex/adaptive-worktree-launch-hardening-20260618`, commit `422cbb5`, success.
-- Private-repo workflow outputs remain unavailable from this host until `gh` authentication is restored.
+- Public control-repo workflow `CertaHealth Control Checks` is visible on GitHub and the latest public run observed on June 24, 2026 was successful.
+- The latest visible overall run is `#214` on branch `codex/release-control-webapp-path-guard-20260624-d012`, commit `4a82b53`, success.
+- The latest visible `main` run is `#41`, commit `6f40b64`, success.
+- Private-repo workflow outputs are available from this host while `gh` remains authenticated as `jarredsimpkins-bot`.

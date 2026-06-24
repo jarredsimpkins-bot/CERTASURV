@@ -19,6 +19,7 @@ $projects = @(
     @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC'; Type = 'tbc-integration' },
     @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS'; Type = 'automation' },
     @{ Name = 'CERTASURV_WEB_APP'; Path = $webAppPath; Type = 'local-app' },
+    @{ Name = 'WV_COURTHOUSE_RESEARCHER'; Path = Join-Path $documents 'WV_COURTHOUSE_RESEARCHER'; Type = 'courthouse-research' },
     @{ Name = 'TBC Live Macros'; Path = Join-Path $documents 'Trimble Business Center\MacroCommands3\CertaSurv'; Type = 'tbc-live' },
     @{ Name = 'Feature Definition Manager'; Path = Join-Path $documents 'Feature Definition Manager'; Type = 'cad-standards' },
     @{ Name = 'TBC Templates Matrix'; Path = 'C:\ProgramData\Trimble\CONVERSE_FULL_DRAFTING_MATRIX_FROM_PAPERSPACE'; Type = 'tbc-templates' }
@@ -32,6 +33,8 @@ $connections = @(
     @{ Name = 'CERTARD Drive Stage Helper'; Path = Join-Path $documents 'CERTARD\scripts\Stage-CertaSurvSharedDrive.ps1'; Lane = 'outside-drive-helper' },
     @{ Name = 'MACROTBC Command Manifest'; Path = Join-Path $documents 'MACROTBC\command_center\command_center_manifest.json'; Lane = 'outside-appsheet-drive' },
     @{ Name = 'MACROTBC Shared Drive Config'; Path = Join-Path $documents 'MACROTBC\certasurv_shared_drive.json'; Lane = 'outside-drive-config' },
+    @{ Name = 'WV Courthouse Toolkit Runbook'; Path = Join-Path $documents 'WV_COURTHOUSE_RESEARCHER\docs\certasurv_toolkit_runbook.md'; Lane = 'courthouse-research' },
+    @{ Name = 'WV Courthouse Toolbox'; Path = Join-Path $documents 'WV_COURTHOUSE_RESEARCHER\scripts\certasurv_toolbox.ps1'; Lane = 'courthouse-research' },
     @{ Name = 'AUTOMATIONS Apps Script'; Path = Join-Path $documents 'AUTOMATIONS\share-drive-automation\apps-script\Code.gs'; Lane = 'outside-automation' },
     @{ Name = 'AUTOMATIONS Deploy Notes'; Path = Join-Path $documents 'AUTOMATIONS\share-drive-automation\DEPLOY_THIS.md'; Lane = 'outside-automation' },
     @{ Name = 'TBC Live Macros'; Path = Join-Path $documents 'Trimble Business Center\MacroCommands3\CertaSurv'; Lane = 'in-house-tbc' },
