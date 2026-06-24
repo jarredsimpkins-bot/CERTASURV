@@ -8,13 +8,13 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 
 | Gate | What to confirm | Current state |
 | --- | --- | --- |
-| Workflow green on release branches | Latest visible `CertaHealth Control Checks` run is successful | Verified on June 24, 2026: run `#208`, commit `227a526`, success |
+| Workflow green on release branches | Latest visible `CertaHealth Control Checks` run is successful | Verified on June 24, 2026: run `#210`, commit `56f34f0`, success |
 | Docs present | Release readiness, connection matrix, git situation, cloud processing, and this checklist are committed | Required by workflow |
 | PowerShell syntax clean | All tracked `.ps1` files parse without errors | Required by workflow |
 | Workspace path aligned | Operator-facing web app path uses `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` | Verified in current repo docs/scripts |
 | Shared-drive handoff references intact | External staging/deploy references still point to `G:\Shared drives\CERTASURV_PROJECT DRIVE` | References present, but local `G:` mount missing on June 24, 2026 |
 | GitHub access for private repos | `gh` is authenticated with enough access to inspect private repo workflow runs | Ready for inspection on this host |
-| MACROTBC readiness workflow | Latest `CertaSurv TBC Cloud Readiness` run is green | Blocked: run `#37` failed three required checks |
+| MACROTBC readiness workflow | Latest `CertaSurv TBC Cloud Readiness` run is green | Blocked: run `#37` passed repo artifact checks but failed three release-host path checks |
 | WV courthouse researcher remote | Local repo has a configured remote and reviewable branch | Blocked: no remote configured locally |
 | Control repo destination decided | Final answer exists for `CERTASURV.git` vs `certahealth.git` | Decision still open |
 
@@ -32,12 +32,12 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 ## Current Launch Blockers
 
 1. `G:\Shared drives\CERTASURV_PROJECT DRIVE` is not mounted on this host, so shared-drive handoff validation is blocked.
-2. MACROTBC run `#37` is failing required readiness checks: Command registry, TBC operator workflow HTML, and TBC tabulated workflow.
+2. MACROTBC run `#37` is failing required release-host path checks for Command registry, TBC operator workflow HTML, and TBC tabulated workflow even though repo artifact/config checks pass.
 3. WV_COURTHOUSE_RESEARCHER has no configured local Git remote and contains uncommitted runbook/tool changes.
 4. The permanent GitHub destination for `CERTAHEALTH` is still unresolved between public `CERTASURV.git` and dedicated `certahealth.git`.
 
 ## Evidence References
 
 - Public workflow: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/workflows/certahealth-control-checks.yml`
-- Latest verified control run: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/runs/28072097120`
+- Latest verified control run: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/runs/28074380403`
 - Latest verified MACROTBC blocker run: `https://github.com/jarredsimpkins-bot/macrotbc/actions/runs/28069874521`

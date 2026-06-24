@@ -1,6 +1,6 @@
 # Git Situation
 
-Last updated: 2026-06-24 03:10 UTC
+Last updated: 2026-06-24 04:45 UTC
 
 ## Fixed Locally
 
@@ -37,5 +37,5 @@ The original planned repositories exist. `CERTASURV` is public; the remaining la
 
 - `CERTAHEALTH` currently pushes to public `CERTASURV.git`, but the planned dedicated target remains `certahealth.git`.
 - `CERTASURV_WEB_APP` is the active local workspace name; any lingering `New project2` references should be treated as legacy docs only. Current local release review also needs dirty-checkout cleanup because generated data/cache artifacts and deleted repo files are present.
-- GitHub CLI is authenticated on this host as `jarredsimpkins-bot` and can inspect private workflow runs.
+- GitHub CLI is authenticated on this host as `jarredsimpkins-bot` with `repo` scope and can inspect private workflow runs.
 - WV_COURTHOUSE_RESEARCHER is on local branch `codex/wv-courthouse-researcher-cabell-lessons` with modified docs/scripts/templates and no configured remote; this is a launch-readiness blocker until pushed into a review lane.

@@ -56,8 +56,8 @@ The cloud offload runner pushes committed branches every 10 minutes. It intentio
 
 ## Current Control-Repo Signal
 
-- Control-repo workflow `CertaHealth Control Checks` is visible on GitHub and the latest checked run `#208` on branch `codex/release-control-webapp-path-guard-20260624-0205`, commit `227a526`, succeeded on June 24, 2026.
+- Control-repo workflow `CertaHealth Control Checks` is visible on GitHub and the latest checked run `#210` on branch `codex/release-control-webapp-path-guard-20260624-r2`, commit `56f34f0`, succeeded on June 24, 2026.
 - CERTARD latest checked `CERTARD Checks` run `#31` succeeded on `main`, commit `b2d1e59`, on June 22, 2026.
-- MACROTBC latest checked `CertaSurv TBC Cloud Readiness` run `#37` failed on June 24, 2026 because three required checks need attention: Command registry, TBC operator workflow HTML, and TBC tabulated workflow.
+- MACROTBC latest checked `CertaSurv TBC Cloud Readiness` run `#37` failed on June 24, 2026 because three release-host path checks need attention: Command registry, TBC operator workflow HTML, and TBC tabulated workflow. Repo artifact/config checks for those surfaces pass in the same log, so the remaining release question is local install-path availability or validation split.
 - CERTASURV_WEB_APP latest visible CI run remains the June 19, 2026 failure in `tests/test_survey_storage.py::test_associated_drive_survey_export_dir_uses_active_project_lane`; the local checkout also has deleted repo files plus generated data/cache artifacts, so treat web app as needing cleanup, push/review timing, and CI confirmation.
 - WV_COURTHOUSE_RESEARCHER has no configured remote, so cloud workflow output is not available yet.
