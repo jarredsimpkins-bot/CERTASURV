@@ -1,6 +1,6 @@
 # Cloud Processing Plan
 
-Last updated: 2026-06-18
+Last updated: 2026-06-24
 
 ## What Moves To Cloud
 
@@ -54,7 +54,8 @@ The cloud offload runner pushes committed branches every 10 minutes. It intentio
 
 ## Current Control-Repo Signal
 
-- Public control-repo workflow `CertaHealth Control Checks` is visible on GitHub and the latest public run observed on June 18, 2026 was successful.
-- The latest visible overall run is `#40` on branch `main`, commit `e0cd20b`, success.
-- The latest visible prior feature-branch run is `#39` on branch `codex/adaptive-worktree-launch-hardening-20260618`, commit `422cbb5`, success.
-- Private-repo workflow outputs remain unavailable from this host until `gh` authentication is restored.
+- Public control-repo workflow `CertaHealth Control Checks` is visible on GitHub and recent visible runs are successful.
+- The latest visible control run checked on June 24, 2026 is `28087624138` on branch `codex/release-control-webapp-path-guard-20260624-e69e`, success.
+- Private-repo workflow outputs are available from this host through authenticated `gh`.
+- MACROTBC cloud readiness is still failing: run `28081546239` on branch `codex/certasurv-unified-forward` failed three required end-to-end checks.
+- WV courthouse researcher cloud readiness cannot start until a remote is configured for `C:\Users\SimpS\OneDrive\Documents\WV_COURTHOUSE_RESEARCHER`.
