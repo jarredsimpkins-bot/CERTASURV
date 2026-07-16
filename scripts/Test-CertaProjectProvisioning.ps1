@@ -4,23 +4,16 @@ param(
 
 $ErrorActionPreference = 'Continue'
 
-$documents = 'C:\Users\SimpS\OneDrive\Documents'
-$webAppCandidates = @(
-    Join-Path $documents 'CERTASURV_WEB_APP'
-    Join-Path $documents 'New project2'
-)
-$webAppPath = $webAppCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-if (-not $webAppPath) {
-    $webAppPath = $webAppCandidates[0]
-}
+. (Join-Path $PSScriptRoot 'CertaRepoPaths.ps1')
+$paths = Get-CertaRepositoryPaths
 $projects = @(
-    @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH'; Type = 'control' },
-    @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD'; Type = 'coordination' },
-    @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC'; Type = 'tbc-integration' },
-    @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS'; Type = 'automation' },
-    @{ Name = 'CERTASURV_WEB_APP'; Path = $webAppPath; Type = 'local-app' },
-    @{ Name = 'TBC Live Macros'; Path = Join-Path $documents 'Trimble Business Center\MacroCommands3\CertaSurv'; Type = 'tbc-live' },
-    @{ Name = 'Feature Definition Manager'; Path = Join-Path $documents 'Feature Definition Manager'; Type = 'cad-standards' },
+    @{ Name = 'CERTAHEALTH'; Path = $paths.Control; Type = 'control' },
+    @{ Name = 'CERTARD'; Path = $paths.Certard; Type = 'coordination' },
+    @{ Name = 'MACROTBC'; Path = $paths.MacroTbc; Type = 'tbc-integration' },
+    @{ Name = 'AUTOMATIONS'; Path = $paths.Automations; Type = 'automation' },
+    @{ Name = 'CERTASURV_WEB_APP'; Path = $paths.WebApp; Type = 'local-app' },
+    @{ Name = 'TBC Live Macros'; Path = Join-Path $paths.DocumentsRoot 'Trimble Business Center\MacroCommands3\CertaSurv'; Type = 'tbc-live' },
+    @{ Name = 'Feature Definition Manager'; Path = Join-Path $paths.DocumentsRoot 'Feature Definition Manager'; Type = 'cad-standards' },
     @{ Name = 'TBC Templates Matrix'; Path = 'C:\ProgramData\Trimble\CONVERSE_FULL_DRAFTING_MATRIX_FROM_PAPERSPACE'; Type = 'tbc-templates' }
 )
 
@@ -28,15 +21,15 @@ $connections = @(
     @{ Name = 'Shared Drive Mount'; Path = 'G:\Shared drives\CERTASURV_PROJECT DRIVE'; Lane = 'outside-drive' },
     @{ Name = 'Command Center Root'; Path = 'G:\Shared drives\CERTASURV_PROJECT DRIVE\00_CERTASURV_COMMAND_CENTER'; Lane = 'outside-drive' },
     @{ Name = 'Shared Drive Projects'; Path = 'G:\Shared drives\CERTASURV_PROJECT DRIVE\00_CERTASURV_COMMAND_CENTER\01_PROJECTS'; Lane = 'outside-drive' },
-    @{ Name = 'CERTARD Drive Mount Helper'; Path = Join-Path $documents 'CERTARD\scripts\Ensure-CertaSurvDriveMount.ps1'; Lane = 'outside-drive-helper' },
-    @{ Name = 'CERTARD Drive Stage Helper'; Path = Join-Path $documents 'CERTARD\scripts\Stage-CertaSurvSharedDrive.ps1'; Lane = 'outside-drive-helper' },
-    @{ Name = 'MACROTBC Command Manifest'; Path = Join-Path $documents 'MACROTBC\command_center\command_center_manifest.json'; Lane = 'outside-appsheet-drive' },
-    @{ Name = 'MACROTBC Shared Drive Config'; Path = Join-Path $documents 'MACROTBC\certasurv_shared_drive.json'; Lane = 'outside-drive-config' },
-    @{ Name = 'AUTOMATIONS Apps Script'; Path = Join-Path $documents 'AUTOMATIONS\share-drive-automation\apps-script\Code.gs'; Lane = 'outside-automation' },
-    @{ Name = 'AUTOMATIONS Deploy Notes'; Path = Join-Path $documents 'AUTOMATIONS\share-drive-automation\DEPLOY_THIS.md'; Lane = 'outside-automation' },
-    @{ Name = 'TBC Live Macros'; Path = Join-Path $documents 'Trimble Business Center\MacroCommands3\CertaSurv'; Lane = 'in-house-tbc' },
+    @{ Name = 'CERTARD Drive Mount Helper'; Path = Join-Path $paths.Certard 'scripts\Ensure-CertaSurvDriveMount.ps1'; Lane = 'outside-drive-helper' },
+    @{ Name = 'CERTARD Drive Stage Helper'; Path = Join-Path $paths.Certard 'scripts\Stage-CertaSurvSharedDrive.ps1'; Lane = 'outside-drive-helper' },
+    @{ Name = 'MACROTBC Command Manifest'; Path = Join-Path $paths.MacroTbc 'command_center\command_center_manifest.json'; Lane = 'outside-appsheet-drive' },
+    @{ Name = 'MACROTBC Shared Drive Config'; Path = Join-Path $paths.MacroTbc 'certasurv_shared_drive.json'; Lane = 'outside-drive-config' },
+    @{ Name = 'AUTOMATIONS Apps Script'; Path = Join-Path $paths.Automations 'share-drive-automation\apps-script\Code.gs'; Lane = 'outside-automation' },
+    @{ Name = 'AUTOMATIONS Deploy Notes'; Path = Join-Path $paths.Automations 'share-drive-automation\DEPLOY_THIS.md'; Lane = 'outside-automation' },
+    @{ Name = 'TBC Live Macros'; Path = Join-Path $paths.DocumentsRoot 'Trimble Business Center\MacroCommands3\CertaSurv'; Lane = 'in-house-tbc' },
     @{ Name = 'TBC Templates Matrix'; Path = 'C:\ProgramData\Trimble\CONVERSE_FULL_DRAFTING_MATRIX_FROM_PAPERSPACE'; Lane = 'in-house-tbc' },
-    @{ Name = 'Feature Definition Manager'; Path = Join-Path $documents 'Feature Definition Manager'; Lane = 'in-house-cad' }
+    @{ Name = 'Feature Definition Manager'; Path = Join-Path $paths.DocumentsRoot 'Feature Definition Manager'; Lane = 'in-house-cad' }
 )
 
 $toolNames = @('git', 'gh', 'python', 'node', 'npm', 'powershell')
