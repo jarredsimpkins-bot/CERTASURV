@@ -8,6 +8,10 @@ on:
 jobs:
   powershell-and-docs:
     runs-on: windows-latest
+    timeout-minutes: 10
+    concurrency:
+      group: certahealth-control-checks-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -35,6 +39,9 @@ jobs:
           $required = @(
             'docs/PROJECT_CONNECTION_MATRIX.md',
             'docs/GIT_SITUATION.md',
+            'docs/CLOUD_PROCESSING.md',
+            'docs/CERTASURV_INSTALL_RUNBOOK.md',
+            'docs/CERTASURV_RELEASE_CHECKLIST.md',
             'scripts/Test-CertaProjectProvisioning.ps1',
             'scripts/Set-CertaGitRemotes.ps1',
             'scripts/Manage-CertaLaptopLoad.ps1'
