@@ -51,6 +51,8 @@ $toolRows = foreach ($tool in $toolNames) {
     }
 }
 
+$gitCommand = Get-Command git -ErrorAction SilentlyContinue
+
 $connectionRows = foreach ($connection in $connections) {
     [pscustomobject]@{
         Area = 'Connection'
@@ -62,14 +64,24 @@ $connectionRows = foreach ($connection in $connections) {
 
 $projectRows = foreach ($project in $projects) {
     $exists = Test-Path -LiteralPath $project.Path
-    $gitPath = Join-Path $project.Path '.git'
-    $hasGit = $exists -and (Test-Path -LiteralPath $gitPath)
+    $hasGit = $false
     $hasRemote = $false
 
-    if ($hasGit) {
-        $gitConfig = Join-Path $gitPath 'config'
-        if (Test-Path -LiteralPath $gitConfig -PathType Leaf) {
-            $hasRemote = Select-String -LiteralPath $gitConfig -Pattern '^\s*\[remote "' -Quiet -ErrorAction SilentlyContinue
+    if ($exists -and $gitCommand) {
+        $insideWorkTree = & git -C $project.Path rev-parse --is-inside-work-tree 2>$null
+        if ($LASTEXITCODE -eq 0 -and $insideWorkTree -match 'true') {
+            $hasGit = $true
+            & git -C $project.Path remote get-url origin 2>$null | Out-Null
+            $hasRemote = $LASTEXITCODE -eq 0
+        }
+    } elseif ($exists) {
+        $gitPath = Join-Path $project.Path '.git'
+        if (Test-Path -LiteralPath $gitPath) {
+            $hasGit = $true
+            $gitConfig = Join-Path $gitPath 'config'
+            if (Test-Path -LiteralPath $gitConfig -PathType Leaf) {
+                $hasRemote = Select-String -LiteralPath $gitConfig -Pattern '^\s*\[remote "' -Quiet -ErrorAction SilentlyContinue
+            }
         }
     }
 
