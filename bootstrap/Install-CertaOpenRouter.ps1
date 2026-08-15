@@ -82,18 +82,25 @@ if (-not $key) { $key = [Environment]::GetEnvironmentVariable('OPENROUTER_API_KE
 if (-not $key) { $key = $env:OPENROUTER_API_KEY }
 
 if (-not $key) {
-    Log 'SDK installed. API key is not configured. Refusing to hard-code or commit a key.'
+    Log 'SDK installed. No local OpenRouter key found. Requesting a replacement key securely.'
     Write-Host ''
-    Write-Host 'OpenRouter SDK is installed.' -ForegroundColor Green
-    Write-Host 'A replacement OpenRouter API key must be configured locally before the smoke test can run.' -ForegroundColor Yellow
-    Write-Host 'After creating a fresh key, run:'
-    Write-Host '  [Environment]::SetEnvironmentVariable("OPENROUTER_API_KEY", "PASTE_NEW_KEY_HERE", "User")'
-    Write-Host 'Then open a new PowerShell window and rerun this script.'
-    exit 20
+    Write-Host 'OpenRouter SDK installed.' -ForegroundColor Green
+    Write-Host 'Paste a FRESH replacement OpenRouter API key below. Input is masked and the key is never written to GitHub or the install log.' -ForegroundColor Yellow
+    $secureKey = Read-Host 'OpenRouter API key' -AsSecureString
+    $ptr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureKey)
+    try {
+        $key = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr)
+    }
+    finally {
+        [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr)
+    }
+    if ([string]::IsNullOrWhiteSpace($key)) { throw 'No OpenRouter API key was entered.' }
+    [Environment]::SetEnvironmentVariable('OPENROUTER_API_KEY',$key,'User')
+    Log 'OpenRouter key saved to the Windows user environment. Key value was not logged.'
 }
 
 $env:OPENROUTER_API_KEY = $key
-Log 'API key found in local environment. Running zero-cost OpenRouter free-router smoke test.'
+Log 'Running zero-cost OpenRouter free-router smoke test.'
 & $pythonExe @pythonPrefix $testPath
 $code = $LASTEXITCODE
 
