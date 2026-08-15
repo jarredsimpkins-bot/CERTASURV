@@ -91,6 +91,16 @@ Start-Process -FilePath 'cmd.exe' -ArgumentList ('/c ""'+$launcher.FullName+'""'
 '@
 Set-Content -LiteralPath (Join-Path $bridge 'CertaNode-Bootstrap.ps1') -Value $boot -Encoding UTF8
 
+$openrouter=@'
+$ErrorActionPreference='Stop'
+$uri='https://raw.githubusercontent.com/jarredsimpkins-bot/CERTASURV/main/bootstrap/Install-CertaOpenRouter.ps1'
+$dst='C:\Certa4010\TriggerBridge\Install-CertaOpenRouter.ps1'
+Invoke-WebRequest -UseBasicParsing -Uri $uri -OutFile $dst
+& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $dst
+exit $LASTEXITCODE
+'@
+Set-Content -LiteralPath (Join-Path $bridge 'CertaNode-OpenRouter.ps1') -Value $openrouter -Encoding UTF8
+
 $cfgDir=Join-Path $env:USERPROFILE '.TRIGGERcmdData'
 $cfg=Join-Path $cfgDir 'commands.json'
 if(-not (Test-Path -LiteralPath $cfg)){ throw "TRIGGERcmd commands file not found: $cfg" }
@@ -99,11 +109,12 @@ Copy-Item -LiteralPath $cfg -Destination $backup -Force
 $items=@()
 $raw=Get-Content -LiteralPath $cfg -Raw
 if(-not [string]::IsNullOrWhiteSpace($raw)){ $items=@($raw | ConvertFrom-Json) }
-$names=@('CertaNode Proof','CertaNode Health','CertaNode Bootstrap')
+$names=@('CertaNode Proof','CertaNode Health','CertaNode Bootstrap','CertaNode OpenRouter')
 $items=@($items | Where-Object { $_.trigger -notin $names })
 $items += [pscustomobject]@{trigger='CertaNode Proof';command='powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Certa4010\TriggerBridge\CertaNode-Proof.ps1"';offCommand='';ground='foreground';voice='certa node proof';voiceReply='';allowParams='false'}
 $items += [pscustomobject]@{trigger='CertaNode Health';command='powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Certa4010\TriggerBridge\CertaNode-Health.ps1"';offCommand='';ground='foreground';voice='certa node health';voiceReply='';allowParams='false'}
 $items += [pscustomobject]@{trigger='CertaNode Bootstrap';command='powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Certa4010\TriggerBridge\CertaNode-Bootstrap.ps1"';offCommand='';ground='foreground';voice='certa node bootstrap';voiceReply='';allowParams='false'}
+$items += [pscustomobject]@{trigger='CertaNode OpenRouter';command='powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Certa4010\TriggerBridge\CertaNode-OpenRouter.ps1"';offCommand='';ground='foreground';voice='certa node open router';voiceReply='';allowParams='false'}
 $items | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $cfg -Encoding UTF8
 $null=Get-Content -LiteralPath $cfg -Raw | ConvertFrom-Json
 Write-Output "CERTANODE_TRIGGER_BRIDGE_READY $backup"
