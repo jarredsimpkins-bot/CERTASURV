@@ -1,79 +1,145 @@
 $ErrorActionPreference='Stop'
 
-function Log([string]$Message){$line="$(Get-Date -Format s) $Message";$line|Tee-Object -FilePath $script:LogFile -Append}
-function Get-TreeStats([string]$Path){if(-not(Test-Path -LiteralPath $Path)){return [pscustomobject]@{Files=0;Bytes=0}};$items=Get-ChildItem -LiteralPath $Path -File -Recurse -Force -ErrorAction SilentlyContinue;$bytes=($items|Measure-Object Length -Sum).Sum;if($null-eq$bytes){$bytes=0};[pscustomobject]@{Files=@($items).Count;Bytes=[int64]$bytes}}
-
-# Choose the largest writable non-C filesystem volume. USB SSDs often report as Fixed rather than Removable.
-$candidates=@()
-try{$candidates=Get-Volume|Where-Object{$_.DriveLetter-and$_.DriveLetter-ne'C'-and$_.FileSystem}|ForEach-Object{$r="$($_.DriveLetter):\";$p=Join-Path $r '.certasurv_probe';$w=$false;try{'x'|Set-Content $p -Encoding ASCII -ErrorAction Stop;Remove-Item $p -Force;$w=$true}catch{};[pscustomobject]@{DeviceID="$($_.DriveLetter):";DriveType=$_.DriveType;Label=$_.FileSystemLabel;FileSystem=$_.FileSystem;Size=[int64]$_.Size;FreeSpace=[int64]$_.SizeRemaining;Writable=$w}}|Where-Object Writable}catch{}
-if(-not$candidates){$candidates=Get-CimInstance Win32_LogicalDisk|Where-Object{$_.DeviceID-ne'C:'-and$_.FileSystem-and$_.DriveType-in 2,3}|ForEach-Object{[pscustomobject]@{DeviceID=$_.DeviceID;DriveType=$_.DriveType;Label=$_.VolumeName;FileSystem=$_.FileSystem;Size=[int64]$_.Size;FreeSpace=[int64]$_.FreeSpace;Writable=$true}}}
-if(-not$candidates){throw 'No writable non-C: filesystem volume found.'}
-$disk=$candidates|Sort-Object FreeSpace -Descending|Select-Object -First 1
-
-$root=Join-Path "$($disk.DeviceID)\" 'CERTASURV_SERVER_HANDOFF'
-$skills=Join-Path $root '01_SKILLS_AGENTS_WORKFLOWS'
-$scripts=Join-Path $root '02_SCRIPTS_TOOLS'
-$reposRoot=Join-Path $root '03_REPOS'
-$kb=Join-Path $root '04_LIMITED_KNOWLEDGE_BASE'
-$logs=Join-Path $root '99_LOGS'
-New-Item -ItemType Directory -Force -Path $root,$skills,$scripts,$reposRoot,$kb,$logs|Out-Null
-$script:LogFile=Join-Path $logs 'legacy_handoff.log'
-$ledgerCsv=Join-Path $logs 'PURGE_LEDGER.csv';$ledgerJson=Join-Path $logs 'PURGE_LEDGER.json'
-$candidates|Export-Csv (Join-Path $logs 'DRIVE_CANDIDATES.csv') -NoTypeInformation -Encoding UTF8
-Log "START drive=$($disk.DeviceID) label=$($disk.Label) sizeGB=$([math]::Round($disk.Size/1GB,2)) freeGB=$([math]::Round($disk.FreeSpace/1GB,2))"
-
-$ledger=@()
-function Copy-Tracked([string]$Source,[string]$Destination,[string]$Category){
- if(-not(Test-Path -LiteralPath $Source)){Log "SKIP missing $Source";return}
- $before=Get-TreeStats $Source;New-Item -ItemType Directory -Force -Path $Destination|Out-Null
- & robocopy.exe $Source $Destination /E /COPY:DAT /DCOPY:DAT /R:1 /W:1 /XJ /FFT /NP /NFL /NDL /LOG+:$script:LogFile|Out-Null;$rc=$LASTEXITCODE
- $after=Get-TreeStats $Destination;$ok=($rc-le7)-and($before.Files-eq$after.Files)-and($before.Bytes-eq$after.Bytes)
- $script:ledger += [pscustomobject]@{CATEGORY=$Category;SOURCE_PATH=$Source;DESTINATION_PATH=$Destination;SOURCE_FILES=$before.Files;DEST_FILES=$after.Files;SOURCE_BYTES=$before.Bytes;DEST_BYTES=$after.Bytes;ROBOCOPY_EXIT=$rc;VERIFIED=$ok;SAFE_TO_PURGE=if($ok){'YES'}else{'NO'};COPIED_AT=(Get-Date).ToString('o')}
- Log "COPY $Category source=$Source files=$($before.Files) bytes=$($before.Bytes) verified=$ok"
+function Get-TreeStats([string]$Path){
+  if(-not(Test-Path -LiteralPath $Path)){return [pscustomobject]@{Files=0;Bytes=0}}
+  $items=Get-ChildItem -LiteralPath $Path -File -Recurse -Force -ErrorAction SilentlyContinue
+  $bytes=($items|Measure-Object Length -Sum).Sum;if($null-eq$bytes){$bytes=0}
+  [pscustomobject]@{Files=@($items).Count;Bytes=[int64]$bytes}
 }
 
-# 1) Explicit executable/company-knowledge roots only. No bulk ChatGPT archive and no survey project data.
-$roots=@(
- [pscustomobject]@{P='C:\Certa4010';D=(Join-Path $scripts 'Certa4010');C='CertaNode scripts/config'},
- [pscustomobject]@{P=(Join-Path $env:USERPROFILE '.codex\skills');D=(Join-Path $skills 'codex_skills');C='Codex skills'},
- [pscustomobject]@{P=(Join-Path $env:USERPROFILE '.codex\agents');D=(Join-Path $skills 'codex_agents');C='Codex agents'},
- [pscustomobject]@{P=(Join-Path $env:USERPROFILE '.codex\rules');D=(Join-Path $skills 'codex_rules');C='Codex rules'},
- [pscustomobject]@{P=(Join-Path $env:USERPROFILE '.codex\prompts');D=(Join-Path $skills 'codex_prompts');C='Codex prompts'}
-)
-foreach($x in $roots){Copy-Tracked $x.P $x.D $x.C}
+# Discover every writable non-C volume; USB SSDs may report as Fixed.
+$candidates=@()
+try{
+  $candidates=Get-Volume|Where-Object{$_.DriveLetter-and$_.DriveLetter-ne'C'-and$_.FileSystem}|ForEach-Object{
+    $root="$($_.DriveLetter):\";$probe=Join-Path $root '.certasurv_probe';$ok=$false
+    try{'x'|Set-Content $probe -Encoding ASCII -ErrorAction Stop;Remove-Item $probe -Force;$ok=$true}catch{}
+    [pscustomobject]@{DeviceID="$($_.DriveLetter):";Label=$_.FileSystemLabel;FileSystem=$_.FileSystem;Size=[int64]$_.Size;FreeSpace=[int64]$_.SizeRemaining;Writable=$ok}
+  }|Where-Object Writable
+}catch{}
+if(-not$candidates){throw 'No writable non-C: filesystem volume found.'}
+$candidates=@($candidates|Sort-Object FreeSpace -Descending)
 
-# 2) Discover script/workflow/skill files in likely legacy work roots without copying unrelated binaries/data.
+# Handoff roots on every attached drive.
+$roots=@{}
+foreach($d in $candidates){
+  $r=Join-Path "$($d.DeviceID)\" 'CERTASURV_SERVER_HANDOFF'
+  foreach($n in '01_SKILLS_AGENTS_WORKFLOWS','02_SCRIPTS_TOOLS','03_REPOS','04_LIMITED_KNOWLEDGE_BASE','99_LOGS'){
+    New-Item -ItemType Directory -Force -Path (Join-Path $r $n)|Out-Null
+  }
+  $roots[$d.DeviceID]=$r
+}
+$primary=$candidates[0]
+$logs=Join-Path $roots[$primary.DeviceID] '99_LOGS'
+$logFile=Join-Path $logs 'legacy_handoff.log'
+function Log([string]$m){"$(Get-Date -Format s) $m"|Tee-Object -FilePath $logFile -Append}
+$candidates|Export-Csv (Join-Path $logs 'DRIVE_CANDIDATES.csv') -NoTypeInformation -Encoding UTF8
+
+# MSI role policy: keep CAD production runtime local; server owns automation/task execution.
+$role=[ordered]@{
+  generated_at=(Get-Date).ToString('o');node=$env:COMPUTERNAME;role='CAD_PRODUCTION_NODE';
+  keep_local=@('C:\Certa4010','Active CAD project working set','CAD/TBC/Land Desktop/QGIS/CloudCompare runtime','Drivers/licenses/hardware interfaces');
+  server_owned=@('Skills','Agents','Rules','Workflows','Automation scripts','Git repositories','Reusable tools','Limited durable knowledge base');
+  purge_rule='Delete only ledger rows with SAFE_TO_PURGE=YES. KEEP_LOCAL_RECOVERY_COPY rows are never purgeable.'
+}
+foreach($d in $candidates){$role|ConvertTo-Json -Depth 5|Set-Content (Join-Path $roots[$d.DeviceID] 'MSI_ROLE_POLICY.json') -Encoding UTF8}
+
+$ledger=[System.Collections.Concurrent.ConcurrentBag[object]]::new()
+$manifest=[System.Collections.Concurrent.ConcurrentBag[object]]::new()
+
+function New-PlanItem($source,$rel,$category,$purge){
+  if(Test-Path -LiteralPath $source){
+    $s=Get-TreeStats $source
+    [pscustomobject]@{Source=$source;Relative=$rel;Category=$category;PurgeEligible=$purge;Bytes=$s.Bytes;Files=$s.Files}
+  }
+}
+
+$plan=@()
+$plan+=New-PlanItem 'C:\Certa4010' '02_SCRIPTS_TOOLS\Certa4010_RECOVERY_COPY' 'CertaNode runtime/config' $false
+foreach($x in @(
+  @((Join-Path $env:USERPROFILE '.codex\skills'),'01_SKILLS_AGENTS_WORKFLOWS\codex_skills','Codex skills'),
+  @((Join-Path $env:USERPROFILE '.codex\agents'),'01_SKILLS_AGENTS_WORKFLOWS\codex_agents','Codex agents'),
+  @((Join-Path $env:USERPROFILE '.codex\rules'),'01_SKILLS_AGENTS_WORKFLOWS\codex_rules','Codex rules'),
+  @((Join-Path $env:USERPROFILE '.codex\prompts'),'01_SKILLS_AGENTS_WORKFLOWS\codex_prompts','Codex prompts')
+)){$plan+=New-PlanItem $x[0] $x[1] $x[2] $true}
+
+# Discover reusable scripts/workflows and Git repos only.
 $scanRoots=@((Join-Path $env:USERPROFILE 'Documents\ChatGPT'),(Join-Path $env:USERPROFILE 'Documents\Codex'),(Join-Path $env:USERPROFILE 'Desktop\Codex'),(Join-Path $env:USERPROFILE 'source'))|Where-Object{Test-Path $_}
 $exts=@('.ps1','.psm1','.py','.bat','.cmd','.sh','.js','.ts','.tsx','.jsx','.json','.yaml','.yml','.toml','.ini','.lsp','.scr','.sql','.md')
 $keyword='skill|agent|workflow|script|automation|certacad|certard|certanode|ortho|lidar|survey|qgis|cloudcompare|webodm|appsheet|handoff|import|classif|draft|qc|validator|receipt|server|openproject|twenty|authentik'
-$selected=@()
-foreach($r in $scanRoots){$selected+=Get-ChildItem -LiteralPath $r -File -Recurse -Force -ErrorAction SilentlyContinue|Where-Object{$_.Extension.ToLower()-in$exts-and($_.FullName-match$keyword-or$_.Name-match$keyword)}}
-$selected=$selected|Sort-Object FullName -Unique
-$manifest=@()
+$files=@()
+foreach($r in $scanRoots){$files+=Get-ChildItem -LiteralPath $r -File -Recurse -Force -ErrorAction SilentlyContinue|Where-Object{$_.Extension.ToLower()-in$exts-and($_.FullName-match$keyword-or$_.Name-match$keyword)-and$_.Length-lt50MB}}
+$files=@($files|Sort-Object FullName -Unique)
 $i=0
-foreach($f in $selected){$i++;$bucket=if($f.Extension -eq '.md'){$kb}else{$scripts};$safeName=("{0:D5}_{1}" -f $i,$f.Name);$dest=Join-Path $bucket $safeName;Copy-Item -LiteralPath $f.FullName -Destination $dest -Force;$h1=(Get-FileHash -LiteralPath $f.FullName -Algorithm SHA256).Hash;$h2=(Get-FileHash -LiteralPath $dest -Algorithm SHA256).Hash;$ok=$h1-eq$h2;$ledger+=[pscustomobject]@{CATEGORY=if($f.Extension-eq'.md'){'Curated knowledge'}else{'Selected script/workflow'};SOURCE_PATH=$f.FullName;DESTINATION_PATH=$dest;SOURCE_FILES=1;DEST_FILES=1;SOURCE_BYTES=$f.Length;DEST_BYTES=(Get-Item $dest).Length;ROBOCOPY_EXIT='';VERIFIED=$ok;SAFE_TO_PURGE=if($ok){'YES'}else{'NO'};COPIED_AT=(Get-Date).ToString('o')};$manifest+=[pscustomobject]@{Source=$f.FullName;Destination=$dest;SHA256=$h1;Bytes=$f.Length}}
-$manifest|Export-Csv (Join-Path $logs 'SELECTED_FILES_MANIFEST.csv') -NoTypeInformation -Encoding UTF8
+foreach($f in $files){$i++;$bucket=if($f.Extension-eq'.md'){'04_LIMITED_KNOWLEDGE_BASE'}else{'02_SCRIPTS_TOOLS'};$plan+= [pscustomobject]@{Source=$f.FullName;Relative=(Join-Path $bucket ("{0:D5}_{1}" -f $i,$f.Name));Category=if($f.Extension-eq'.md'){'Curated knowledge'}else{'Selected script/workflow'};PurgeEligible=$true;Bytes=[int64]$f.Length;Files=1}}
 
-# 3) Copy Git repos as the best executable history. Still no arbitrary project folders unless they are repos.
-$repoParents=@()
-foreach($r in $scanRoots){$repoParents+=Get-ChildItem -LiteralPath $r -Directory -Recurse -Depth 7 -Force -ErrorAction SilentlyContinue|Where-Object{$_.Name-eq'.git'}|ForEach-Object{$_.Parent.FullName}}
-$repoParents=$repoParents|Sort-Object -Unique;$repoParents|Set-Content (Join-Path $logs 'REPO_PATHS.txt') -Encoding UTF8
-$n=0;foreach($repo in $repoParents){$n++;Copy-Tracked $repo (Join-Path $reposRoot ("{0:D3}_{1}" -f $n,(Split-Path $repo -Leaf))) 'Git repository'}
+$repos=@()
+foreach($r in $scanRoots){$repos+=Get-ChildItem -LiteralPath $r -Directory -Recurse -Depth 7 -Force -ErrorAction SilentlyContinue|Where-Object{$_.Name-eq'.git'}|ForEach-Object{$_.Parent.FullName}}
+$repos=@($repos|Sort-Object -Unique)
+$n=0
+foreach($repo in $repos){$n++;$plan+=New-PlanItem $repo (Join-Path '03_REPOS' ("{0:D3}_{1}" -f $n,(Split-Path $repo -Leaf))) 'Git repository' $true}
+$repos|Set-Content (Join-Path $logs 'REPO_PATHS.txt') -Encoding UTF8
 
-# 4) Curated KB index: pointers and architecture intent, not full chat/session history.
-$kbIndex=@"
-CERTASURV LIMITED KNOWLEDGE BASE
-Generated: $(Get-Date -Format o)
+# Greedy bin-pack by size so all drives are used; largest assets assigned first to least-loaded drive.
+$driveState=@{}
+foreach($d in $candidates){$driveState[$d.DeviceID]=[int64]0}
+$assignments=@()
+foreach($p in @($plan|Sort-Object Bytes -Descending)){
+  $d=$candidates|Sort-Object @{Expression={$driveState[$_.DeviceID]};Ascending=$true}|Select-Object -First 1
+  $driveState[$d.DeviceID]+=$p.Bytes
+  $assignments += [pscustomobject]@{Drive=$d.DeviceID;Source=$p.Source;Relative=$p.Relative;Category=$p.Category;PurgeEligible=$p.PurgeEligible;Bytes=$p.Bytes;Files=$p.Files}
+}
+$assignments|Export-Csv (Join-Path $logs 'COPY_PLAN.csv') -NoTypeInformation -Encoding UTF8
 
-Purpose: preserve only durable company knowledge required to operate/rebuild skills, agents, scripts and workflows.
-Include: architecture docs, SOP/standards markdown, workflow descriptions, skill/agent definitions, configuration documentation, server/control-plane notes.
-Exclude: raw ChatGPT/Codex session history, caches, model downloads, node_modules, build artifacts, raw survey data, TBC jobs, point clouds, imagery, orthos, PDFs/photos unless explicitly part of a skill/workflow package.
-Execution rule: EVENT -> RULE -> SCRIPT -> AI IF NEEDED -> ACTION -> VALIDATOR -> RECEIPT.
-"@
-$kbIndex|Set-Content (Join-Path $kb 'README_LIMITED_KB.txt') -Encoding UTF8
+# Run one worker per drive in parallel.
+$jobs=@()
+foreach($d in $candidates){
+  $items=@($assignments|Where-Object Drive -eq $d.DeviceID)
+  if(-not$items){continue}
+  $destRoot=$roots[$d.DeviceID]
+  $jobs+=Start-Job -ArgumentList @($items,$destRoot,$d.DeviceID) -ScriptBlock {
+    param($items,$destRoot,$driveId)
+    $out=@()
+    foreach($p in $items){
+      $dest=Join-Path $destRoot $p.Relative
+      try{
+        if($p.Files-eq1 -and -not (Get-Item -LiteralPath $p.Source).PSIsContainer){
+          New-Item -ItemType Directory -Force -Path (Split-Path $dest -Parent)|Out-Null
+          Copy-Item -LiteralPath $p.Source -Destination $dest -Force
+          $h1=(Get-FileHash -LiteralPath $p.Source -Algorithm SHA256).Hash;$h2=(Get-FileHash -LiteralPath $dest -Algorithm SHA256).Hash
+          $ok=$h1-eq$h2;$df=1;$db=(Get-Item $dest).Length
+        }else{
+          New-Item -ItemType Directory -Force -Path $dest|Out-Null
+          & robocopy.exe $p.Source $dest /E /COPY:DAT /DCOPY:DAT /R:1 /W:1 /XJ /FFT /MT:8 /NP /NFL /NDL | Out-Null
+          $rc=$LASTEXITCODE
+          $src=Get-ChildItem -LiteralPath $p.Source -File -Recurse -Force -ErrorAction SilentlyContinue;$dst=Get-ChildItem -LiteralPath $dest -File -Recurse -Force -ErrorAction SilentlyContinue
+          $sb=($src|Measure-Object Length -Sum).Sum;if($null-eq$sb){$sb=0};$db=($dst|Measure-Object Length -Sum).Sum;if($null-eq$db){$db=0}
+          $df=@($dst).Count;$ok=($rc-le7)-and(@($src).Count-eq$df)-and([int64]$sb-eq[int64]$db)
+        }
+        $safe=if($ok-and$p.PurgeEligible){'YES'}else{'NO'}
+        $out+=[pscustomobject]@{DRIVE=$driveId;CATEGORY=$p.Category;SOURCE_PATH=$p.Source;DESTINATION_PATH=$dest;SOURCE_FILES=$p.Files;DEST_FILES=$df;SOURCE_BYTES=$p.Bytes;DEST_BYTES=[int64]$db;VERIFIED=$ok;PURGE_ELIGIBLE=$p.PurgeEligible;DISPOSITION=if($p.PurgeEligible){'OFFLOAD_SERVER'}else{'KEEP_LOCAL_RECOVERY_COPY'};SAFE_TO_PURGE=$safe;COPIED_AT=(Get-Date).ToString('o')}
+      }catch{
+        $out+=[pscustomobject]@{DRIVE=$driveId;CATEGORY=$p.Category;SOURCE_PATH=$p.Source;DESTINATION_PATH=$dest;SOURCE_FILES=$p.Files;DEST_FILES=0;SOURCE_BYTES=$p.Bytes;DEST_BYTES=0;VERIFIED=$false;PURGE_ELIGIBLE=$p.PurgeEligible;DISPOSITION='COPY_ERROR';SAFE_TO_PURGE='NO';COPIED_AT=(Get-Date).ToString('o');ERROR=$_.Exception.Message}
+      }
+    }
+    $out
+  }
+}
 
-$ledger|Export-Csv $ledgerCsv -NoTypeInformation -Encoding UTF8;$ledger|ConvertTo-Json -Depth 6|Set-Content $ledgerJson -Encoding UTF8
-$sum=[ordered]@{completed_at=(Get-Date).ToString('o');computer=$env:COMPUTERNAME;destination_root=$root;drive=$disk.DeviceID;entries=@($ledger).Count;verified=@($ledger|Where-Object SAFE_TO_PURGE -eq 'YES').Count;unsafe=@($ledger|Where-Object SAFE_TO_PURGE -ne 'YES').Count;bytes=[int64](($ledger|Measure-Object SOURCE_BYTES -Sum).Sum);gb=[math]::Round((($ledger|Measure-Object SOURCE_BYTES -Sum).Sum)/1GB,3)}
-$sum|ConvertTo-Json|Set-Content (Join-Path $logs 'HANDOFF_SUMMARY.json') -Encoding UTF8
-Log "DONE entries=$($sum.entries) verified=$($sum.verified) unsafe=$($sum.unsafe) GB=$($sum.gb)"
-Write-Output "CERTANODE_CURATED_HANDOFF_COMPLETE $root"
+$results=@($jobs|Wait-Job|Receive-Job)
+$jobs|Remove-Job -Force
+$results|Export-Csv (Join-Path $logs 'PURGE_LEDGER.csv') -NoTypeInformation -Encoding UTF8
+$results|ConvertTo-Json -Depth 6|Set-Content (Join-Path $logs 'PURGE_LEDGER.json') -Encoding UTF8
+
+# Mirror master ledger/plan onto every drive so any one drive identifies the complete set.
+foreach($d in $candidates){
+  $l=Join-Path $roots[$d.DeviceID] '99_LOGS'
+  Copy-Item (Join-Path $logs 'PURGE_LEDGER.csv') (Join-Path $l 'PURGE_LEDGER.csv') -Force
+  Copy-Item (Join-Path $logs 'PURGE_LEDGER.json') (Join-Path $l 'PURGE_LEDGER.json') -Force
+  Copy-Item (Join-Path $logs 'COPY_PLAN.csv') (Join-Path $l 'COPY_PLAN.csv') -Force
+  $candidates|Export-Csv (Join-Path $l 'DRIVE_CANDIDATES.csv') -NoTypeInformation -Encoding UTF8
+}
+
+$summary=[ordered]@{completed_at=(Get-Date).ToString('o');computer=$env:COMPUTERNAME;role='CAD_PRODUCTION_NODE';drive_count=$candidates.Count;drives=@($candidates.DeviceID);entries=$results.Count;verified=@($results|Where-Object VERIFIED -eq $true).Count;safe_to_purge=@($results|Where-Object SAFE_TO_PURGE -eq 'YES').Count;keep_local=@($results|Where-Object DISPOSITION -eq 'KEEP_LOCAL_RECOVERY_COPY').Count;total_gb=[math]::Round((($results|Measure-Object SOURCE_BYTES -Sum).Sum)/1GB,3)}
+foreach($d in $candidates){$summary|ConvertTo-Json -Depth 5|Set-Content (Join-Path (Join-Path $roots[$d.DeviceID] '99_LOGS') 'HANDOFF_SUMMARY.json') -Encoding UTF8}
+Log "DONE drives=$($summary.drive_count) entries=$($summary.entries) verified=$($summary.verified) safe=$($summary.safe_to_purge) keepLocal=$($summary.keep_local) GB=$($summary.total_gb)"
+Write-Output "CERTANODE_PARALLEL_CURATED_HANDOFF_COMPLETE drives=$($summary.drive_count) verified=$($summary.verified) safeToPurge=$($summary.safe_to_purge)"
