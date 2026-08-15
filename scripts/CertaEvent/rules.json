@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "rules": [
+    {
+      "id": "drone_raw_received",
+      "enabled": true,
+      "event": "files.received",
+      "path_regex": "(?i)\\\\03_FIELD_WORK\\\\(?:DRONE_WORKS|DRONE WORKS)\\\\(?:RAW_PHOTOS|RAW PHOTOS)$",
+      "extensions": [".jpg", ".jpeg", ".dng", ".tif", ".tiff", ".png"],
+      "minimum_files": 20,
+      "stable_seconds": 180,
+      "actions": [
+        {"id":"webodm","type":"webodm","profile":"survey_ortho","required":true},
+        {"id":"office","type":"office_notify","required":true,"message":"{project_id}: {file_count} drone images received and queued to WebODM from {dataset_path}."},
+        {"id":"openproject","type":"openproject_comment","target_subject":"Office Processing","required":false,"message":"Drone imagery received: {file_count} files. CertaEvent queued WebODM processing."}
+      ]
+    },
+    {
+      "id": "field_gnss_received",
+      "enabled": true,
+      "event": "files.received",
+      "path_regex": "(?i)\\\\03_FIELD_WORK\\\\(?:GNSS|GPS|RAW_GNSS|INTERNAL_LOGS|INTERNAL LOGS)$",
+      "extensions": [".job", ".jxl", ".t02", ".t04", ".dat", ".dc", ".csv", ".raw", ".obs", ".rnx", ".rxo", ".zip"],
+      "minimum_files": 1,
+      "stable_seconds": 60,
+      "actions": [
+        {"id":"office","type":"office_notify","required":true,"message":"{project_id}: GNSS field data received ({file_count} files). Office processing is ready."},
+        {"id":"openproject","type":"openproject_comment","target_subject":"Office Processing","required":false,"message":"GNSS field data received: {file_count} files. Office processing can begin."}
+      ]
+    },
+    {
+      "id": "field_total_station_received",
+      "enabled": true,
+      "event": "files.received",
+      "path_regex": "(?i)\\\\03_FIELD_WORK\\\\(?:TOTAL_STATION|TOTAL STATION|ROBOTIC|VX)$",
+      "extensions": [".job", ".jxl", ".dc", ".csv", ".raw", ".dat", ".dxf", ".dwg", ".zip"],
+      "minimum_files": 1,
+      "stable_seconds": 60,
+      "actions": [
+        {"id":"office","type":"office_notify","required":true,"message":"{project_id}: total-station field data received ({file_count} files)."},
+        {"id":"openproject","type":"openproject_comment","target_subject":"Office Processing","required":false,"message":"Total-station field data received: {file_count} files."}
+      ]
+    },
+    {
+      "id": "field_forms_received",
+      "enabled": true,
+      "event": "files.received",
+      "path_regex": "(?i)\\\\03_FIELD_WORK\\\\(?:FIELD_FORMS|FIELD FORMS|CHECKLISTS)$",
+      "extensions": [".pdf", ".json", ".csv", ".xlsx", ".txt"],
+      "minimum_files": 1,
+      "stable_seconds": 30,
+      "actions": [
+        {"id":"office","type":"office_notify","required":true,"message":"{project_id}: field forms/checklists received ({file_count} files)."},
+        {"id":"openproject","type":"openproject_comment","target_subject":"Office Processing","required":false,"message":"Field forms/checklists received: {file_count} files."}
+      ]
+    },
+    {
+      "id": "field_photos_received",
+      "enabled": true,
+      "event": "files.received",
+      "path_regex": "(?i)\\\\03_FIELD_WORK\\\\(?:GROUND_TRUTHING|GROUND TRUTHING|PHOTOS|VIDEO_PHOTO_UPLOADS)$",
+      "extensions": [".jpg", ".jpeg", ".png", ".heic", ".mp4", ".mov"],
+      "minimum_files": 1,
+      "stable_seconds": 60,
+      "actions": [
+        {"id":"office","type":"office_notify","required":true,"message":"{project_id}: field photo/video package received ({file_count} files)."}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "project_roots": [
+    "C:\\Certa4010\\Projects"
+  ],
+  "project_id_regex": "(?i)SSD-\\d{5}(?:-\\d{3})?",
+  "state_root": "C:\\Certa4010\\CertaEvent",
+  "poll_seconds": 15,
+  "retry_seconds": 300,
+  "office_webhook_url": "",
+  "webodm": {
+    "enabled": true,
+    "base_url": "http://127.0.0.1:8000",
+    "profiles": {
+      "survey_ortho": {
+        "options": []
+      }
+    }
+  },
+  "openproject": {
+    "enabled": false,
+    "base_url": "http://127.0.0.1:8080"
+  }
+}
