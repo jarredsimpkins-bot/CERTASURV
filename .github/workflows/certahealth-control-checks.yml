@@ -47,3 +47,20 @@ jobs:
               throw "Missing required file: $path"
             }
           }
+
+      - name: Verify release blocker coverage
+        shell: pwsh
+        run: |
+          $requiredSignals = @(
+            'MACROTBC',
+            'WV_COURTHOUSE_RESEARCHER',
+            'certasurv-web-app',
+            'certard'
+          )
+          $releaseDocs = Get-ChildItem docs -Filter *.md | ForEach-Object { Get-Content -Raw $_.FullName }
+          $joined = $releaseDocs -join "`n"
+          foreach ($signal in $requiredSignals) {
+            if ($joined -notmatch [regex]::Escape($signal)) {
+              throw "Release docs do not mention required launch signal: $signal"
+            }
+          }
