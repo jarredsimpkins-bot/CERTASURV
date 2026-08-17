@@ -1,6 +1,6 @@
 # Git Situation
 
-Last updated: 2026-06-17
+Last updated: 2026-06-24
 
 ## Fixed Locally
 
@@ -18,6 +18,7 @@ Last updated: 2026-06-17
 | MACROTBC | `C:\Users\SimpS\OneDrive\Documents\MACROTBC` | `origin` -> `https://github.com/jarredsimpkins-bot/macrotbc.git` |
 | AUTOMATIONS | `C:\Users\SimpS\OneDrive\Documents\AUTOMATIONS` | `origin` -> `https://github.com/jarredsimpkins-bot/certasurv-automations.git` |
 | CERTASURV_WEB_APP | `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` | `origin` -> `https://github.com/jarredsimpkins-bot/certasurv-web-app.git` |
+| WV_COURTHOUSE_RESEARCHER | `C:\Users\SimpS\OneDrive\Documents\WV_COURTHOUSE_RESEARCHER` | No remote listed in current checkout |
 
 ## Planned Remote Names
 
@@ -28,6 +29,7 @@ Last updated: 2026-06-17
 | MACROTBC | `https://github.com/jarredsimpkins-bot/macrotbc.git` |
 | AUTOMATIONS | `https://github.com/jarredsimpkins-bot/certasurv-automations.git` |
 | CERTASURV_WEB_APP | `https://github.com/jarredsimpkins-bot/certasurv-web-app.git` |
+| WV_COURTHOUSE_RESEARCHER | Remote/upstream decision needed before release review |
 
 All planned repositories now exist. `CERTASURV` is public; the remaining launch support repositories are private.
 
@@ -35,4 +37,6 @@ All planned repositories now exist. `CERTASURV` is public; the remaining launch 
 
 - `CERTAHEALTH` currently pushes to public `CERTASURV.git`, but the planned dedicated target remains `certahealth.git`.
 - `CERTASURV_WEB_APP` is the active local workspace name; any lingering `New project2` references should be treated as legacy docs only.
-- GitHub CLI is installed locally but was unauthenticated during the June 17, 2026 release-ops pass, so private-repo workflow inspection still requires `gh auth login`.
+- GitHub CLI is installed and authenticated as `jarredsimpkins-bot` with `repo` scope during the June 24, 2026 release-ops pass.
+- `CERTARD`, `CERTASURV_WEB_APP`, `MACROTBC`, and `WV_COURTHOUSE_RESEARCHER` should be rechecked before push/review timing because the active OneDrive checkouts currently show local modifications or generated/untracked files.
+- MACROTBC and WV_COURTHOUSE_RESEARCHER remain the substantive release blockers: MACROTBC needs command usage log review, and WV_COURTHOUSE_RESEARCHER needs a remote/upstream decision plus dirty-tree cleanup.
