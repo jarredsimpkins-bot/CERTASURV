@@ -90,43 +90,11 @@ jobs:
           & ./server/router/Test-CertaRouter.ps1
 
       - name: Run queue worker extension self-test
-        shell: pwsh
+        shell: powershell
         run: |
-          $stage = Join-Path $env:TEMP ('certa-worker-ci-' + [guid]::NewGuid().ToString('N'))
-          try {
-            $sourceRoot = Join-Path $stage 'server'
-            New-Item -ItemType Directory -Path $sourceRoot -Force | Out-Null
-            Copy-Item -LiteralPath ./server/router -Destination $sourceRoot -Recurse
-            Copy-Item -LiteralPath ./server/policies -Destination $sourceRoot -Recurse
-            Copy-Item -LiteralPath ./server/schemas -Destination $sourceRoot -Recurse
-            Copy-Item -LiteralPath ./server/capabilities -Destination $sourceRoot -Recurse
-            Copy-Item -LiteralPath ./server/trigger -Destination $sourceRoot -Recurse
-            Copy-Item -LiteralPath ./server/Install-CertaServer.ps1 -Destination $sourceRoot
-            $output = & ./server/worker/Install-CertaServerWorkerExtension.ps1 `
-              -SourceRoot $sourceRoot `
-              -ServerRoot (Join-Path $stage 'runtime') `
-              -SkipStartup `
-              -SkipTriggerCommands `
-              -SkipHealthCheck
-            $output | Out-String | Write-Host
-            if ($LASTEXITCODE -ne 0) { throw 'Worker extension installation self-test failed.' }
-            $runtimeRoot = Join-Path $stage 'runtime'
-            $expected = @(
-              'ROUTER\Invoke-CertaScriptTask.ps1',
-              'ROUTER\Invoke-CertaQueueWorker.ps1',
-              'ROUTER\Start-CertaQueueWorker.ps1',
-              'ROUTER\Stop-CertaQueueWorker.ps1',
-              'ROUTER\Get-CertaQueueStatus.ps1'
-            )
-            foreach ($relative in $expected) {
-              $path = Join-Path $runtimeRoot $relative
-              if (-not (Test-Path -LiteralPath $path)) {
-                throw "Missing installed worker file: $path"
-              }
-            }
-          }
-          finally {
-            if (Test-Path -LiteralPath $stage) {
-              Remove-Item -LiteralPath $stage -Recurse -Force
-            }
+          $ErrorActionPreference = 'Stop'
+          $output = & ./server/worker/Install-CertaServerWorkerExtension.ps1 -SelfTest 2>&1 | Out-String
+          Write-Host $output
+          if ($output -notmatch 'CERTA_SERVER_WORKER_EXTENSION_TEST_PASS') {
+            throw 'Worker extension self-test did not emit its pass marker.'
           }
