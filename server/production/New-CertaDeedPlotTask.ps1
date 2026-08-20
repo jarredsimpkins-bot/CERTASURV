@@ -161,17 +161,17 @@ function Get-CertaSvg {
     $polyline = $pointText -join ' '
     $escapedTitle = Escape-CertaXml -Value $Title
     $svg = @"
-<svg xmlns=""http://www.w3.org/2000/svg"" width=""$([int]$canvasWidth)"" height=""$([int]$canvasHeight)"" viewBox=""0 0 $([int]$canvasWidth) $([int]$canvasHeight)"">
-  <rect width=""100%"" height=""100%"" fill=""white""/>
-  <text x=""30"" y=""35"" font-family=""Arial"" font-size=""22"" font-weight=""bold"">$escapedTitle</text>
-  <polyline points=""$polyline"" fill=""none"" stroke=""#138a2e"" stroke-width=""3""/>
+<svg xmlns="http://www.w3.org/2000/svg" width="$([int]$canvasWidth)" height="$([int]$canvasHeight)" viewBox="0 0 $([int]$canvasWidth) $([int]$canvasHeight)">
+  <rect width="100%" height="100%" fill="white"/>
+  <text x="30" y="35" font-family="Arial" font-size="22" font-weight="bold">$escapedTitle</text>
+  <polyline points="$polyline" fill="none" stroke="#138a2e" stroke-width="3"/>
 "@
     $index = 0
     foreach ($point in $Points) {
         $x = $padding + (([double]$point.E - $minE) * $scale)
         $y = $canvasHeight - $padding - (([double]$point.N - $minN) * $scale)
-        $svg += "  <circle cx=""$([math]::Round($x,2))"" cy=""$([math]::Round($y,2))"" r=""4"" fill=""#cc0000""/>`n"
-        $svg += "  <text x=""$([math]::Round($x+6,2))"" y=""$([math]::Round($y-6,2))"" font-family=""Arial"" font-size=""13"">P$($index.ToString('000'))</text>`n"
+        $svg += ('  <circle cx="{0}" cy="{1}" r="4" fill="#cc0000"/>' -f [math]::Round($x,2),[math]::Round($y,2)) + "`n"
+        $svg += ('  <text x="{0}" y="{1}" font-family="Arial" font-size="13">P{2}</text>' -f [math]::Round($x+6,2),[math]::Round($y-6,2),$index.ToString('000')) + "`n"
         $index++
     }
     $svg += '</svg>'
