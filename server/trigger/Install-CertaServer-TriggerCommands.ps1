@@ -210,6 +210,7 @@ if ($sessionAgents.Count -gt 1) { throw 'Multiple TRIGGERcmd controller processe
 $agent = $sessionAgents | Select-Object -First 1
 $agentProcessId = if ($agent) { [int]$agent.ProcessId } else { $null }
 $temporaryPath = Join-Path (Split-Path -Parent $commandsPath) ('.commands.{0}.tmp' -f [guid]::NewGuid().ToString('N'))
+$replacementBackupPath = Join-Path (Split-Path -Parent $commandsPath) ('.commands.{0}.replace.bak' -f [guid]::NewGuid().ToString('N'))
 $catalogChangeSignaled = $false
 try {
     ConvertTo-Json -InputObject @($items) -Depth 20 | Set-Content -LiteralPath $temporaryPath -Encoding UTF8
@@ -237,7 +238,7 @@ try {
         throw 'TRIGGERcmd commands changed during registration; retry instead of overwriting concurrent changes.'
     }
     $replacementHash = (Get-FileHash -LiteralPath $temporaryPath -Algorithm SHA256).Hash
-    [IO.File]::Replace($temporaryPath,$commandsPath,$null)
+    [IO.File]::Replace($temporaryPath,$commandsPath,$replacementBackupPath)
     if ((Get-FileHash -LiteralPath $commandsPath -Algorithm SHA256).Hash -ne $replacementHash) {
         throw 'TRIGGERcmd command registration hash verification failed.'
     }
@@ -249,6 +250,7 @@ try {
 }
 finally {
     if (Test-Path -LiteralPath $temporaryPath) { Remove-Item -LiteralPath $temporaryPath -Force }
+    if (Test-Path -LiteralPath $replacementBackupPath) { Remove-Item -LiteralPath $replacementBackupPath -Force }
 }
 
 [pscustomobject]@{

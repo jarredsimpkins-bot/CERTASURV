@@ -388,6 +388,7 @@ try {
     }
     $updatedItems = @($retainedItems) + @($beacon)
     $temporaryPath = Join-Path (Split-Path -Parent $commandsPath) ('.commands.beacon.{0}.tmp' -f [guid]::NewGuid().ToString('N'))
+    $replacementBackupPath = Join-Path (Split-Path -Parent $commandsPath) ('.commands.beacon.{0}.replace.bak' -f [guid]::NewGuid().ToString('N'))
     $catalogChangeSignaled = $false
     try {
         ConvertTo-Json -InputObject @($updatedItems) -Depth 20 | Set-Content -LiteralPath $temporaryPath -Encoding UTF8
@@ -420,7 +421,7 @@ try {
             throw 'Smoke evidence crossed the freshness bound during catalog validation; refresh again.'
         }
         $replacementHash = (Get-FileHash -LiteralPath $temporaryPath -Algorithm SHA256).Hash
-        [IO.File]::Replace($temporaryPath,$commandsPath,$null)
+        [IO.File]::Replace($temporaryPath,$commandsPath,$replacementBackupPath)
         if ((Get-FileHash -LiteralPath $commandsPath -Algorithm SHA256).Hash -ne $replacementHash) {
             throw 'TRIGGERcmd catalog replacement hash verification failed.'
         }
@@ -437,6 +438,7 @@ try {
     }
     finally {
         if (Test-Path -LiteralPath $temporaryPath) { Remove-Item -LiteralPath $temporaryPath -Force }
+        if (Test-Path -LiteralPath $replacementBackupPath) { Remove-Item -LiteralPath $replacementBackupPath -Force }
     }
 
     $currentSessionId = [int](Get-Process -Id $PID -ErrorAction Stop).SessionId
