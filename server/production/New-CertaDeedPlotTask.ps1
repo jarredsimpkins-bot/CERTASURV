@@ -85,8 +85,8 @@ function ConvertTo-CertaDxfText {
         )) { [void]$builder.AppendLine([string]$line) }
 
         $label = ('{0}: {1}  {2}' -f $item.sequence,$item.bearing_raw,([double]$item.distance).ToString('0.###',[Globalization.CultureInfo]::InvariantCulture))
-        $midE = (([double]$item.start_easting + [double]$item.end_easting) / 2.0
-        $midN = (([double]$item.start_northing + [double]$item.end_northing) / 2.0
+        $midE = (([double]$item.start_easting + [double]$item.end_easting) / 2.0)
+        $midN = (([double]$item.start_northing + [double]$item.end_northing) / 2.0)
         foreach ($line in @(
             '0','TEXT','8','DEED_LABELS','62','3',
             '10',$midE.ToString('0.########',[Globalization.CultureInfo]::InvariantCulture),
