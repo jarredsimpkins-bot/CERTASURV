@@ -1,0 +1,104 @@
+name: Certa Production Capability Checks
+
+on:
+  push:
+    paths:
+      - 'server/production/**'
+      - 'bootstrap/Install-CertaSurvProductionServer-FromGitHub.ps1'
+      - '.github/workflows/certa-production-capability-checks.yml'
+  pull_request:
+    paths:
+      - 'server/production/**'
+      - 'bootstrap/Install-CertaSurvProductionServer-FromGitHub.ps1'
+      - '.github/workflows/certa-production-capability-checks.yml'
+  workflow_dispatch:
+
+jobs:
+  production-capabilities:
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate PowerShell syntax
+        shell: pwsh
+        run: |
+          $failures = @()
+          $paths = @(
+            'server/production',
+            'bootstrap/Install-CertaSurvProductionServer-FromGitHub.ps1'
+          )
+          foreach ($path in $paths) {
+            $files = if (Test-Path -LiteralPath $path -PathType Container) {
+              Get-ChildItem -LiteralPath $path -Filter *.ps1 -File -Recurse
+            } else {
+              Get-Item -LiteralPath $path
+            }
+            foreach ($file in $files) {
+              $tokens = $null
+              $errors = $null
+              [Management.Automation.Language.Parser]::ParseFile(
+                $file.FullName,
+                [ref]$tokens,
+                [ref]$errors
+              ) | Out-Null
+              if ($errors) {
+                $failures += "$($file.FullName): $($errors -join '; ')"
+              }
+            }
+          }
+          if ($failures.Count) {
+            $failures | ForEach-Object { Write-Error $_ }
+            exit 1
+          }
+
+      - name: Verify required production files
+        shell: pwsh
+        run: |
+          $required = @(
+            'server/production/CertaServer.Common.ps1',
+            'server/production/Initialize-CertaProjectTask.ps1',
+            'server/production/New-CertaCourthousePacketTask.ps1',
+            'server/production/New-CertaDeedPlotTask.ps1',
+            'server/production/New-CertaWorkmapTask.ps1',
+            'server/production/Update-CertaFieldReturnTask.ps1',
+            'server/production/Test-CertaProductionCapabilities.ps1',
+            'server/production/Install-CertaProductionCapabilities.ps1',
+            'server/production/README.md',
+            'bootstrap/Install-CertaSurvProductionServer-FromGitHub.ps1'
+          )
+          foreach ($path in $required) {
+            if (-not (Test-Path -LiteralPath $path)) {
+              throw "Missing required production file: $path"
+            }
+          }
+
+      - name: Enforce safety invariants
+        shell: pwsh
+        run: |
+          $text = Get-ChildItem -LiteralPath server/production -Filter *.ps1 -File |
+            ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw } |
+            Out-String
+          $forbidden = @(
+            'Format-Volume',
+            'Clear-Disk',
+            'Remove-Partition',
+            'danger-full-access',
+            '--yolo',
+            '0.0.0.0:11434',
+            "allowParams='true'"
+          )
+          foreach ($term in $forbidden) {
+            if ($text -match [regex]::Escape($term)) {
+              throw "Forbidden production capability term found: $term"
+            }
+          }
+
+      - name: Run production capability regression test
+        shell: pwsh
+        run: |
+          $output = & ./server/production/Test-CertaProductionCapabilities.ps1 2>&1 | Out-String
+          Write-Host $output
+          if ($LASTEXITCODE -ne 0 -or $output -notmatch 'CERTA_PRODUCTION_CAPABILITIES_TEST_PASS') {
+            throw 'Production capability regression test failed.'
+          }
