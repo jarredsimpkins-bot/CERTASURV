@@ -101,6 +101,14 @@ $items = @($retainedItems) + @($definitions)
 $agent = Get-Process TRIGGERcmdAgent -ErrorAction SilentlyContinue | Select-Object -First 1
 $agentPath = $null
 if ($agent) { try { $agentPath = $agent.Path } catch {} }
+if (-not $agentPath) {
+    $agentInstallRoot = Join-Path $env:LOCALAPPDATA 'triggercmdagent'
+    if (Test-Path -LiteralPath $agentInstallRoot) {
+        $agentPath = Get-ChildItem -LiteralPath $agentInstallRoot -Recurse -File -Filter 'TRIGGERcmdAgent.exe' -ErrorAction SilentlyContinue |
+            Sort-Object LastWriteTimeUtc -Descending |
+            Select-Object -ExpandProperty FullName -First 1
+    }
+}
 $temporaryPath = Join-Path (Split-Path -Parent $commandsPath) ('.commands.{0}.tmp' -f [guid]::NewGuid().ToString('N'))
 $agentRestarted = $false
 try {
