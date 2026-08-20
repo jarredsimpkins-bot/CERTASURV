@@ -49,20 +49,21 @@ jobs:
             exit 1
           }
 
-      - name: Verify safe command boundaries
+      - name: Verify safe worker boundaries
         shell: pwsh
         run: |
           $source = Get-Content -LiteralPath 'server/worker/Install-CertaServerWorkerExtension.ps1' -Raw
           $required = @(
-            "allowParams='true'",
-            "'submit-task'",
-            "'run-codex'",
-            "'process-queue'",
-            "'start-worker'",
-            "'stop-worker'",
-            "--sandbox",
-            "workspace-write",
-            "--dangerously-bypass-approvals-and-sandbox"
+            'Local\CertaServerQueueWorker',
+            'Invoke-CertaScriptTask.ps1',
+            'Invoke-CertaOllamaTask.ps1',
+            'Invoke-CertaQueueWorker.ps1',
+            'Start-CertaQueueWorker.ps1',
+            'Stop-CertaQueueWorker.ps1',
+            'Get-CertaQueueStatus.ps1',
+            "'QUEUE\\codex'",
+            "'QUEUE\\specialist'",
+            "'QUEUE\\review'"
           )
           foreach ($term in $required) {
             if ($source -notmatch [regex]::Escape($term)) {
@@ -70,6 +71,9 @@ jobs:
             }
           }
           $forbidden = @(
+            "allowParams='true'",
+            'codex exec',
+            '--dangerously-bypass-approvals-and-sandbox',
             'danger-full-access',
             '--yolo',
             '0.0.0.0:11434'
