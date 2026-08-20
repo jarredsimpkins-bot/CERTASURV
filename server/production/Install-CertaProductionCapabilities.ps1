@@ -2,7 +2,8 @@
 [CmdletBinding()]
 param(
     [string]$ServerRoot = 'D:\SERVER',
-    [switch]$SkipSelfTest
+    [switch]$SkipSelfTest,
+    [switch]$SkipTriggerCommands
 )
 
 Set-StrictMode -Version Latest
@@ -29,7 +30,8 @@ $sourceFiles = @(
     'New-CertaDeedPlotTask.ps1',
     'New-CertaWorkmapTask.ps1',
     'Update-CertaFieldReturnTask.ps1',
-    'Test-CertaProductionCapabilities.ps1'
+    'Test-CertaProductionCapabilities.ps1',
+    'Install-CertaProductionTriggerCommands.ps1'
 )
 foreach ($name in $sourceFiles) {
     $path = Join-Path $PSScriptRoot $name
@@ -63,6 +65,7 @@ $copyMap = [ordered]@{
     'New-CertaWorkmapTask.ps1' = 'SCRIPTS\New-CertaWorkmapTask.ps1'
     'Update-CertaFieldReturnTask.ps1' = 'SCRIPTS\Update-CertaFieldReturnTask.ps1'
     'Test-CertaProductionCapabilities.ps1' = 'CONTROL\tests\Test-CertaProductionCapabilities.ps1'
+    'Install-CertaProductionTriggerCommands.ps1' = 'CONTROL\Install-CertaProductionTriggerCommands.ps1'
 }
 foreach ($entry in $copyMap.GetEnumerator()) {
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot $entry.Key) -Destination (Join-Path $ServerRoot $entry.Value) -Force
@@ -145,6 +148,15 @@ foreach ($path in $installedScriptPaths) {
     if (-not (Test-Path -LiteralPath $path)) { throw "Installed production file missing: $path" }
 }
 
+$triggerResult = $null
+if (-not $SkipTriggerCommands) {
+    $triggerInstaller = Join-Path $ServerRoot 'CONTROL\Install-CertaProductionTriggerCommands.ps1'
+    $triggerResult = & $triggerInstaller -ServerRoot $ServerRoot
+    if (-not $triggerResult -or [string]$triggerResult.status -ne 'PASS') {
+        throw 'Production TRIGGERcmd command registration failed.'
+    }
+}
+
 $manifest = [ordered]@{
     schema_version = 1
     installed_at = (Get-Date).ToUniversalTime().ToString('o')
@@ -156,6 +168,7 @@ $manifest = [ordered]@{
     self_test = if ($SkipSelfTest) { 'SKIPPED_BY_OPERATOR' } else { 'PASS' }
     original_sources_preserved = $true
     professional_authority = 'HUMAN_PLS_GATE'
+    trigger = $triggerResult
     status = 'PASS'
 }
 $manifestPath = Join-Path $ServerRoot 'CONTROL\manifests\production-capabilities-v1.json'
