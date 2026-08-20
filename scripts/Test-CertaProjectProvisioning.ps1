@@ -70,14 +70,15 @@ $connectionRows = foreach ($connection in $connections) {
 
 $projectRows = foreach ($project in $projects) {
     $exists = Test-Path -LiteralPath $project.Path
-    $gitPath = Join-Path $project.Path '.git'
-    $hasGit = $exists -and (Test-Path -LiteralPath $gitPath)
+    $hasGit = $false
     $hasRemote = $false
 
-    if ($hasGit) {
-        $gitConfig = Join-Path $gitPath 'config'
-        if (Test-Path -LiteralPath $gitConfig -PathType Leaf) {
-            $hasRemote = Select-String -LiteralPath $gitConfig -Pattern '^\s*\[remote "' -Quiet -ErrorAction SilentlyContinue
+    if ($exists) {
+        $insideWorkTree = & git -C $project.Path rev-parse --is-inside-work-tree 2>$null
+        if ($LASTEXITCODE -eq 0 -and "$insideWorkTree".Trim() -eq 'true') {
+            $hasGit = $true
+            $remotes = & git -C $project.Path remote 2>$null
+            $hasRemote = $LASTEXITCODE -eq 0 -and @($remotes).Count -gt 0
         }
     }
 
