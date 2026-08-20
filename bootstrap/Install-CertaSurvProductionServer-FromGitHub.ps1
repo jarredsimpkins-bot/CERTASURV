@@ -28,7 +28,7 @@ try {
         '-Ref',$Ref
     )
     if ($SkipModelPull) { $workerArguments += '-SkipModelPull' }
-    if ($SkipTriggerCommands) { $workerArguments += '-SkipTriggerCommands' }
+    $workerArguments += '-SkipTriggerCommands'
     if ($SkipStartup) { $workerArguments += '-SkipStartup' }
     if ($KeepSleepSettings) { $workerArguments += '-KeepSleepSettings' }
 
@@ -47,7 +47,8 @@ try {
         'New-CertaWorkmapTask.ps1',
         'Update-CertaFieldReturnTask.ps1',
         'Test-CertaProductionCapabilities.ps1',
-        'Install-CertaProductionCapabilities.ps1'
+        'Install-CertaProductionCapabilities.ps1',
+        'Install-CertaProductionTriggerCommands.ps1'
     )
     foreach ($name in $productionFiles) {
         $url = "https://raw.githubusercontent.com/$Repository/$Ref/server/production/$name"
@@ -60,6 +61,7 @@ try {
         '-ServerRoot',$ServerRoot
     )
     if ($SkipSelfTest) { $productionArguments += '-SkipSelfTest' }
+    if ($SkipTriggerCommands) { $productionArguments += '-SkipTriggerCommands' }
     & powershell.exe @productionArguments
     if ($LASTEXITCODE -ne 0) {
         throw "Production-capability installation failed with exit code $LASTEXITCODE."
@@ -78,9 +80,10 @@ try {
             'courthouse-packet-v1',
             'deed-plot-v1',
             'workmap-build-v1',
-            'field-return-v1'
+            'field-return-v1',
+            'production-trigger-commands'
         )
-        next='Restart the TRIGGERcmd tray agent, run Certa Server Health, then submit a noncritical project-intake task.'
+        next='Run Certa Server Health, Certa Server Production Test, then submit a noncritical project-intake task.'
     }
 }
 finally {
