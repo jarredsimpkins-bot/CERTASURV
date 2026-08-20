@@ -36,7 +36,8 @@ try {
         'server/schemas/task.schema.json',
         'server/trigger/Install-CertaServer-TriggerCommands.ps1',
         'server/capabilities/New-CertaFileManifest.ps1',
-        'server/capabilities/Test-CertaFileManifest.ps1'
+        'server/capabilities/Test-CertaFileManifest.ps1',
+        'server/capabilities/Update-CertaCapabilityRegistry.ps1'
     )
 
     foreach ($path in $files) {
