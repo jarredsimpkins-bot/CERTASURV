@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "bundle_name": "certa-server-autonomy-v2.zip",
+  "sha256": "0213c27d92909b5b305ddfdba1abc2b7b1108719a8e0a80e27fb580e7251769f",
+  "size_bytes": 30695,
+  "file_count": 16,
+  "files": [
+    "bootstrap/Install-CertaServer-FromGitHub.ps1",
+    "server/Install-CertaServer.ps1",
+    "server/router/Get-CertaServerHealth.ps1",
+    "server/router/Invoke-CertaCodexTask.ps1",
+    "server/router/Invoke-CertaOllamaTask.ps1",
+    "server/router/Invoke-CertaQueue.ps1",
+    "server/router/Invoke-CertaRouter.ps1",
+    "server/router/Invoke-CertaScriptTask.ps1",
+    "server/router/New-CertaTask.ps1",
+    "server/router/Start-CertaServerSession.ps1",
+    "server/router/Test-CertaRouter.ps1",
+    "server/scheduled/Install-CertaServerScheduledTasks.ps1",
+    "server/schemas/task.schema.json",
+    "server/templates/AGENTS.md",
+    "server/trigger/CertaServer-Action.ps1",
+    "server/trigger/Install-CertaServer-TriggerCommands.ps1"
+  ],
+  "purpose": "CertaSurv server autonomy v2 source overlay and installer payload",
+  "safety": {
+    "ollama_host": "127.0.0.1:11434",
+    "automatic_lanes": [
+      "SCRIPT",
+      "OLLAMA"
+    ],
+    "codex_requires_explicit_action": true,
+    "codex_sandbox": "workspace-write",
+    "unrestricted_trigger_shell": false
+  }
+}

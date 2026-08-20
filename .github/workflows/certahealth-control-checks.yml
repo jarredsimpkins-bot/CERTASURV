@@ -12,7 +12,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Validate PowerShell syntax
+      - name: Validate repository PowerShell syntax
         shell: pwsh
         run: |
           $failures = @()
@@ -29,18 +29,7 @@ jobs:
             exit 1
           }
 
-      - name: Validate JSON control files
-        shell: pwsh
-        run: |
-          $jsonFiles = @(
-            'server/policies/task-routing-policy.json',
-            'server/schemas/task.schema.json'
-          )
-          foreach ($path in $jsonFiles) {
-            $null = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
-          }
-
-      - name: Verify required control files
+      - name: Verify required repository files
         shell: pwsh
         run: |
           $required = @(
@@ -52,22 +41,109 @@ jobs:
             'scripts/Test-CertaProjectProvisioning.ps1',
             'scripts/Set-CertaGitRemotes.ps1',
             'scripts/Manage-CertaLaptopLoad.ps1',
-            'server/Install-CertaServer.ps1',
-            'server/router/New-CertaTask.ps1',
-            'server/router/Invoke-CertaRouter.ps1',
-            'server/router/Invoke-CertaOllamaTask.ps1',
-            'server/router/Get-CertaServerHealth.ps1',
-            'server/router/Test-CertaRouter.ps1',
-            'server/trigger/Install-CertaServer-TriggerCommands.ps1',
-            'bootstrap/Install-CertaServer-FromGitHub.ps1'
+            'server/README.md',
+            'server/bundles/certa-server-autonomy-v2.zip',
+            'server/bundles/certa-server-autonomy-v2.manifest.json',
+            'bootstrap/Install-CertaServer-AutonomyV2.ps1'
           )
           foreach ($path in $required) {
-            if (-not (Test-Path $path)) {
+            if (-not (Test-Path -LiteralPath $path)) {
               throw "Missing required file: $path"
             }
           }
 
-      - name: Run Certa server router self-test
+      - name: Verify and expand autonomy v2 bundle
         shell: pwsh
         run: |
-          & ./server/router/Test-CertaRouter.ps1
+          $bundle = 'server/bundles/certa-server-autonomy-v2.zip'
+          $manifestPath = 'server/bundles/certa-server-autonomy-v2.manifest.json'
+          $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+          $actualHash = (Get-FileHash -LiteralPath $bundle -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actualHash -ne ([string]$manifest.sha256).ToLowerInvariant()) {
+            throw "Bundle SHA256 mismatch. Expected $($manifest.sha256); got $actualHash."
+          }
+          if ((Get-Item -LiteralPath $bundle).Length -ne [int64]$manifest.size_bytes) {
+            throw 'Bundle size mismatch.'
+          }
+
+          $expanded = Join-Path $env:RUNNER_TEMP 'certa-server-autonomy-v2'
+          if (Test-Path -LiteralPath $expanded) {
+            Remove-Item -LiteralPath $expanded -Recurse -Force
+          }
+          Expand-Archive -LiteralPath $bundle -DestinationPath $expanded -Force
+          foreach ($relative in @($manifest.files)) {
+            if (-not (Test-Path -LiteralPath (Join-Path $expanded ([string]$relative)))) {
+              throw "Expanded bundle is missing: $relative"
+            }
+          }
+          "CERTA_V2_EXPANDED=$expanded" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Validate autonomy v2 PowerShell and JSON
+        shell: pwsh
+        run: |
+          $expanded = $env:CERTA_V2_EXPANDED
+          $failures = @()
+          Get-ChildItem -LiteralPath $expanded -Recurse -Filter *.ps1 | ForEach-Object {
+            $tokens = $null
+            $parseErrors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$tokens, [ref]$parseErrors) | Out-Null
+            if ($parseErrors) {
+              $failures += "$($_.FullName): $($parseErrors -join '; ')"
+            }
+          }
+          if ($failures.Count) {
+            $failures | ForEach-Object { Write-Error $_ }
+            exit 1
+          }
+
+          $null = Get-Content -LiteralPath (Join-Path $expanded 'server/policies/task-routing-policy.json') -Raw | ConvertFrom-Json
+          $null = Get-Content -LiteralPath (Join-Path $expanded 'server/schemas/task.schema.json') -Raw | ConvertFrom-Json
+
+      - name: Enforce autonomy v2 execution safety
+        shell: pwsh
+        run: |
+          $expanded = $env:CERTA_V2_EXPANDED
+          $codex = Get-Content -LiteralPath (Join-Path $expanded 'server/router/Invoke-CertaCodexTask.ps1') -Raw
+          foreach ($forbidden in @('--yolo','danger-full-access','dangerously-bypass-approvals-and-sandbox')) {
+            if ($codex -match [regex]::Escape($forbidden)) {
+              throw "Forbidden Codex option found: $forbidden"
+            }
+          }
+          foreach ($required in @(
+            "'--ask-for-approval','never'",
+            "'--sandbox','workspace-write'",
+            "'--ignore-user-config'",
+            "'--ephemeral'",
+            "'--json'"
+          )) {
+            if ($codex -notmatch [regex]::Escape($required)) {
+              throw "Required Codex control missing: $required"
+            }
+          }
+
+          $trigger = Get-Content -LiteralPath (Join-Path $expanded 'server/trigger/Install-CertaServer-TriggerCommands.ps1') -Raw
+          $parameterized = [regex]::Matches($trigger, "allowParams='true'").Count
+          if ($parameterized -ne 1) {
+            throw "Expected exactly one parameterized Trigger command; found $parameterized."
+          }
+          if ($trigger -notmatch "trigger='Certa Server Action'") {
+            throw 'The only parameterized Trigger command must be Certa Server Action.'
+          }
+
+          $installer = Get-Content -LiteralPath (Join-Path $expanded 'server/Install-CertaServer.ps1') -Raw
+          if ($installer -notmatch "OLLAMA_HOST = '127.0.0.1:11434'") {
+            throw 'Ollama localhost binding is missing.'
+          }
+          if ($installer -match "0\.0\.0\.0:11434") {
+            throw 'Ollama wildcard binding is prohibited.'
+          }
+
+          $scheduled = Get-Content -LiteralPath (Join-Path $expanded 'server/scheduled/Install-CertaServerScheduledTasks.ps1') -Raw
+          if ($scheduled -match 'IncludeCodex') {
+            throw 'The scheduled safe worker must not auto-enable Codex.'
+          }
+
+      - name: Run autonomy v2 router self-test
+        shell: pwsh
+        run: |
+          & (Join-Path $env:CERTA_V2_EXPANDED 'server/router/Test-CertaRouter.ps1')
