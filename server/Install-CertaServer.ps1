@@ -5,6 +5,10 @@ param(
 
     [string]$LocalModel = 'qwen3.5:4b',
 
+    [string]$SourceRepository = 'local-checkout',
+
+    [string]$SourceCommit,
+
     [switch]$PullModel,
 
     [switch]$InstallTriggerCommands,
@@ -15,7 +19,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $started = Get-Date
-$runId = 'certa-server-install-{0:yyyyMMdd-HHmmss}' -f $started
+$runId = 'certa-server-install-{0:yyyyMMdd-HHmmssfff}-{1}' -f $started, ([guid]::NewGuid().ToString('N').Substring(0,8))
 
 $sourceRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $requiredSourceFolders = @('router','policies','schemas','trigger','capabilities')
@@ -28,8 +32,8 @@ foreach ($name in $requiredSourceFolders) {
 $folders = @(
     'CONTROL\policies','CONTROL\registries','CONTROL\schemas','CONTROL\manifests','CONTROL\receipts','CONTROL\backups',
     'INBOX','QUEUE\script','QUEUE\ollama','QUEUE\codex','QUEUE\specialist','QUEUE\review',
-    'PROJECTS','REPOS','WORKTREES','WORKING','ROUTER','SCRIPTS','SKILLS','OLLAMA\models','OLLAMA\config',
-    'OUTPUTS','RECEIPTS\routing','RECEIPTS\ollama','RECEIPTS\health','LOGS','STAGING','QUARANTINE','ARCHIVE','BACKUPS'
+    'PROJECT_LINKS','REPOS','WORKTREES','WORKING','ROUTER','SCRIPTS','SKILLS','OLLAMA\models','OLLAMA\config',
+    'OUTPUTS','RECEIPTS\routing','RECEIPTS\ollama','RECEIPTS\health','LOGS','STAGING\router','QUARANTINE','ARCHIVE\tasks','BACKUPS'
 )
 foreach ($relative in $folders) {
     New-Item -ItemType Directory -Path (Join-Path $ServerRoot $relative) -Force | Out-Null
@@ -39,25 +43,28 @@ Copy-Item -LiteralPath (Join-Path $sourceRoot 'router\New-CertaTask.ps1') -Desti
 Copy-Item -LiteralPath (Join-Path $sourceRoot 'router\Invoke-CertaRouter.ps1') -Destination (Join-Path $ServerRoot 'ROUTER\Invoke-CertaRouter.ps1') -Force
 Copy-Item -LiteralPath (Join-Path $sourceRoot 'router\Invoke-CertaOllamaTask.ps1') -Destination (Join-Path $ServerRoot 'ROUTER\Invoke-CertaOllamaTask.ps1') -Force
 Copy-Item -LiteralPath (Join-Path $sourceRoot 'router\Get-CertaServerHealth.ps1') -Destination (Join-Path $ServerRoot 'ROUTER\Get-CertaServerHealth.ps1') -Force
+Copy-Item -LiteralPath (Join-Path $sourceRoot 'router\Test-CertaTaskRecord.ps1') -Destination (Join-Path $ServerRoot 'ROUTER\Test-CertaTaskRecord.ps1') -Force
 Copy-Item -LiteralPath (Join-Path $sourceRoot 'policies\task-routing-policy.json') -Destination (Join-Path $ServerRoot 'CONTROL\policies\task-routing-policy.json') -Force
 Copy-Item -LiteralPath (Join-Path $sourceRoot 'schemas\task.schema.json') -Destination (Join-Path $ServerRoot 'CONTROL\schemas\task.schema.json') -Force
 Copy-Item -LiteralPath (Join-Path $sourceRoot 'capabilities\New-CertaFileManifest.ps1') -Destination (Join-Path $ServerRoot 'SCRIPTS\New-CertaFileManifest.ps1') -Force
+Copy-Item -LiteralPath (Join-Path $sourceRoot 'capabilities\Test-CertaFileManifest.ps1') -Destination (Join-Path $ServerRoot 'SCRIPTS\Test-CertaFileManifest.ps1') -Force
 Copy-Item -LiteralPath (Join-Path $sourceRoot 'trigger\Install-CertaServer-TriggerCommands.ps1') -Destination (Join-Path $ServerRoot 'CONTROL\Install-CertaServer-TriggerCommands.ps1') -Force
 
 $capabilityRegistry = Join-Path $ServerRoot 'CONTROL\registries\CAPABILITY_REGISTRY.csv'
-if (-not (Test-Path -LiteralPath $capabilityRegistry)) {
-    @([pscustomobject]@{
-        capability_id='file-manifest-v1'
-        name='File manifest with bounded SHA256 hashing'
-        intent_regex='(?i)(checksum|file manifest|inventory files)'
-        status='VERIFIED'
-        script_path=(Join-Path $ServerRoot 'SCRIPTS\New-CertaFileManifest.ps1')
-        validator_path=''
-        node='CERTA-SERVER'
-        authority='DETERMINISTIC'
-        notes='Read-only source scan; writes CSV and summary JSON.'
-    }) | Export-Csv -LiteralPath $capabilityRegistry -NoTypeInformation -Encoding UTF8
+$capabilities = if (Test-Path -LiteralPath $capabilityRegistry) { @(Import-Csv -LiteralPath $capabilityRegistry) } else { @() }
+$capabilities = @($capabilities | Where-Object { [string]$_.capability_id -ne 'file-manifest-v1' })
+$capabilities += [pscustomobject]@{
+    capability_id='file-manifest-v1'
+    name='File manifest with bounded SHA256 hashing'
+    intent_regex='(?i)(checksum|file manifest|inventory files)'
+    status='VERIFIED'
+    script_path=(Join-Path $ServerRoot 'SCRIPTS\New-CertaFileManifest.ps1')
+    validator_path=(Join-Path $ServerRoot 'SCRIPTS\Test-CertaFileManifest.ps1')
+    node='CERTA-SERVER'
+    authority='DETERMINISTIC'
+    notes='Read-only bounded scan with atomic output, self-exclusion, SHA256 validation, and CI execution test.'
 }
+$capabilities | Export-Csv -LiteralPath $capabilityRegistry -NoTypeInformation -Encoding UTF8
 
 $ollamaExe = (Get-Command ollama.exe -ErrorAction SilentlyContinue).Source
 if (-not $ollamaExe) {
@@ -77,6 +84,7 @@ $ollamaSettings = [ordered]@{
     OLLAMA_MAX_QUEUE = '64'
     OLLAMA_KEEP_ALIVE = '10m'
     OLLAMA_CONTEXT_LENGTH = '8192'
+    OLLAMA_NO_CLOUD = '1'
 }
 foreach ($entry in $ollamaSettings.GetEnumerator()) {
     [Environment]::SetEnvironmentVariable($entry.Key,[string]$entry.Value,'User')
@@ -84,7 +92,10 @@ foreach ($entry in $ollamaSettings.GetEnumerator()) {
 }
 $ollamaSettings | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $ServerRoot 'OLLAMA\config\effective-settings.json') -Encoding UTF8
 
-if ($DisableSleepOnAC) { & powercfg.exe /change standby-timeout-ac 0 | Out-Null }
+if ($DisableSleepOnAC) {
+    & powercfg.exe /change standby-timeout-ac 0 | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw 'powercfg failed to disable sleep on AC power. Run the installer from an elevated PowerShell session.' }
+}
 
 # Restart Ollama so the new user-scoped model path and concurrency settings take effect.
 Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.ProcessName -match '^ollama' } | Stop-Process -Force -ErrorAction SilentlyContinue
@@ -138,6 +149,8 @@ $manifest = [ordered]@{
     computer = $env:COMPUTERNAME
     user = "$env:USERDOMAIN\$env:USERNAME"
     server_root = $ServerRoot
+    source_repository = $SourceRepository
+    source_commit = if ([string]::IsNullOrWhiteSpace($SourceCommit)) { $null } else { $SourceCommit }
     ollama_executable = $ollamaExe
     local_model = $LocalModel
     local_alias = 'certard-local'

@@ -24,6 +24,10 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+if (@($AllowedLane).Count -eq 0) {
+    throw 'AllowedLane must contain at least one routing lane.'
+}
+
 $inbox = Join-Path $ServerRoot 'INBOX'
 New-Item -ItemType Directory -Path $inbox -Force | Out-Null
 
