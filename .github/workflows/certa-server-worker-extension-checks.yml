@@ -1,0 +1,130 @@
+name: Certa Server Worker Extension Checks
+
+on:
+  push:
+    paths:
+      - 'server/**'
+      - 'bootstrap/Install-CertaServerWorkerExtension-FromGitHub.ps1'
+      - '.github/workflows/certa-server-worker-extension-checks.yml'
+  pull_request:
+    paths:
+      - 'server/**'
+      - 'bootstrap/Install-CertaServerWorkerExtension-FromGitHub.ps1'
+      - '.github/workflows/certa-server-worker-extension-checks.yml'
+  workflow_dispatch:
+
+jobs:
+  worker-extension:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate PowerShell syntax
+        shell: pwsh
+        run: |
+          $failures = @()
+          foreach ($path in @(
+            'server/worker/Install-CertaServerWorkerExtension.ps1',
+            'bootstrap/Install-CertaServerWorkerExtension-FromGitHub.ps1'
+          )) {
+            if (-not (Test-Path -LiteralPath $path)) {
+              $failures += "Missing required file: $path"
+              continue
+            }
+            $tokens = $null
+            $errors = $null
+            [Management.Automation.Language.Parser]::ParseFile((Resolve-Path $path),[ref]$tokens,[ref]$errors) | Out-Null
+            if ($errors) { $failures += "$($path): $($errors -join '; ')" }
+          }
+          if ($failures.Count) {
+            $failures | ForEach-Object { Write-Error $_ }
+            exit 1
+          }
+
+      - name: Verify safe worker boundaries
+        shell: pwsh
+        run: |
+          $source = Get-Content -LiteralPath server/worker/Install-CertaServerWorkerExtension.ps1 -Raw
+          foreach ($term in @(
+            'Local\CertaServerQueueWorker',
+            'Invoke-CertaScriptTask.ps1',
+            'Invoke-CertaOllamaTask.ps1',
+            'Invoke-CertaQueueWorker.ps1',
+            'Start-CertaQueueWorker.ps1',
+            'Stop-CertaQueueWorker.ps1',
+            'Get-CertaQueueStatus.ps1',
+            'QUEUE\codex',
+            'QUEUE\specialist',
+            'QUEUE\review'
+          )) {
+            if ($source -notmatch [regex]::Escape($term)) { throw "Expected worker boundary term missing: $term" }
+          }
+          foreach ($term in @(
+            "allowParams='true'",
+            'codex exec',
+            '--dangerously-bypass-approvals-and-sandbox',
+            'danger-full-access',
+            '--yolo',
+            '0.0.0.0:11434'
+          )) {
+            if ($source -match [regex]::Escape($term)) { throw "Forbidden worker term found: $term" }
+          }
+
+      - name: Run base router self-test
+        shell: pwsh
+        run: ./server/router/Test-CertaRouter.ps1
+
+      - name: Install and exercise queue worker on Windows PowerShell 5.1
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $stage = Join-Path $env:TEMP ('certa-worker-ci-' + [guid]::NewGuid().ToString('N'))
+          $root = Join-Path $stage 'runtime'
+          try {
+            New-Item -ItemType Directory -Path (Join-Path $root 'ROUTER') -Force | Out-Null
+            New-Item -ItemType Directory -Path (Join-Path $root 'CONTROL\policies') -Force | Out-Null
+            New-Item -ItemType Directory -Path (Join-Path $root 'CONTROL\registries') -Force | Out-Null
+
+            Copy-Item -Path ./server/router/*.ps1 -Destination (Join-Path $root 'ROUTER') -Force
+            Copy-Item -LiteralPath ./server/policies/task-routing-policy.json -Destination (Join-Path $root 'CONTROL\policies\task-routing-policy.json') -Force
+            @([pscustomobject]@{
+              capability_id='placeholder'; name='placeholder'; intent_regex='never-match'; status='DISABLED';
+              script_path=''; validator_path=''; node=''; authority=''; notes=''
+            }) | Export-Csv -LiteralPath (Join-Path $root 'CONTROL\registries\CAPABILITY_REGISTRY.csv') -NoTypeInformation -Encoding UTF8
+
+            $install = & ./server/worker/Install-CertaServerWorkerExtension.ps1 -ServerRoot $root
+            if (-not $install -or [string]$install.status -ne 'PASS') { throw 'Worker extension installer did not return PASS.' }
+
+            foreach ($relative in @(
+              'ROUTER\Invoke-CertaScriptTask.ps1',
+              'ROUTER\Invoke-CertaQueueWorker.ps1',
+              'ROUTER\Start-CertaQueueWorker.ps1',
+              'ROUTER\Stop-CertaQueueWorker.ps1',
+              'ROUTER\Get-CertaQueueStatus.ps1'
+            )) {
+              $path = Join-Path $root $relative
+              if (-not (Test-Path -LiteralPath $path)) { throw "Missing installed worker file: $path" }
+            }
+
+            $sample = Join-Path $stage 'sample-input'
+            New-Item -ItemType Directory -Path $sample -Force | Out-Null
+            Set-Content -LiteralPath (Join-Path $sample 'a.txt') -Value alpha -Encoding UTF8
+            Set-Content -LiteralPath (Join-Path $sample 'b.txt') -Value beta -Encoding UTF8
+
+            $task = & (Join-Path $root 'ROUTER\New-CertaTask.ps1') -ServerRoot $root -Request 'Create a checksum file manifest for this folder.' -InputPath $sample
+            & (Join-Path $root 'ROUTER\Invoke-CertaRouter.ps1') -ServerRoot $root -All | Out-Null
+            $taskPath = Join-Path $root "QUEUE\script\$($task.task_id).json"
+            if (-not (Test-Path -LiteralPath $taskPath)) { throw 'SCRIPT task did not route to the script queue.' }
+
+            $result = & (Join-Path $root 'ROUTER\Invoke-CertaQueueWorker.ps1') -ServerRoot $root -SkipOllama -MaxTasks 10
+            if ([string]$result.status -notin @('PASS','PARTIAL')) { throw 'Queue worker did not complete the SCRIPT task.' }
+            $completed = Get-Content -LiteralPath $taskPath -Raw | ConvertFrom-Json
+            if ([string]$completed.status -ne 'COMPLETE') { throw 'SCRIPT task was not marked COMPLETE.' }
+            foreach ($output in @($completed.outputs)) {
+              if (-not (Test-Path -LiteralPath $output)) { throw "SCRIPT output missing: $output" }
+            }
+            Write-Host CERTA_SERVER_WORKER_EXTENSION_TEST_PASS
+          }
+          finally {
+            if (Test-Path -LiteralPath $stage) { Remove-Item -LiteralPath $stage -Recurse -Force }
+          }
