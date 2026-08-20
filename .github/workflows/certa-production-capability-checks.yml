@@ -64,6 +64,7 @@ jobs:
             'server/production/Update-CertaFieldReturnTask.ps1',
             'server/production/Test-CertaProductionCapabilities.ps1',
             'server/production/Install-CertaProductionCapabilities.ps1',
+            'server/production/Install-CertaProductionTriggerCommands.ps1',
             'server/production/README.md',
             'bootstrap/Install-CertaSurvProductionServer-FromGitHub.ps1'
           )
