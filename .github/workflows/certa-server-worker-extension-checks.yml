@@ -61,9 +61,9 @@ jobs:
             'Start-CertaQueueWorker.ps1',
             'Stop-CertaQueueWorker.ps1',
             'Get-CertaQueueStatus.ps1',
-            "'QUEUE\\codex'",
-            "'QUEUE\\specialist'",
-            "'QUEUE\\review'"
+            'QUEUE\codex',
+            'QUEUE\specialist',
+            'QUEUE\review'
           )
           foreach ($term in $required) {
             if ($source -notmatch [regex]::Escape($term)) {
