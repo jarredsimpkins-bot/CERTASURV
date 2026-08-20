@@ -65,8 +65,18 @@ jobs:
             'server/capabilities/Test-CertaFileManifest.ps1',
             'server/docs/PRODUCTION_AUTOMATION_ROADMAP.md',
             'server/registries/production-capability-backlog.csv',
+            'server/production/CertaServer.Common.ps1',
+            'server/production/Initialize-CertaProjectTask.ps1',
+            'server/production/New-CertaCourthousePacketTask.ps1',
+            'server/production/New-CertaDeedPlotTask.ps1',
+            'server/production/New-CertaWorkmapTask.ps1',
+            'server/production/Update-CertaFieldReturnTask.ps1',
+            'server/production/Test-CertaProductionCapabilities.ps1',
+            'server/production/Install-CertaProductionCapabilities.ps1',
+            'server/production/README.md',
             'bootstrap/Install-CertaServer-FromGitHub.ps1',
-            'bootstrap/Repair-CertaServerTriggerCommands-FromGitHub.ps1'
+            'bootstrap/Repair-CertaServerTriggerCommands-FromGitHub.ps1',
+            'bootstrap/Install-CertaSurvProductionServer-FromGitHub.ps1'
           )
           foreach ($path in $required) {
             if (-not (Test-Path $path)) {
@@ -83,3 +93,12 @@ jobs:
         shell: pwsh
         run: |
           & ./server/trigger/Test-CertaServerTriggerCommands.ps1
+
+      - name: Run production capability regression test
+        shell: pwsh
+        run: |
+          $output = & ./server/production/Test-CertaProductionCapabilities.ps1 2>&1 | Out-String
+          Write-Host $output
+          if ($LASTEXITCODE -ne 0 -or $output -notmatch 'CERTA_PRODUCTION_CAPABILITIES_TEST_PASS') {
+            throw 'Production capability regression test failed.'
+          }
