@@ -7,6 +7,17 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+function Get-CertaCommandPropertyValue {
+    param(
+        [Parameter(Mandatory=$true)]$InputObject,
+        [Parameter(Mandatory=$true)][string]$Name
+    )
+
+    $property = $InputObject.PSObject.Properties[$Name]
+    if ($null -eq $property -or $null -eq $property.Value) { return '' }
+    return [string]$property.Value
+}
+
 $commandsPath = Join-Path $env:USERPROFILE '.TRIGGERcmdData\commands.json'
 if (-not (Test-Path -LiteralPath $commandsPath)) {
     throw "TRIGGERcmd commands file not found: $commandsPath. Open the foreground agent under this Windows profile, then rerun."
@@ -19,7 +30,12 @@ Copy-Item -LiteralPath $commandsPath -Destination $backupPath -Force
 
 $items = @()
 $raw = Get-Content -LiteralPath $commandsPath -Raw
-if (-not [string]::IsNullOrWhiteSpace($raw)) { $items = @($raw | ConvertFrom-Json) }
+if (-not [string]::IsNullOrWhiteSpace($raw)) {
+    # Windows PowerShell 5.1 can preserve a JSON array as one nested pipeline
+    # object. Assign first, then expand it so each command is validated alone.
+    $parsedItems = $raw | ConvertFrom-Json
+    $items = @($parsedItems)
+}
 
 $definitions = @(
     [pscustomobject]@{
@@ -70,7 +86,18 @@ $definitions = @(
 )
 
 $names = @($definitions | ForEach-Object { $_.trigger })
-$items = @($items | Where-Object { $_.trigger -notin $names }) + $definitions
+$retainedItems = @()
+$droppedInvalidItems = 0
+foreach ($item in $items) {
+    $triggerName = Get-CertaCommandPropertyValue -InputObject $item -Name 'trigger'
+    $commandText = Get-CertaCommandPropertyValue -InputObject $item -Name 'command'
+    if ([string]::IsNullOrWhiteSpace($triggerName) -or [string]::IsNullOrWhiteSpace($commandText)) {
+        $droppedInvalidItems++
+        continue
+    }
+    if ($triggerName -notin $names) { $retainedItems += $item }
+}
+$items = @($retainedItems) + @($definitions)
 $agent = Get-Process TRIGGERcmdAgent -ErrorAction SilentlyContinue | Select-Object -First 1
 $agentPath = $null
 if ($agent) { try { $agentPath = $agent.Path } catch {} }
@@ -83,11 +110,16 @@ try {
     }
 
     $items | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $temporaryPath -Encoding UTF8
-    $validatedItems = @(Get-Content -LiteralPath $temporaryPath -Raw | ConvertFrom-Json)
+    $validatedJson = Get-Content -LiteralPath $temporaryPath -Raw | ConvertFrom-Json
+    $validatedItems = @($validatedJson)
     foreach ($definition in $definitions) {
-        $match = @($validatedItems | Where-Object { [string]$_.trigger -eq [string]$definition.trigger })
+        $match = @($validatedItems | Where-Object {
+            (Get-CertaCommandPropertyValue -InputObject $_ -Name 'trigger') -eq [string]$definition.trigger
+        })
         if ($match.Count -ne 1) { throw "Trigger command validation failed for '$($definition.trigger)'." }
-        if ([string]$match[0].allowParams -ne 'false') { throw "Trigger command unexpectedly allows parameters: $($definition.trigger)" }
+        if ((Get-CertaCommandPropertyValue -InputObject $match[0] -Name 'allowParams') -ne 'false') {
+            throw "Trigger command unexpectedly allows parameters: $($definition.trigger)"
+        }
     }
     Move-Item -LiteralPath $temporaryPath -Destination $commandsPath -Force
 }
@@ -106,5 +138,7 @@ finally {
     backup_path = $backupPath
     installed = $names
     agent_restarted = $agentRestarted
+    retained_existing_commands = $retainedItems.Count
+    dropped_invalid_commands = $droppedInvalidItems
     note = 'Foreground commands were registered atomically with parameters disabled.'
 }

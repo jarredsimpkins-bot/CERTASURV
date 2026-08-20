@@ -111,3 +111,54 @@ jobs:
           if (@($rows | Where-Object { $_.capability_id -eq 'file-manifest-v1' }).Count -ne 1) {
             throw 'Manifest capability was not written exactly once.'
           }
+
+      - name: Test Windows PowerShell TriggerCMD registration
+        shell: powershell
+        run: |
+          $testProfile = Join-Path $env:RUNNER_TEMP ('certa-trigger-profile-' + [guid]::NewGuid().ToString('N'))
+          $serverRoot = Join-Path $env:RUNNER_TEMP ('certa-trigger-server-' + [guid]::NewGuid().ToString('N'))
+          $triggerDirectory = Join-Path $testProfile '.TRIGGERcmdData'
+          New-Item -ItemType Directory -Path $triggerDirectory -Force | Out-Null
+          $commandsPath = Join-Path $triggerDirectory 'commands.json'
+
+          @'
+          [
+            {
+              "trigger": "Calculator",
+              "command": "calc.exe",
+              "offCommand": "",
+              "ground": "foreground",
+              "voice": "calculator",
+              "voiceReply": "",
+              "allowParams": "false"
+            },
+            {
+              "name": "malformed legacy row"
+            }
+          ]
+          '@ | Set-Content -LiteralPath $commandsPath -Encoding UTF8
+
+          $originalProfile = $env:USERPROFILE
+          try {
+            $env:USERPROFILE = $testProfile
+            $result = & ./server/trigger/Install-CertaServer-TriggerCommands.ps1 -ServerRoot $serverRoot
+          }
+          finally {
+            $env:USERPROFILE = $originalProfile
+          }
+
+          if ($result.status -ne 'PASS') { throw 'TriggerCMD registration did not pass.' }
+          if ($result.dropped_invalid_commands -ne 1) { throw 'Malformed TriggerCMD entry was not reported.' }
+          if (-not (Test-Path -LiteralPath $result.backup_path)) { throw 'TriggerCMD backup was not created.' }
+
+          $parsed = Get-Content -LiteralPath $commandsPath -Raw | ConvertFrom-Json
+          $commands = @($parsed)
+          if (@($commands | Where-Object { $_.trigger -eq 'Calculator' }).Count -ne 1) {
+            throw 'Existing Calculator command was not retained.'
+          }
+          $required = @('Certa Server Health','Certa Server Route Once','Certa Server Route All','Certa Ollama Status','Certa Open Server')
+          foreach ($name in $required) {
+            $match = @($commands | Where-Object { $_.trigger -eq $name })
+            if ($match.Count -ne 1) { throw "Missing registered command: $name" }
+            if ([string]$match[0].allowParams -ne 'false') { throw "Unsafe parameters enabled for: $name" }
+          }
