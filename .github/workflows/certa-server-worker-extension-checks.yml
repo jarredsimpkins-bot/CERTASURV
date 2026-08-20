@@ -89,12 +89,75 @@ jobs:
         run: |
           & ./server/router/Test-CertaRouter.ps1
 
-      - name: Run queue worker extension self-test
+      - name: Install and exercise queue worker on Windows PowerShell 5.1
         shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
-          $output = & ./server/worker/Install-CertaServerWorkerExtension.ps1 -SelfTest 2>&1 | Out-String
-          Write-Host $output
-          if ($output -notmatch 'CERTA_SERVER_WORKER_EXTENSION_TEST_PASS') {
-            throw 'Worker extension self-test did not emit its pass marker.'
+          $stage = Join-Path $env:TEMP ('certa-worker-ci-' + [guid]::NewGuid().ToString('N'))
+          $runtimeRoot = Join-Path $stage 'runtime'
+          try {
+            New-Item -ItemType Directory -Path (Join-Path $runtimeRoot 'ROUTER') -Force | Out-Null
+            New-Item -ItemType Directory -Path (Join-Path $runtimeRoot 'CONTROL\policies') -Force | Out-Null
+            New-Item -ItemType Directory -Path (Join-Path $runtimeRoot 'CONTROL\registries') -Force | Out-Null
+
+            Copy-Item -LiteralPath ./server/router/*.ps1 -Destination (Join-Path $runtimeRoot 'ROUTER') -Force
+            Copy-Item -LiteralPath ./server/policies/task-routing-policy.json -Destination (Join-Path $runtimeRoot 'CONTROL\policies\task-routing-policy.json') -Force
+            @([pscustomobject]@{
+              capability_id='placeholder'
+              name='placeholder'
+              intent_regex='never-match'
+              status='DISABLED'
+              script_path=''
+              validator_path=''
+              node=''
+              authority=''
+              notes=''
+            }) | Export-Csv -LiteralPath (Join-Path $runtimeRoot 'CONTROL\registries\CAPABILITY_REGISTRY.csv') -NoTypeInformation -Encoding UTF8
+
+            $install = & ./server/worker/Install-CertaServerWorkerExtension.ps1 -ServerRoot $runtimeRoot
+            if (-not $install -or [string]$install.status -ne 'PASS') {
+              throw 'Worker extension installer did not return PASS.'
+            }
+
+            $expected = @(
+              'ROUTER\Invoke-CertaScriptTask.ps1',
+              'ROUTER\Invoke-CertaQueueWorker.ps1',
+              'ROUTER\Start-CertaQueueWorker.ps1',
+              'ROUTER\Stop-CertaQueueWorker.ps1',
+              'ROUTER\Get-CertaQueueStatus.ps1'
+            )
+            foreach ($relative in $expected) {
+              $path = Join-Path $runtimeRoot $relative
+              if (-not (Test-Path -LiteralPath $path)) {
+                throw "Missing installed worker file: $path"
+              }
+            }
+
+            $sample = Join-Path $stage 'sample-input'
+            New-Item -ItemType Directory -Path $sample -Force | Out-Null
+            Set-Content -LiteralPath (Join-Path $sample 'a.txt') -Value 'alpha' -Encoding UTF8
+            Set-Content -LiteralPath (Join-Path $sample 'b.txt') -Value 'beta' -Encoding UTF8
+
+            $newTask = Join-Path $runtimeRoot 'ROUTER\New-CertaTask.ps1'
+            $router = Join-Path $runtimeRoot 'ROUTER\Invoke-CertaRouter.ps1'
+            $worker = Join-Path $runtimeRoot 'ROUTER\Invoke-CertaQueueWorker.ps1'
+            $task = & $newTask -ServerRoot $runtimeRoot -Request 'Create a checksum file manifest for this folder.' -InputPath $sample
+            & $router -ServerRoot $runtimeRoot -All | Out-Null
+            $taskPath = Join-Path $runtimeRoot "QUEUE\script\$($task.task_id).json"
+            if (-not (Test-Path -LiteralPath $taskPath)) { throw 'SCRIPT task did not route to the script queue.' }
+
+            $result = & $worker -ServerRoot $runtimeRoot -SkipOllama -MaxTasks 10
+            if ([string]$result.status -notin @('PASS','PARTIAL')) { throw 'Queue worker did not complete the SCRIPT task.' }
+            $completed = Get-Content -LiteralPath $taskPath -Raw | ConvertFrom-Json
+            if ([string]$completed.status -ne 'COMPLETE') { throw 'SCRIPT task was not marked COMPLETE.' }
+            foreach ($output in @($completed.outputs)) {
+              if (-not (Test-Path -LiteralPath $output)) { throw "SCRIPT output missing: $output" }
+            }
+
+            Write-Host 'CERTA_SERVER_WORKER_EXTENSION_TEST_PASS'
+          }
+          finally {
+            if (Test-Path -LiteralPath $stage) {
+              Remove-Item -LiteralPath $stage -Recurse -Force
+            }
           }
