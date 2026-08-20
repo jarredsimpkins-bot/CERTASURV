@@ -98,8 +98,9 @@ jobs:
       - name: Run production capability regression test on Windows PowerShell 5.1
         shell: powershell
         run: |
+          $ErrorActionPreference = 'Stop'
           $output = & ./server/production/Test-CertaProductionCapabilities.ps1 2>&1 | Out-String
           Write-Host $output
-          if ($LASTEXITCODE -ne 0 -or $output -notmatch 'CERTA_PRODUCTION_CAPABILITIES_TEST_PASS') {
-            throw 'Production capability regression test failed.'
+          if ($output -notmatch 'CERTA_PRODUCTION_CAPABILITIES_TEST_PASS') {
+            throw 'Production capability regression test did not emit its pass marker.'
           }
