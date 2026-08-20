@@ -14,7 +14,7 @@ if (-not (Test-Path -LiteralPath $commandsPath)) {
 
 $backupDir = Join-Path $ServerRoot 'CONTROL\backups\triggercmd'
 New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
-$backupPath = Join-Path $backupDir ('commands-{0:yyyyMMdd-HHmmss}.json' -f (Get-Date))
+$backupPath = Join-Path $backupDir ('commands-{0:yyyyMMdd-HHmmssfff}-{1}.json' -f (Get-Date), ([guid]::NewGuid().ToString('N').Substring(0,8)))
 Copy-Item -LiteralPath $commandsPath -Destination $backupPath -Force
 
 $items = @()
@@ -71,18 +71,32 @@ $definitions = @(
 
 $names = @($definitions | ForEach-Object { $_.trigger })
 $items = @($items | Where-Object { $_.trigger -notin $names }) + $definitions
-$items | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $commandsPath -Encoding UTF8
-$null = Get-Content -LiteralPath $commandsPath -Raw | ConvertFrom-Json
-
 $agent = Get-Process TRIGGERcmdAgent -ErrorAction SilentlyContinue | Select-Object -First 1
-if ($agent) {
-    $agentPath = $null
-    try { $agentPath = $agent.Path } catch {}
-    if ($agentPath -and (Test-Path -LiteralPath $agentPath)) {
+$agentPath = $null
+if ($agent) { try { $agentPath = $agent.Path } catch {} }
+$temporaryPath = Join-Path (Split-Path -Parent $commandsPath) ('.commands.{0}.tmp' -f [guid]::NewGuid().ToString('N'))
+$agentRestarted = $false
+try {
+    if ($agent -and $agentPath -and (Test-Path -LiteralPath $agentPath)) {
         Stop-Process -Id $agent.Id -Force
-        Start-Sleep -Seconds 2
+        Start-Sleep -Seconds 1
+    }
+
+    $items | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $temporaryPath -Encoding UTF8
+    $validatedItems = @(Get-Content -LiteralPath $temporaryPath -Raw | ConvertFrom-Json)
+    foreach ($definition in $definitions) {
+        $match = @($validatedItems | Where-Object { [string]$_.trigger -eq [string]$definition.trigger })
+        if ($match.Count -ne 1) { throw "Trigger command validation failed for '$($definition.trigger)'." }
+        if ([string]$match[0].allowParams -ne 'false') { throw "Trigger command unexpectedly allows parameters: $($definition.trigger)" }
+    }
+    Move-Item -LiteralPath $temporaryPath -Destination $commandsPath -Force
+}
+finally {
+    if (Test-Path -LiteralPath $temporaryPath) { Remove-Item -LiteralPath $temporaryPath -Force }
+    if ($agentPath -and (Test-Path -LiteralPath $agentPath)) {
         Start-Process -FilePath $agentPath
         Start-Sleep -Seconds 3
+        $agentRestarted = [bool](Get-Process TRIGGERcmdAgent -ErrorAction SilentlyContinue)
     }
 }
 
@@ -91,5 +105,6 @@ if ($agent) {
     commands_path = $commandsPath
     backup_path = $backupPath
     installed = $names
-    note = 'Foreground commands were registered with parameters disabled.'
+    agent_restarted = $agentRestarted
+    note = 'Foreground commands were registered atomically with parameters disabled.'
 }

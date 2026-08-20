@@ -8,8 +8,13 @@
     "task_id",
     "created_at",
     "request",
+    "inputs",
+    "preferred_lane",
     "status",
-    "allowed_lanes"
+    "allowed_lanes",
+    "sensitivity",
+    "attempts",
+    "history"
   ],
   "properties": {
     "schema_version": {"const": 1},
@@ -35,6 +40,7 @@
     "status": {
       "enum": ["NEW", "ROUTED", "CANDIDATE_COMPLETE", "VALIDATED", "FAILED", "REVIEW_REQUIRED"]
     },
+    "attempts": {"type": "integer", "minimum": 0},
     "route": {"type": ["object", "null"]},
     "history": {"type": "array"}
   },

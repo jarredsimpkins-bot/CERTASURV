@@ -58,7 +58,10 @@ jobs:
             'server/router/Invoke-CertaOllamaTask.ps1',
             'server/router/Get-CertaServerHealth.ps1',
             'server/router/Test-CertaRouter.ps1',
+            'server/router/Test-CertaTaskRecord.ps1',
             'server/trigger/Install-CertaServer-TriggerCommands.ps1',
+            'server/capabilities/New-CertaFileManifest.ps1',
+            'server/capabilities/Test-CertaFileManifest.ps1',
             'bootstrap/Install-CertaServer-FromGitHub.ps1'
           )
           foreach ($path in $required) {
