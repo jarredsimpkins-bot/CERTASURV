@@ -62,6 +62,7 @@ jobs:
             'server/trigger/Install-CertaServer-TriggerCommands.ps1',
             'server/capabilities/New-CertaFileManifest.ps1',
             'server/capabilities/Test-CertaFileManifest.ps1',
+            'server/capabilities/Update-CertaCapabilityRegistry.ps1',
             'bootstrap/Install-CertaServer-FromGitHub.ps1'
           )
           foreach ($path in $required) {
@@ -74,3 +75,39 @@ jobs:
         shell: pwsh
         run: |
           & ./server/router/Test-CertaRouter.ps1
+
+      - name: Test legacy capability registry recovery
+        shell: pwsh
+        run: |
+          $testRoot = Join-Path $env:RUNNER_TEMP ('certa-registry-test-' + [guid]::NewGuid().ToString('N'))
+          $registryDirectory = Join-Path $testRoot 'CONTROL\registries'
+          New-Item -ItemType Directory -Path $registryDirectory -Force | Out-Null
+          $registryPath = Join-Path $registryDirectory 'CAPABILITY_REGISTRY.csv'
+
+          @'
+          "legacy_name","status"
+          "old-row","UNKNOWN"
+          '@ | Set-Content -LiteralPath $registryPath -Encoding UTF8
+
+          $result = & ./server/capabilities/Update-CertaCapabilityRegistry.ps1 -ServerRoot $testRoot
+          if ($result.status -ne 'PASS') { throw 'Registry recovery did not pass.' }
+          if ($result.dropped_invalid_rows -ne 1) { throw 'Malformed legacy row was not reported.' }
+          if (-not (Test-Path -LiteralPath $result.backup_path)) { throw 'Legacy registry backup was not created.' }
+
+          $rows = @(Import-Csv -LiteralPath $registryPath)
+          $manifestRows = @($rows | Where-Object { $_.capability_id -eq 'file-manifest-v1' })
+          if ($manifestRows.Count -ne 1) { throw 'Recovered registry is missing file-manifest-v1.' }
+
+          @'
+          "capability_id","name","status"
+          "legacy-valid","Legacy capability","VERIFIED"
+          '@ | Set-Content -LiteralPath $registryPath -Encoding UTF8
+
+          $null = & ./server/capabilities/Update-CertaCapabilityRegistry.ps1 -ServerRoot $testRoot
+          $rows = @(Import-Csv -LiteralPath $registryPath)
+          if (@($rows | Where-Object { $_.capability_id -eq 'legacy-valid' }).Count -ne 1) {
+            throw 'Valid legacy capability was not retained.'
+          }
+          if (@($rows | Where-Object { $_.capability_id -eq 'file-manifest-v1' }).Count -ne 1) {
+            throw 'Manifest capability was not written exactly once.'
+          }

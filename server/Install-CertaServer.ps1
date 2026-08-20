@@ -48,23 +48,10 @@ Copy-Item -LiteralPath (Join-Path $sourceRoot 'policies\task-routing-policy.json
 Copy-Item -LiteralPath (Join-Path $sourceRoot 'schemas\task.schema.json') -Destination (Join-Path $ServerRoot 'CONTROL\schemas\task.schema.json') -Force
 Copy-Item -LiteralPath (Join-Path $sourceRoot 'capabilities\New-CertaFileManifest.ps1') -Destination (Join-Path $ServerRoot 'SCRIPTS\New-CertaFileManifest.ps1') -Force
 Copy-Item -LiteralPath (Join-Path $sourceRoot 'capabilities\Test-CertaFileManifest.ps1') -Destination (Join-Path $ServerRoot 'SCRIPTS\Test-CertaFileManifest.ps1') -Force
+Copy-Item -LiteralPath (Join-Path $sourceRoot 'capabilities\Update-CertaCapabilityRegistry.ps1') -Destination (Join-Path $ServerRoot 'SCRIPTS\Update-CertaCapabilityRegistry.ps1') -Force
 Copy-Item -LiteralPath (Join-Path $sourceRoot 'trigger\Install-CertaServer-TriggerCommands.ps1') -Destination (Join-Path $ServerRoot 'CONTROL\Install-CertaServer-TriggerCommands.ps1') -Force
 
-$capabilityRegistry = Join-Path $ServerRoot 'CONTROL\registries\CAPABILITY_REGISTRY.csv'
-$capabilities = if (Test-Path -LiteralPath $capabilityRegistry) { @(Import-Csv -LiteralPath $capabilityRegistry) } else { @() }
-$capabilities = @($capabilities | Where-Object { [string]$_.capability_id -ne 'file-manifest-v1' })
-$capabilities += [pscustomobject]@{
-    capability_id='file-manifest-v1'
-    name='File manifest with bounded SHA256 hashing'
-    intent_regex='(?i)(checksum|file manifest|inventory files)'
-    status='VERIFIED'
-    script_path=(Join-Path $ServerRoot 'SCRIPTS\New-CertaFileManifest.ps1')
-    validator_path=(Join-Path $ServerRoot 'SCRIPTS\Test-CertaFileManifest.ps1')
-    node='CERTA-SERVER'
-    authority='DETERMINISTIC'
-    notes='Read-only bounded scan with atomic output, self-exclusion, SHA256 validation, and CI execution test.'
-}
-$capabilities | Export-Csv -LiteralPath $capabilityRegistry -NoTypeInformation -Encoding UTF8
+$capabilityRegistryResult = & (Join-Path $ServerRoot 'SCRIPTS\Update-CertaCapabilityRegistry.ps1') -ServerRoot $ServerRoot
 
 $ollamaExe = (Get-Command ollama.exe -ErrorAction SilentlyContinue).Source
 if (-not $ollamaExe) {
@@ -154,6 +141,7 @@ $manifest = [ordered]@{
     ollama_executable = $ollamaExe
     local_model = $LocalModel
     local_alias = 'certard-local'
+    capability_registry = $capabilityRegistryResult
     trigger = $triggerResult
     router_test = 'PASS'
     status = 'PASS'
