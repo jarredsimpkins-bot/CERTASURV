@@ -103,17 +103,17 @@ function Get-CertaWorkmapSvg {
     $escapedTitle = Escape-CertaXml -Value $Title
 
     $svg = @"
-<svg xmlns=""http://www.w3.org/2000/svg"" width=""$([int]$canvasWidth)"" height=""$([int]$canvasHeight)"" viewBox=""0 0 $([int]$canvasWidth) $([int]$canvasHeight)"">
-  <rect width=""100%"" height=""100%"" fill=""white""/>
-  <text x=""25"" y=""35"" font-family=""Arial"" font-size=""22"" font-weight=""bold"">$escapedTitle</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="$([int]$canvasWidth)" height="$([int]$canvasHeight)" viewBox="0 0 $([int]$canvasWidth) $([int]$canvasHeight)">
+  <rect width="100%" height="100%" fill="white"/>
+  <text x="25" y="35" font-family="Arial" font-size="22" font-weight="bold">$escapedTitle</text>
 "@
     foreach ($row in $Point) {
         $style = Get-CertaStatusLayer -Status ([string]$row.Status)
         $x = $padding + (([double]$row.E - $minE) * $scale)
         $y = $canvasHeight - $padding - (([double]$row.N - $minN) * $scale)
         $label = Escape-CertaXml -Value ("{0} {1}" -f $row.P,$row.DESC)
-        $svg += "  <circle cx=""$([math]::Round($x,2))"" cy=""$([math]::Round($y,2))"" r=""6"" fill=""$($style.svg_color)""/>`n"
-        $svg += "  <text x=""$([math]::Round($x+8,2))"" y=""$([math]::Round($y-8,2))"" font-family=""Arial"" font-size=""13"">$label</text>`n"
+        $svg += ('  <circle cx="{0}" cy="{1}" r="6" fill="{2}"/>' -f [math]::Round($x,2),[math]::Round($y,2),$style.svg_color) + "`n"
+        $svg += ('  <text x="{0}" y="{1}" font-family="Arial" font-size="13">{2}</text>' -f [math]::Round($x+8,2),[math]::Round($y-8,2),$label) + "`n"
     }
     $svg += '</svg>'
     return $svg
@@ -133,15 +133,15 @@ function Get-CertaKml {
     if ($geoRows.Count -eq 0) { return $null }
 
     $kml = @"
-<?xml version=""1.0"" encoding=""UTF-8""?>
-<kml xmlns=""http://www.opengis.net/kml/2.2"">
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
 <Document>
 <name>$(Escape-CertaXml -Value $Title)</name>
 "@
     foreach ($status in @('SEARCH','FOUND','SET','CONTROL','FIELD','EXTRACT','RECORD')) {
         $style = Get-CertaStatusLayer -Status $status
         $styleId = $status.ToLowerInvariant()
-        $kml += "<Style id=""$styleId""><IconStyle><color>$($style.kml_color)</color><scale>1.1</scale></IconStyle></Style>`n"
+        $kml += ('<Style id="{0}"><IconStyle><color>{1}</color><scale>1.1</scale></IconStyle></Style>' -f $styleId,$style.kml_color) + "`n"
     }
 
     foreach ($row in $geoRows) {
