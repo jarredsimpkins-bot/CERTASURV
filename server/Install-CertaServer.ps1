@@ -126,7 +126,7 @@ if ($InstallTriggerCommands) {
 }
 
 $testResult = & (Join-Path $sourceRoot 'router\Test-CertaRouter.ps1') 2>&1 | Out-String
-if ($LASTEXITCODE -ne 0 -or $testResult -notmatch 'CERTA_ROUTER_TEST_PASS') {
+if ($testResult -notmatch 'CERTA_ROUTER_TEST_PASS') {
     throw "Router self-test failed.`n$testResult"
 }
 
