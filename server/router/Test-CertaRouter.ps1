@@ -105,7 +105,8 @@ try {
     $manifestResult2 = & $manifestScript -SourcePath $manifestSource -OutputPath $manifestPath -HashFileLimitMiB 1 -MaxTotalHashMiB 2
     Assert-Equal -Name 'manifest self-exclusion' -Actual $manifestResult2.file_count -Expected 2
 
-    Write-Host 'CERTA_ROUTER_TEST_PASS'
+    # The installer captures the success stream under Windows PowerShell 5.1.
+    Write-Output 'CERTA_ROUTER_TEST_PASS'
 }
 finally {
     if (Test-Path -LiteralPath $testRoot) {

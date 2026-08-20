@@ -101,6 +101,14 @@ $items = @($retainedItems) + @($definitions)
 $agent = Get-Process TRIGGERcmdAgent -ErrorAction SilentlyContinue | Select-Object -First 1
 $agentPath = $null
 if ($agent) { try { $agentPath = $agent.Path } catch {} }
+if (-not $agentPath) {
+    $agentInstallRoot = Join-Path $env:LOCALAPPDATA 'triggercmdagent'
+    if (Test-Path -LiteralPath $agentInstallRoot) {
+        $agentPath = Get-ChildItem -LiteralPath $agentInstallRoot -Recurse -File -Filter 'TRIGGERcmdAgent.exe' -ErrorAction SilentlyContinue |
+            Sort-Object LastWriteTimeUtc -Descending |
+            Select-Object -ExpandProperty FullName -First 1
+    }
+}
 $temporaryPath = Join-Path (Split-Path -Parent $commandsPath) ('.commands.{0}.tmp' -f [guid]::NewGuid().ToString('N'))
 $agentRestarted = $false
 try {
@@ -109,7 +117,13 @@ try {
         Start-Sleep -Seconds 1
     }
 
-    $items | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $temporaryPath -Encoding UTF8
+    $json = $items | ConvertTo-Json -Depth 20
+    $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+    [IO.File]::WriteAllText($temporaryPath, $json, $utf8NoBom)
+    $fileBytes = [IO.File]::ReadAllBytes($temporaryPath)
+    if ($fileBytes.Length -ge 3 -and $fileBytes[0] -eq 0xEF -and $fileBytes[1] -eq 0xBB -and $fileBytes[2] -eq 0xBF) {
+        throw 'Trigger command JSON must be UTF-8 without a byte-order mark.'
+    }
     $validatedJson = Get-Content -LiteralPath $temporaryPath -Raw | ConvertFrom-Json
     $validatedItems = @($validatedJson)
     foreach ($definition in $definitions) {

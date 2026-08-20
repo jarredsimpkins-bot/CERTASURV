@@ -48,7 +48,8 @@ $triggerItems = @()
 $triggerConfigValid = $false
 if (Test-Path -LiteralPath $triggerConfig) {
     try {
-        $triggerItems = @(Get-Content -LiteralPath $triggerConfig -Raw | ConvertFrom-Json)
+        $parsedTriggerItems = Get-Content -LiteralPath $triggerConfig -Raw | ConvertFrom-Json
+        $triggerItems = @($parsedTriggerItems)
         $triggerConfigValid = $true
     }
     catch {}
