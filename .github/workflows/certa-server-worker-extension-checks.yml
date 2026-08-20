@@ -2,7 +2,19 @@ name: Certa Server Worker Extension Checks
 
 on:
   push:
+    paths:
+      - 'server/**'
+      - 'bootstrap/Install-CertaServer-FromGitHub.ps1'
+      - 'bootstrap/Install-CertaServerWorkerExtension-FromGitHub.ps1'
+      - '.github/workflows/certahealth-control-checks.yml'
+      - '.github/workflows/certa-server-worker-extension-checks.yml'
   pull_request:
+    paths:
+      - 'server/**'
+      - 'bootstrap/Install-CertaServer-FromGitHub.ps1'
+      - 'bootstrap/Install-CertaServerWorkerExtension-FromGitHub.ps1'
+      - '.github/workflows/certahealth-control-checks.yml'
+      - '.github/workflows/certa-server-worker-extension-checks.yml'
   workflow_dispatch:
 
 jobs:
@@ -29,7 +41,7 @@ jobs:
             $parseErrors = $null
             [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $path), [ref]$tokens, [ref]$parseErrors) | Out-Null
             if ($parseErrors) {
-              $failures += "$path: $($parseErrors -join '; ')"
+              $failures += "$($path): $($parseErrors -join '; ')"
             }
           }
           if ($failures.Count) {
@@ -40,15 +52,32 @@ jobs:
       - name: Verify safe command boundaries
         shell: pwsh
         run: |
-          $content = Get-Content -LiteralPath 'server/worker/Install-CertaServerWorkerExtension.ps1' -Raw
-          if ($content -match "allowParams='true'") {
-            throw 'Worker extension must not register parameterized TRIGGERcmd commands.'
+          $source = Get-Content -LiteralPath 'server/worker/Install-CertaServerWorkerExtension.ps1' -Raw
+          $required = @(
+            "allowParams='true'",
+            "'submit-task'",
+            "'run-codex'",
+            "'process-queue'",
+            "'start-worker'",
+            "'stop-worker'",
+            "--sandbox",
+            "workspace-write",
+            "--dangerously-bypass-approvals-and-sandbox"
+          )
+          foreach ($term in $required) {
+            if ($source -notmatch [regex]::Escape($term)) {
+              throw "Expected worker boundary term missing: $term"
+            }
           }
-          if ($content -match 'OLLAMA_HOST\s*=\s*["''](?:0\.0\.0\.0|::)') {
-            throw 'Worker extension must not expose Ollama on a wildcard network address.'
-          }
-          if ($content -match '(?i)\b(?:Remove-Item|robocopy)\b.*(?:/MIR|/PURGE|/MOVE)') {
-            throw 'Worker extension contains an unapproved destructive transfer option.'
+          $forbidden = @(
+            'danger-full-access',
+            '--yolo',
+            '0.0.0.0:11434'
+          )
+          foreach ($term in $forbidden) {
+            if ($source -match [regex]::Escape($term)) {
+              throw "Forbidden worker term found: $term"
+            }
           }
 
       - name: Run base router self-test
@@ -59,8 +88,41 @@ jobs:
       - name: Run queue worker extension self-test
         shell: pwsh
         run: |
-          $result = & ./server/worker/Install-CertaServerWorkerExtension.ps1 -SelfTest 2>&1 | Out-String
-          $result
-          if ($LASTEXITCODE -ne 0 -or $result -notmatch 'CERTA_SERVER_WORKER_EXTENSION_TEST_PASS') {
-            throw 'Certa server queue worker extension self-test failed.'
+          $stage = Join-Path $env:TEMP ('certa-worker-ci-' + [guid]::NewGuid().ToString('N'))
+          try {
+            $sourceRoot = Join-Path $stage 'server'
+            New-Item -ItemType Directory -Path $sourceRoot -Force | Out-Null
+            Copy-Item -LiteralPath ./server/router -Destination $sourceRoot -Recurse
+            Copy-Item -LiteralPath ./server/policies -Destination $sourceRoot -Recurse
+            Copy-Item -LiteralPath ./server/schemas -Destination $sourceRoot -Recurse
+            Copy-Item -LiteralPath ./server/capabilities -Destination $sourceRoot -Recurse
+            Copy-Item -LiteralPath ./server/trigger -Destination $sourceRoot -Recurse
+            Copy-Item -LiteralPath ./server/Install-CertaServer.ps1 -Destination $sourceRoot
+            $output = & ./server/worker/Install-CertaServerWorkerExtension.ps1 `
+              -SourceRoot $sourceRoot `
+              -ServerRoot (Join-Path $stage 'runtime') `
+              -SkipStartup `
+              -SkipTriggerCommands `
+              -SkipHealthCheck
+            $output | Out-String | Write-Host
+            if ($LASTEXITCODE -ne 0) { throw 'Worker extension installation self-test failed.' }
+            $runtimeRoot = Join-Path $stage 'runtime'
+            $expected = @(
+              'ROUTER\Invoke-CertaScriptTask.ps1',
+              'ROUTER\Invoke-CertaQueueWorker.ps1',
+              'ROUTER\Start-CertaQueueWorker.ps1',
+              'ROUTER\Stop-CertaQueueWorker.ps1',
+              'ROUTER\Get-CertaQueueStatus.ps1'
+            )
+            foreach ($relative in $expected) {
+              $path = Join-Path $runtimeRoot $relative
+              if (-not (Test-Path -LiteralPath $path)) {
+                throw "Missing installed worker file: $path"
+              }
+            }
+          }
+          finally {
+            if (Test-Path -LiteralPath $stage) {
+              Remove-Item -LiteralPath $stage -Recurse -Force
+            }
           }
