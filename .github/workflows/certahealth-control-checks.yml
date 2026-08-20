@@ -65,7 +65,8 @@ jobs:
             'server/capabilities/Test-CertaFileManifest.ps1',
             'server/docs/PRODUCTION_AUTOMATION_ROADMAP.md',
             'server/registries/production-capability-backlog.csv',
-            'bootstrap/Install-CertaServer-FromGitHub.ps1'
+            'bootstrap/Install-CertaServer-FromGitHub.ps1',
+            'bootstrap/Repair-CertaServerTriggerCommands-FromGitHub.ps1'
           )
           foreach ($path in $required) {
             if (-not (Test-Path $path)) {
