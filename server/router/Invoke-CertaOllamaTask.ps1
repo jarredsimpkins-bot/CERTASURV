@@ -13,9 +13,22 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$task = Get-Content -LiteralPath $TaskPath -Raw | ConvertFrom-Json
+. (Join-Path $PSScriptRoot 'Test-CertaTaskRecord.ps1')
+
+$queueRoot = Join-Path $ServerRoot 'QUEUE\ollama'
+$resolvedTaskPath = [IO.Path]::GetFullPath((Resolve-Path -LiteralPath $TaskPath).Path)
+$resolvedQueueRoot = [IO.Path]::GetFullPath((Resolve-Path -LiteralPath $queueRoot).Path).TrimEnd('\')
+if (-not [string]::Equals([IO.Path]::GetDirectoryName($resolvedTaskPath), $resolvedQueueRoot, [StringComparison]::OrdinalIgnoreCase)) {
+    throw "TaskPath must be a direct child of the OLLAMA queue: $queueRoot"
+}
+
+$task = Get-Content -LiteralPath $resolvedTaskPath -Raw | ConvertFrom-Json
+$null = Assert-CertaTaskRecord -Task $task -SourcePath $resolvedTaskPath
 if ([string]$task.status -ne 'ROUTED' -or [string]$task.route.lane -ne 'OLLAMA') {
     throw 'The task must be ROUTED to the OLLAMA lane.'
+}
+if (@($task.inputs).Count -gt 0) {
+    throw 'OLLAMA v1 does not ingest file inputs. Route this task to CODEX or HUMAN for bounded input handling.'
 }
 
 $prompt = @"
@@ -50,7 +63,15 @@ $task.status = 'CANDIDATE_COMPLETE'
 $task | Add-Member -NotePropertyName candidate_output -NotePropertyValue $outputPath -Force
 $task | Add-Member -NotePropertyName completed_at -NotePropertyValue $now -Force
 $task.history = @($task.history) + [pscustomobject]@{ timestamp=$now; event='OLLAMA_CANDIDATE_COMPLETE'; output=$outputPath; model=$Model }
-$task | ConvertTo-Json -Depth 14 | Set-Content -LiteralPath $TaskPath -Encoding UTF8
+$taskTemporaryPath = "$resolvedTaskPath.$([guid]::NewGuid().ToString('N')).tmp"
+try {
+    $task | ConvertTo-Json -Depth 14 | Set-Content -LiteralPath $taskTemporaryPath -Encoding UTF8
+    $null = Get-Content -LiteralPath $taskTemporaryPath -Raw | ConvertFrom-Json
+    Move-Item -LiteralPath $taskTemporaryPath -Destination $resolvedTaskPath -Force
+}
+finally {
+    if (Test-Path -LiteralPath $taskTemporaryPath) { Remove-Item -LiteralPath $taskTemporaryPath -Force }
+}
 
 $tokensPerSecond = $null
 if ($response.eval_duration -and $response.eval_count) {

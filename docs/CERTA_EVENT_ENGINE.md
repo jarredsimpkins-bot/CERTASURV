@@ -35,6 +35,12 @@ Important paths:
 - `outbox\office\attention.ndjson` - append-only office attention stream.
 - `logs\certaevent.ndjson` - engine log.
 
+## Relationship to `D:\SERVER`
+
+`C:\Certa4010\CertaEvent` remains the deterministic watcher/action runtime, and `D:\CertaSurv\Projects` plus the approved shared drive remain project evidence roots. `D:\SERVER` is the task-router control plane: inbox, queues, policies, worktrees, model storage, outputs, receipts, and archived intake records. It does not introduce a second authoritative `PROJECTS` tree.
+
+CertaEvent adapters may create validated task JSON in `D:\SERVER\INBOX`. The router then applies the SCRIPT/OLLAMA/CODEX/SPECIALIST/HUMAN policy. Production evidence stays at its approved source path and is referenced rather than copied or overwritten.
+
 ## Install
 
 Run PowerShell as Administrator:
