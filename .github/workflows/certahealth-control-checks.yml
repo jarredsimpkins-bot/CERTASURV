@@ -29,6 +29,17 @@ jobs:
             exit 1
           }
 
+      - name: Validate JSON control files
+        shell: pwsh
+        run: |
+          $jsonFiles = @(
+            'server/policies/task-routing-policy.json',
+            'server/schemas/task.schema.json'
+          )
+          foreach ($path in $jsonFiles) {
+            $null = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
+          }
+
       - name: Verify required control files
         shell: pwsh
         run: |
@@ -40,10 +51,23 @@ jobs:
             'docs/RELEASE_LAUNCH_CHECKLIST.md',
             'scripts/Test-CertaProjectProvisioning.ps1',
             'scripts/Set-CertaGitRemotes.ps1',
-            'scripts/Manage-CertaLaptopLoad.ps1'
+            'scripts/Manage-CertaLaptopLoad.ps1',
+            'server/Install-CertaServer.ps1',
+            'server/router/New-CertaTask.ps1',
+            'server/router/Invoke-CertaRouter.ps1',
+            'server/router/Invoke-CertaOllamaTask.ps1',
+            'server/router/Get-CertaServerHealth.ps1',
+            'server/router/Test-CertaRouter.ps1',
+            'server/trigger/Install-CertaServer-TriggerCommands.ps1',
+            'bootstrap/Install-CertaServer-FromGitHub.ps1'
           )
           foreach ($path in $required) {
             if (-not (Test-Path $path)) {
               throw "Missing required file: $path"
             }
           }
+
+      - name: Run Certa server router self-test
+        shell: pwsh
+        run: |
+          & ./server/router/Test-CertaRouter.ps1

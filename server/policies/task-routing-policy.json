@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "default_lane": "CODEX",
+  "lanes": ["SCRIPT", "OLLAMA", "CODEX", "SPECIALIST", "HUMAN"],
+  "risk_terms": {
+    "HUMAN": [
+      "boundary decision",
+      "final boundary",
+      "professional opinion",
+      "legal conclusion",
+      "sign and seal",
+      "production release",
+      "send to client",
+      "delete",
+      "purge",
+      "format drive",
+      "credential",
+      "password",
+      "api key",
+      "firewall",
+      "administrator",
+      "change permissions",
+      "contract"
+    ],
+    "SPECIALIST": [
+      "land desktop",
+      "ldt",
+      "trimble business center",
+      "tbc",
+      "autocad",
+      "cad import",
+      "cloudcompare",
+      "webodm",
+      "licensed application"
+    ],
+    "CODEX": [
+      "build",
+      "write code",
+      "create script",
+      "debug",
+      "fix bug",
+      "repository",
+      "git",
+      "integration",
+      "migration",
+      "refactor",
+      "test suite",
+      "api client"
+    ],
+    "OLLAMA": [
+      "summarize",
+      "classify",
+      "categorize",
+      "tag",
+      "extract names",
+      "extract dates",
+      "explain",
+      "triage",
+      "route this task",
+      "first-pass review"
+    ]
+  },
+  "promotion": {
+    "minimum_verified_codex_runs": 3,
+    "human_approval_required": true,
+    "regression_test_required": true,
+    "model_confidence_alone_is_sufficient": false
+  }
+}
