@@ -1,0 +1,66 @@
+name: Certa Server Worker Extension Checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  worker-extension:
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate PowerShell syntax
+        shell: pwsh
+        run: |
+          $paths = @(
+            'server/worker/Install-CertaServerWorkerExtension.ps1',
+            'bootstrap/Install-CertaServerWorkerExtension-FromGitHub.ps1'
+          )
+          $failures = @()
+          foreach ($path in $paths) {
+            if (-not (Test-Path -LiteralPath $path)) {
+              $failures += "Missing required file: $path"
+              continue
+            }
+            $tokens = $null
+            $parseErrors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $path), [ref]$tokens, [ref]$parseErrors) | Out-Null
+            if ($parseErrors) {
+              $failures += "$path: $($parseErrors -join '; ')"
+            }
+          }
+          if ($failures.Count) {
+            $failures | ForEach-Object { Write-Error $_ }
+            exit 1
+          }
+
+      - name: Verify safe command boundaries
+        shell: pwsh
+        run: |
+          $content = Get-Content -LiteralPath 'server/worker/Install-CertaServerWorkerExtension.ps1' -Raw
+          if ($content -match "allowParams='true'") {
+            throw 'Worker extension must not register parameterized TRIGGERcmd commands.'
+          }
+          if ($content -match 'OLLAMA_HOST\s*=\s*["''](?:0\.0\.0\.0|::)') {
+            throw 'Worker extension must not expose Ollama on a wildcard network address.'
+          }
+          if ($content -match '(?i)\b(?:Remove-Item|robocopy)\b.*(?:/MIR|/PURGE|/MOVE)') {
+            throw 'Worker extension contains an unapproved destructive transfer option.'
+          }
+
+      - name: Run base router self-test
+        shell: pwsh
+        run: |
+          & ./server/router/Test-CertaRouter.ps1
+
+      - name: Run queue worker extension self-test
+        shell: pwsh
+        run: |
+          $result = & ./server/worker/Install-CertaServerWorkerExtension.ps1 -SelfTest 2>&1 | Out-String
+          $result
+          if ($LASTEXITCODE -ne 0 -or $result -notmatch 'CERTA_SERVER_WORKER_EXTENSION_TEST_PASS') {
+            throw 'Certa server queue worker extension self-test failed.'
+          }
