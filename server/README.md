@@ -21,19 +21,21 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\server\Install-CertaSe
   -ServerRoot D:\SERVER `
   -PullModel `
   -InstallTriggerCommands `
-  -DisableSleepOnAC
+  -DisableSleepOnAC `
+  -RunSmokeTest
 ```
 
 ## One-line bootstrap after merge
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -Command `
-  "iwr https://raw.githubusercontent.com/jarredsimpkins-bot/CERTASURV/main/bootstrap/Install-CertaServer-FromGitHub.ps1 -OutFile $env:TEMP\Install-CertaServer.ps1; & $env:TEMP\Install-CertaServer.ps1 -PullModel -InstallTriggerCommands -DisableSleepOnAC"
+$p = Join-Path $env:TEMP 'Install-CertaServer.ps1'
+Invoke-WebRequest -UseBasicParsing 'https://raw.githubusercontent.com/jarredsimpkins-bot/CERTASURV/main/bootstrap/Install-CertaServer-FromGitHub.ps1' -OutFile $p
+& $p -PullModel -InstallTriggerCommands -DisableSleepOnAC -RunSmokeTest
 ```
 
 The bootstrap resolves `main` (or another requested ref) to one immutable commit before downloading the installer set, and the installed manifest records that source commit.
 
-Ollama remains bound to `127.0.0.1:11434`, disables Ollama cloud features, uses one loaded model and one parallel request, and stores models under `D:\SERVER\OLLAMA\models`.
+Ollama remains bound to `127.0.0.1:11434`, disables Ollama cloud features, uses one loaded model and one parallel request, and stores models under the selected server root (by default `D:\SERVER\OLLAMA\models`).
 
 ## Create and route a task
 
@@ -59,12 +61,20 @@ $ollamaTask = Get-ChildItem D:\SERVER\QUEUE\ollama\*.json | Sort-Object LastWrit
 The installer adds only named commands with parameters disabled:
 
 - `Certa Server Health`
+- `Certa Server Smoke Test`
+- `Certa Beacon Refresh`
 - `Certa Server Route Once`
 - `Certa Server Route All`
 - `Certa Ollama Status`
 - `Certa Open Server`
 
-The installer updates `commands.json` through a validated temporary file, preserves a timestamped backup, and restarts the foreground agent when it can resolve the running executable. These commands require the same Windows profile and an interactive foreground-agent session; validate them again after a reboot.
+The installer updates `commands.json` through a shared writer lock and an atomic, hash-verified replacement, preserves a timestamped backup, and signals the running foreground agent's file watcher without killing or duplicating the agent. Installing the remote commands requires `-RunSmokeTest`. A changed remotely listed beacon is the catalog-sync proof. These commands require the same Windows profile and an interactive foreground-agent session; unattended operation before sign-in is not delivered by v1.
+
+`Certa Beacon Refresh` publishes one coarse, no-op command name such as `Certa Beacon H-PASS S-PASS U-20260820T095455Z R-A1B2C3D4`. Only health/smoke enums, UTC time, and a random run ID enter the TRIGGERcmd catalog; detailed findings remain in local receipts. `S-PASS` requires a complete evidence-bound smoke run no more than 15 minutes old. `INIT`, `RUNNING`, `STALE`, `ERROR`, or `FAIL` is not green. A remote check is current only when refresh produces exactly one valid beacon with a changed run ID. Never use a beacon to authorize destructive work, credentials, survey judgment, or production release.
+
+`Certa Server Smoke Test` is synthetic and repeat-safe. It creates a unique no-input task, proves natural policy routing to OLLAMA, requires the local model to return a unique nonce, validates routing/execution receipts and task history, and moves the completed task from the live queue into `ARCHIVE\smoke\passed` or `ARCHIVE\smoke\failed`.
+
+The installer preserves unrelated valid TRIGGERcmd entries but health fails if any retained entry allows remote parameters. Review every retained command before treating the whole Windows profile as safe; the installer guarantees that the seven Certa server commands and its beacon are fixed, parameter-free, and have no off-action.
 
 ## Execution boundary
 
@@ -78,9 +88,10 @@ Before production cutover:
 
 1. Run the installer against the existing `D:\SERVER` and confirm unrelated content is unchanged.
 2. Confirm `certard-local` is present, `OLLAMA_MODELS` points at `D:\SERVER\OLLAMA\models`, cloud use is disabled, and port 11434 has no wildcard listener.
-3. Confirm all five TRIGGERcmd commands appear on the intended PC with parameters disabled and execute from a remote trigger.
-4. Reboot, sign into the dedicated Windows profile, and rerun `Get-CertaServerHealth.ps1`.
-5. Route one test through every lane and retain its routing receipt and archived intake record.
+3. Confirm all seven fixed TRIGGERcmd commands appear on the intended PC with parameters disabled and execute from a remote trigger.
+4. Run `Certa Server Smoke Test`, then `Certa Beacon Refresh`; require one fresh `H-PASS S-PASS` beacon with a changed run ID.
+5. Reboot, sign into the dedicated Windows profile, run `Certa Server Smoke Test` again, then refresh the beacon and require another fresh `H-PASS S-PASS` result with a changed run ID.
+6. Route one controlled test through each remaining handoff lane and retain its routing receipt and archived intake record.
 
 ## Safety and authority
 
@@ -92,4 +103,4 @@ Before production cutover:
 - Boundary, legal, credential, destructive, and release decisions remain human/PLS/admin gates.
 - Ollama is not exposed to the office LAN.
 - Ollama cloud features are disabled for the server profile.
-- No unrestricted Trigger shell is installed.
+- This installer adds no unrestricted Trigger shell; retained pre-existing commands still require explicit review.
