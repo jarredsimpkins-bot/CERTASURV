@@ -176,7 +176,7 @@ $($inputLines -join "`n")
 - Do not expose secrets.
 - Use deterministic scripts for repeatable calculations and conversions.
 - Add tests and a validator for new capabilities.
-- Write outputs and an execution receipt under D:\SERVER.
+- Write outputs and an execution receipt under $ServerRoot.
 - Do not make final professional survey, boundary, legal, credential, destructive, or production-release decisions.
 "@
     Set-Content -LiteralPath $Path -Value $content -Encoding UTF8

@@ -8,7 +8,8 @@ param(
     [string]$Ref = 'main',
     [switch]$PullModel,
     [switch]$InstallTriggerCommands,
-    [switch]$DisableSleepOnAC
+    [switch]$DisableSleepOnAC,
+    [switch]$RunSmokeTest
 )
 
 Set-StrictMode -Version Latest
@@ -30,6 +31,8 @@ try {
         'server/router/Invoke-CertaRouter.ps1',
         'server/router/Invoke-CertaOllamaTask.ps1',
         'server/router/Get-CertaServerHealth.ps1',
+        'server/router/Test-CertaServerEndToEnd.ps1',
+        'server/router/Publish-CertaServerStatus.ps1',
         'server/router/Test-CertaRouter.ps1',
         'server/router/Test-CertaTaskRecord.ps1',
         'server/policies/task-routing-policy.json',
@@ -58,6 +61,7 @@ try {
     if ($PullModel) { $arguments += '-PullModel' }
     if ($InstallTriggerCommands) { $arguments += '-InstallTriggerCommands' }
     if ($DisableSleepOnAC) { $arguments += '-DisableSleepOnAC' }
+    if ($RunSmokeTest) { $arguments += '-RunSmokeTest' }
     & powershell.exe @arguments
     exit $LASTEXITCODE
 }

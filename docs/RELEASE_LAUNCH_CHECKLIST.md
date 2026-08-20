@@ -1,6 +1,6 @@
 # Certa Control Repo Launch Checklist
 
-Last updated: 2026-06-18
+Last updated: 2026-08-20
 
 Use this checklist for the control-repo side of a Certa/CertaSurv launch or release handoff. This stays repo-local and should be updated before copying any generated release notes into external systems.
 
@@ -8,7 +8,7 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 
 | Gate | What to confirm | Current state |
 | --- | --- | --- |
-| Workflow green on `main` | Latest public `CertaHealth Control Checks` run for `main` is successful | Verified on June 18, 2026: run `#40`, commit `e0cd20b`, success |
+| Workflow green on `main` | `CertaHealth Control Checks` succeeds for the exact immutable launch commit | Required at launch; do not rely on an older green run |
 | Docs present | Release readiness, connection matrix, git situation, cloud processing, and this checklist are committed | Required by workflow |
 | PowerShell syntax clean | All tracked `.ps1` files parse without errors | Required by workflow |
 | Workspace path aligned | Operator-facing web app path uses `C:\Users\SimpS\OneDrive\Documents\CERTASURV_WEB_APP` | Verified in current repo docs/scripts |
@@ -33,5 +33,18 @@ Use this checklist for the control-repo side of a Certa/CertaSurv launch or rele
 ## Evidence References
 
 - Public workflow: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/workflows/certahealth-control-checks.yml`
-- Latest verified `main` run: `https://github.com/jarredsimpkins-bot/CERTASURV/actions/runs/27769753846`
-- Latest verified overall run during this pass: `#40` on branch `main`, success on June 18, 2026; prior feature-branch run `#39` also succeeded
+- Record the exact merged commit and its successful workflow URL in the launch receipt before target deployment.
+
+## Certa Server v1 Launch Gates
+
+For the `D:\SERVER` control plane, launch is green only when all of the following are true:
+
+1. The newest `CONTROL\receipts\*-attempt.json` record reports `PASS`; its `run_id` and immutable Git commit match the referenced installer manifest, which also reports `PASS`. Never accept an older manifest after a newer attempt failed or remains `RUNNING`.
+2. Local health reports `PASS`: required folders exist, Ollama is healthy and localhost-only, `certard-local` exists, cloud use is disabled, and the signed-in foreground TRIGGERcmd profile has every required command with parameters disabled.
+3. The synthetic end-to-end smoke test reports `PASS` and preserves its routing, Ollama, output, and archive evidence.
+4. A remotely refreshed catalog beacon is fresh and exactly matches `H-PASS S-PASS` with a new run ID.
+5. After a reboot, the dedicated profile is signed in, a new smoke test passes, and another refresh produces a new `H-PASS S-PASS` beacon.
+
+An unchanged beacon, zero or multiple beacons, `ATTN`, `INIT`, `RUNNING`, `STALE`, `ERROR`, or `FAIL` is not green. Beacon state is operational telemetry only and never grants professional, destructive, credential, or release authority.
+
+The v1 TRIGGERcmd persistence model is sign-in dependent. Do not claim unattended-before-login operation. Review all retained pre-existing commands, especially parameter-enabled entries, before calling the whole foreground profile safe.

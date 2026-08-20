@@ -29,6 +29,82 @@ jobs:
             exit 1
           }
 
+      - name: Validate PowerShell syntax on Windows PowerShell 5.1
+        shell: powershell
+        run: |
+          $failures = @()
+          Get-ChildItem -Recurse -Filter *.ps1 | ForEach-Object {
+            $tokens = $null
+            $parseErrors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$tokens, [ref]$parseErrors) | Out-Null
+            if ($parseErrors) {
+              $failures += "$($_.FullName): $($parseErrors -join '; ')"
+            }
+          }
+          if ($failures.Count) {
+            $failures | ForEach-Object { Write-Error $_ }
+            exit 1
+          }
+
+      - name: Test TriggerCMD Electron controller classification on Windows PowerShell 5.1
+        shell: powershell
+        run: |
+          $agentAwareScripts = @(
+            './server/trigger/Install-CertaServer-TriggerCommands.ps1',
+            './server/router/Get-CertaServerHealth.ps1',
+            './server/router/Publish-CertaServerStatus.ps1'
+          )
+          foreach ($path in $agentAwareScripts) {
+            $tokens = $null
+            $parseErrors = $null
+            $ast = [System.Management.Automation.Language.Parser]::ParseFile(
+              (Resolve-Path -LiteralPath $path).Path,
+              [ref]$tokens,
+              [ref]$parseErrors
+            )
+            if ($parseErrors) { throw "Cannot parse agent-aware script: $path" }
+            $functionAst = $ast.Find({
+              param($node)
+              $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+              $node.Name -eq 'Get-CertaTriggerAgentState'
+            }, $true)
+            if ($null -eq $functionAst) { throw "Missing controller classifier: $path" }
+            Invoke-Expression $functionAst.Extent.Text
+
+            $script:observedAgentFilter = $null
+            function Get-CimInstance {
+              [CmdletBinding()]
+              param([string]$ClassName, [string]$Filter)
+              $script:observedAgentFilter = $Filter
+              @(
+                [pscustomobject]@{ ProcessId=101; CommandLine='"C:\fixture\TRIGGERcmdAgent.exe"' },
+                [pscustomobject]@{ ProcessId=102; CommandLine='"C:\fixture\TRIGGERcmdAgent.exe" --type=renderer' },
+                [pscustomobject]@{ ProcessId=103; CommandLine='"C:\fixture\TRIGGERcmdAgent.exe" --TYPE=utility' }
+              )
+            }
+            $state = Get-CertaTriggerAgentState -SessionId 7
+            if (-not $state.query_succeeded) { throw "Synthetic CIM query unexpectedly failed: $path" }
+            if (@($state.controller_processes).Count -ne 1 -or [int]$state.controller_processes[0].ProcessId -ne 101) {
+              throw "Electron controller was not isolated from helper processes: $path"
+            }
+            if (@($state.electron_child_processes).Count -ne 2) {
+              throw "Electron --type= helper processes were not excluded: $path"
+            }
+            if ($script:observedAgentFilter -notmatch "Name = 'TRIGGERcmdAgent.exe'" -or $script:observedAgentFilter -notmatch 'SessionId = 7') {
+              throw "CIM query was not constrained to executable name and current session: $path"
+            }
+
+            function Get-CimInstance {
+              [CmdletBinding()]
+              param([string]$ClassName, [string]$Filter)
+              throw 'synthetic CIM failure'
+            }
+            $failedState = Get-CertaTriggerAgentState -SessionId 7
+            if ($failedState.query_succeeded -or [string]::IsNullOrWhiteSpace([string]$failedState.query_error)) {
+              throw "CIM query failure did not produce fail-closed state and detail: $path"
+            }
+          }
+
       - name: Validate JSON control files
         shell: pwsh
         run: |
@@ -57,6 +133,8 @@ jobs:
             'server/router/Invoke-CertaRouter.ps1',
             'server/router/Invoke-CertaOllamaTask.ps1',
             'server/router/Get-CertaServerHealth.ps1',
+            'server/router/Test-CertaServerEndToEnd.ps1',
+            'server/router/Publish-CertaServerStatus.ps1',
             'server/router/Test-CertaRouter.ps1',
             'server/router/Test-CertaTaskRecord.ps1',
             'server/trigger/Install-CertaServer-TriggerCommands.ps1',
@@ -76,8 +154,16 @@ jobs:
         run: |
           & ./server/router/Test-CertaRouter.ps1
 
+      - name: Run Certa server router self-test on Windows PowerShell 5.1
+        shell: powershell
+        run: |
+          $result = & ./server/router/Test-CertaRouter.ps1 2>&1 | Out-String
+          if ($result -notmatch 'CERTA_ROUTER_TEST_PASS') {
+            throw "Router self-test marker was not capturable by the installer.`n$result"
+          }
+
       - name: Test legacy capability registry recovery
-        shell: pwsh
+        shell: powershell
         run: |
           $testRoot = Join-Path $env:RUNNER_TEMP ('certa-registry-test-' + [guid]::NewGuid().ToString('N'))
           $registryDirectory = Join-Path $testRoot 'CONTROL\registries'
@@ -116,7 +202,7 @@ jobs:
         shell: powershell
         run: |
           $testProfile = Join-Path $env:RUNNER_TEMP ('certa-trigger-profile-' + [guid]::NewGuid().ToString('N'))
-          $serverRoot = Join-Path $env:RUNNER_TEMP ('certa-trigger-server-' + [guid]::NewGuid().ToString('N'))
+          $serverRoot = Join-Path $env:RUNNER_TEMP ('certa trigger server ' + [guid]::NewGuid().ToString('N'))
           $triggerDirectory = Join-Path $testProfile '.TRIGGERcmdData'
           New-Item -ItemType Directory -Path $triggerDirectory -Force | Out-Null
           $commandsPath = Join-Path $triggerDirectory 'commands.json'
@@ -130,7 +216,7 @@ jobs:
               "ground": "foreground",
               "voice": "calculator",
               "voiceReply": "",
-              "allowParams": "false"
+              "allowParams": true
             },
             {
               "name": "malformed legacy row"
@@ -148,6 +234,8 @@ jobs:
           }
 
           if ($result.status -ne 'PASS') { throw 'TriggerCMD registration did not pass.' }
+          if (-not $result.agent_query_succeeded) { throw "TriggerCMD controller query failed: $($result.agent_query_error)" }
+          if ([bool]$result.agent_running -ne ($result.agent_controller_process_count -eq 1)) { throw 'TriggerCMD agent_running disagrees with controller count.' }
           if ($result.dropped_invalid_commands -ne 1) { throw 'Malformed TriggerCMD entry was not reported.' }
           if (-not (Test-Path -LiteralPath $result.backup_path)) { throw 'TriggerCMD backup was not created.' }
 
@@ -156,9 +244,226 @@ jobs:
           if (@($commands | Where-Object { $_.trigger -eq 'Calculator' }).Count -ne 1) {
             throw 'Existing Calculator command was not retained.'
           }
-          $required = @('Certa Server Health','Certa Server Route Once','Certa Server Route All','Certa Ollama Status','Certa Open Server')
+          $calculator = $commands | Where-Object { $_.trigger -eq 'Calculator' } | Select-Object -First 1
+          if ($calculator.allowParams -isnot [bool] -or [bool]$calculator.allowParams) {
+            throw 'Known Calculator command was not hardened to boolean false.'
+          }
+          $required = @(
+            'Certa Server Health',
+            'Certa Server Smoke Test',
+            'Certa Beacon Refresh',
+            'Certa Server Route Once',
+            'Certa Server Route All',
+            'Certa Ollama Status',
+            'Certa Open Server'
+          )
           foreach ($name in $required) {
             $match = @($commands | Where-Object { $_.trigger -eq $name })
             if ($match.Count -ne 1) { throw "Missing registered command: $name" }
-            if ([string]$match[0].allowParams -ne 'false') { throw "Unsafe parameters enabled for: $name" }
+            if ($match[0].allowParams -isnot [bool] -or [bool]$match[0].allowParams) { throw "Unsafe parameters enabled for: $name" }
+            if ([string]$match[0].offCommand -ne '') { throw "Unsafe off command enabled for: $name" }
+            if ($name -ne 'Certa Open Server' -and -not ([string]$match[0].command).Contains(('-ServerRoot "{0}"' -f $serverRoot))) {
+              throw "Custom ServerRoot was not quoted exactly for: $name"
+            }
           }
+
+      - name: Test Windows PowerShell health parsing and status beacon
+        shell: powershell
+        run: |
+          $testProfile = Join-Path $env:RUNNER_TEMP ('certa-health-profile-' + [guid]::NewGuid().ToString('N'))
+          $serverRoot = Join-Path $env:RUNNER_TEMP ('certa health server ' + [guid]::NewGuid().ToString('N'))
+          $triggerDirectory = Join-Path $testProfile '.TRIGGERcmdData'
+          $statusDirectory = Join-Path $serverRoot 'CONTROL\status'
+          $requiredFolders = @('CONTROL','INBOX','QUEUE','PROJECT_LINKS','REPOS','WORKTREES','WORKING','ROUTER','SCRIPTS','OLLAMA','OUTPUTS','RECEIPTS','LOGS','STAGING','ARCHIVE','BACKUPS')
+          foreach ($folder in $requiredFolders) { New-Item -ItemType Directory -Path (Join-Path $serverRoot $folder) -Force | Out-Null }
+          New-Item -ItemType Directory -Path $triggerDirectory,$statusDirectory -Force | Out-Null
+
+          $componentCopies = @{
+            './server/router/New-CertaTask.ps1' = 'ROUTER\New-CertaTask.ps1'
+            './server/router/Invoke-CertaRouter.ps1' = 'ROUTER\Invoke-CertaRouter.ps1'
+            './server/router/Invoke-CertaOllamaTask.ps1' = 'ROUTER\Invoke-CertaOllamaTask.ps1'
+            './server/router/Get-CertaServerHealth.ps1' = 'ROUTER\Get-CertaServerHealth.ps1'
+            './server/router/Test-CertaServerEndToEnd.ps1' = 'ROUTER\Test-CertaServerEndToEnd.ps1'
+            './server/router/Publish-CertaServerStatus.ps1' = 'ROUTER\Publish-CertaServerStatus.ps1'
+            './server/router/Test-CertaTaskRecord.ps1' = 'ROUTER\Test-CertaTaskRecord.ps1'
+            './server/capabilities/Update-CertaCapabilityRegistry.ps1' = 'SCRIPTS\Update-CertaCapabilityRegistry.ps1'
+            './server/trigger/Install-CertaServer-TriggerCommands.ps1' = 'CONTROL\Install-CertaServer-TriggerCommands.ps1'
+            './server/policies/task-routing-policy.json' = 'CONTROL\policies\task-routing-policy.json'
+            './server/schemas/task.schema.json' = 'CONTROL\schemas\task.schema.json'
+          }
+          foreach ($source in $componentCopies.Keys) {
+            $destination = Join-Path $serverRoot $componentCopies[$source]
+            New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force | Out-Null
+            Copy-Item -LiteralPath $source -Destination $destination
+          }
+
+          $commandsPath = Join-Path $triggerDirectory 'commands.json'
+          @([pscustomobject]@{
+            trigger='Calculator'; command='calc.exe'; offCommand=''; ground='foreground'; voice='calculator'; voiceReply=''; allowParams=$true
+          }) | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $commandsPath -Encoding UTF8
+
+          $originalProfile = $env:USERPROFILE
+          try {
+            $env:USERPROFILE = $testProfile
+
+            $registration = & ./server/trigger/Install-CertaServer-TriggerCommands.ps1 -ServerRoot $serverRoot
+            if ($registration.status -ne 'PASS') { throw 'Synthetic TriggerCMD registration failed.' }
+            $cleanCommandsJson = Get-Content -LiteralPath $commandsPath -Raw
+
+            $health = & ./server/router/Get-CertaServerHealth.ps1 -ServerRoot $serverRoot -NoReceipt -NoExitCode
+            if (-not $health.trigger.agent_query_succeeded) { throw "Health controller query failed: $($health.trigger.agent_query_error)" }
+            if ([bool]$health.trigger.agent_running -ne ($health.trigger.agent_controller_process_count -eq 1)) { throw 'Health agent_running disagrees with controller count.' }
+            if (-not $health.trigger.config_valid) { throw 'Health check rejected valid TriggerCMD JSON.' }
+            if (@($health.trigger.missing_commands).Count -ne 0) { throw "Health check missed commands: $($health.trigger.missing_commands -join ', ')" }
+            if (@($health.trigger.unsafe_parameter_commands).Count -ne 0) { throw 'Health check reported safe commands as unsafe.' }
+            if (@($health.trigger.invalid_commands).Count -ne 0) { throw 'Health check rejected exact generated commands.' }
+            if ($health.status -eq 'FAIL') { throw "Clean synthetic health unexpectedly failed: $($health.findings -join ' ')" }
+
+            # A malformed unrelated row must fail closed, and publisher must
+            # leave the catalog byte-for-byte unchanged.
+            $parsedCleanCommands = Get-Content -LiteralPath $commandsPath -Raw | ConvertFrom-Json
+            $malformed = @($parsedCleanCommands) + @([pscustomobject]@{ name='malformed row' })
+            ConvertTo-Json -InputObject @($malformed) -Depth 10 | Set-Content -LiteralPath $commandsPath -Encoding UTF8
+            $malformedHash = (Get-FileHash -LiteralPath $commandsPath -Algorithm SHA256).Hash
+            $malformedHealth = & ./server/router/Get-CertaServerHealth.ps1 -ServerRoot $serverRoot -NoReceipt -NoExitCode -AllowMissingBeacon
+            if ($malformedHealth.status -ne 'FAIL') { throw 'Malformed TriggerCMD catalog did not fail health.' }
+            $publishRejected = $false
+            try { $null = & ./server/router/Publish-CertaServerStatus.ps1 -ServerRoot $serverRoot } catch { $publishRejected = $true }
+            if (-not $publishRejected) { throw 'Publisher accepted a malformed TriggerCMD catalog.' }
+            if ((Get-FileHash -LiteralPath $commandsPath -Algorithm SHA256).Hash -ne $malformedHash) { throw 'Publisher changed a rejected TriggerCMD catalog.' }
+            Set-Content -LiteralPath $commandsPath -Value $cleanCommandsJson -Encoding UTF8
+
+            $parsedCleanCommands = Get-Content -LiteralPath $commandsPath -Raw | ConvertFrom-Json
+            $duplicateCommands = @($parsedCleanCommands)
+            $duplicateHealthRow = $duplicateCommands | Where-Object { $_.trigger -eq 'Certa Server Health' } | Select-Object -First 1
+            $duplicateCommands += $duplicateHealthRow
+            ConvertTo-Json -InputObject @($duplicateCommands) -Depth 10 | Set-Content -LiteralPath $commandsPath -Encoding UTF8
+            $duplicateHealth = & ./server/router/Get-CertaServerHealth.ps1 -ServerRoot $serverRoot -NoReceipt -NoExitCode -AllowMissingBeacon
+            if ($duplicateHealth.status -ne 'FAIL') { throw 'Duplicate reserved command did not fail health.' }
+            Set-Content -LiteralPath $commandsPath -Value $cleanCommandsJson -Encoding UTF8
+
+            $parsedCleanCommands = Get-Content -LiteralPath $commandsPath -Raw | ConvertFrom-Json
+            $unsafeCommands = @($parsedCleanCommands)
+            $unsafeHealthCommand = $unsafeCommands | Where-Object { $_.trigger -eq 'Certa Server Health' } | Select-Object -First 1
+            $unsafeHealthCommand.command = 'cmd.exe /c exit 0'
+            $unsafeHealthCommand.offCommand = 'calc.exe'
+            ConvertTo-Json -InputObject @($unsafeCommands) -Depth 10 | Set-Content -LiteralPath $commandsPath -Encoding UTF8
+            $unsafeHealth = & ./server/router/Get-CertaServerHealth.ps1 -ServerRoot $serverRoot -NoReceipt -NoExitCode -AllowMissingBeacon
+            if ($unsafeHealth.status -ne 'FAIL') { throw 'Wrong command text or unsafe offCommand did not fail health.' }
+            Set-Content -LiteralPath $commandsPath -Value $cleanCommandsJson -Encoding UTF8
+
+            # Prove the publisher binds health to the exact catalog generation
+            # it later replaces. This synthetic health script changes only
+            # catalog bytes; the publisher must detect that non-locking writer.
+            $runtimeHealthPath = Join-Path $serverRoot 'ROUTER\Get-CertaServerHealth.ps1'
+            $runtimeHealthBackup = "$runtimeHealthPath.ci-backup"
+            Copy-Item -LiteralPath $runtimeHealthPath -Destination $runtimeHealthBackup
+          @'
+          #requires -Version 5.1
+          param([string]$ServerRoot,[switch]$NoReceipt,[switch]$NoExitCode,[switch]$AllowMissingBeacon)
+          Add-Content -LiteralPath (Join-Path $env:USERPROFILE '.TRIGGERcmdData\commands.json') -Value ' '
+          [pscustomobject]@{ status='PASS'; findings=@() }
+          '@ | Set-Content -LiteralPath $runtimeHealthPath -Encoding UTF8
+            $generationRejected = $false
+            try { $null = & ./server/router/Publish-CertaServerStatus.ps1 -ServerRoot $serverRoot } catch { $generationRejected = $true }
+            if (-not $generationRejected) { throw 'Publisher accepted a catalog generation changed during health.' }
+            Copy-Item -LiteralPath $runtimeHealthBackup -Destination $runtimeHealthPath -Force
+            Remove-Item -LiteralPath $runtimeHealthBackup -Force
+            Set-Content -LiteralPath $commandsPath -Value $cleanCommandsJson -Encoding UTF8
+
+            $smokeStarted = [DateTimeOffset]::UtcNow.AddMinutes(-1)
+            $smokeCompleted = [DateTimeOffset]::UtcNow
+            $smokeRunId = 'smoke-{0:yyyyMMdd-HHmmssfff}-{1}' -f $smokeStarted,([guid]::NewGuid().ToString('N').Substring(0,8))
+            $smokeTaskId = 'task-{0:yyyyMMdd-HHmmss}-{1}' -f $smokeStarted,([guid]::NewGuid().ToString('N').Substring(0,8))
+            $marker = 'CERTA_SMOKE_OK_{0}' -f ([guid]::NewGuid().ToString('N').Substring(0,12).ToUpperInvariant())
+            $outputPath = Join-Path $serverRoot "OUTPUTS\ollama\$smokeTaskId.md"
+            $routingReceipt = Join-Path $serverRoot "RECEIPTS\routing\$smokeTaskId-route.json"
+            $ollamaReceipt = Join-Path $serverRoot "RECEIPTS\ollama\$smokeTaskId-ollama.json"
+            $archivedTask = Join-Path $serverRoot "ARCHIVE\smoke\passed\$smokeTaskId.json"
+            foreach ($path in @($outputPath,$routingReceipt,$ollamaReceipt,$archivedTask)) {
+              New-Item -ItemType Directory -Path (Split-Path -Parent $path) -Force | Out-Null
+            }
+            Set-Content -LiteralPath $outputPath -Value "synthetic $marker" -Encoding UTF8
+            [ordered]@{
+              schema_version=1; timestamp=$smokeCompleted.ToString('o'); task_id=$smokeTaskId
+              source=(Join-Path $serverRoot "INBOX\$smokeTaskId.json")
+              destination=(Join-Path $serverRoot "QUEUE\ollama\$smokeTaskId.json")
+              dry_run=$false; lane='OLLAMA'; reason='Local-model term matched: classify'
+              capability_id=$null; target_node='CERTA-SERVER'; status='PASS'
+            } | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $routingReceipt -Encoding UTF8
+            [ordered]@{
+              schema_version=1; timestamp=$smokeCompleted.ToString('o'); task_id=$smokeTaskId
+              model='certard-local'; output=$outputPath; tokens_per_second=1
+              status='CANDIDATE_COMPLETE'; authority='CANDIDATE_ONLY'
+            } | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $ollamaReceipt -Encoding UTF8
+            [ordered]@{
+              schema_version=1; task_id=$smokeTaskId; created_at=$smokeStarted.ToString('o')
+              created_by='CI\runner'; computer='CI'; project_id='SYSTEM-SMOKE'
+              request="Classify this synthetic router smoke check and include $marker"
+              inputs=@(); preferred_lane=$null; allowed_lanes=@('SCRIPT','OLLAMA','CODEX','SPECIALIST','HUMAN')
+              sensitivity='NORMAL'; status='CANDIDATE_COMPLETE'; attempts=1
+              route=[ordered]@{ lane='OLLAMA'; reason='Local-model term matched: classify'; target_node='CERTA-SERVER' }
+              history=@(
+                [ordered]@{ timestamp=$smokeStarted.ToString('o'); event='TASK_CREATED' },
+                [ordered]@{ timestamp=$smokeCompleted.ToString('o'); event='TASK_ROUTED' },
+                [ordered]@{ timestamp=$smokeCompleted.ToString('o'); event='OLLAMA_CANDIDATE_COMPLETE' }
+              )
+              candidate_output=$outputPath; completed_at=$smokeCompleted.ToString('o')
+            } | ConvertTo-Json -Depth 14 | Set-Content -LiteralPath $archivedTask -Encoding UTF8
+            $evidenceHashes = [ordered]@{
+              output=(Get-FileHash -LiteralPath $outputPath -Algorithm SHA256).Hash
+              routing_receipt=(Get-FileHash -LiteralPath $routingReceipt -Algorithm SHA256).Hash
+              ollama_receipt=(Get-FileHash -LiteralPath $ollamaReceipt -Algorithm SHA256).Hash
+              archived_task=(Get-FileHash -LiteralPath $archivedTask -Algorithm SHA256).Hash
+            }
+            $smokeRecord = [ordered]@{
+              schema_version=1; run_id=$smokeRunId; started_at=$smokeStarted.ToString('o'); completed_at=$smokeCompleted.ToString('o')
+              status='PASS'; stage='COMPLETE'; authority='SYNTHETIC_TEST_ONLY'; model='certard-local'; expected_marker=$marker; task_id=$smokeTaskId
+              output=$outputPath; routing_receipt=$routingReceipt; ollama_receipt=$ollamaReceipt; archived_task=$archivedTask
+              evidence_sha256=$evidenceHashes; output_nonempty=$true; marker_observed=$true; queue_neutral=$true; error=$null
+            }
+            $smokeJson = ConvertTo-Json -InputObject $smokeRecord -Depth 14
+            $immutableSmokeReceipt = Join-Path $serverRoot "RECEIPTS\smoke\$smokeRunId.json"
+            New-Item -ItemType Directory -Path (Split-Path -Parent $immutableSmokeReceipt) -Force | Out-Null
+            Set-Content -LiteralPath $immutableSmokeReceipt -Value $smokeJson -Encoding UTF8
+            Set-Content -LiteralPath (Join-Path $statusDirectory 'smoke-latest.json') -Value $smokeJson -Encoding UTF8
+
+            $beacon = & ./server/router/Publish-CertaServerStatus.ps1 -ServerRoot $serverRoot
+            if (-not $beacon.trigger_agent_query_succeeded) { throw "Publisher controller query failed: $($beacon.trigger_agent_query_error)" }
+            if ([bool]$beacon.trigger_agent_running -ne ($beacon.trigger_agent_session_process_count -eq 1)) { throw 'Publisher agent_running disagrees with controller count.' }
+
+            $smokeRecord.started_at = [DateTimeOffset]::UtcNow.AddMinutes(-31).ToString('o')
+            $smokeRecord.completed_at = [DateTimeOffset]::UtcNow.AddMinutes(-30).ToString('o')
+            $staleJson = ConvertTo-Json -InputObject $smokeRecord -Depth 14
+            Set-Content -LiteralPath $immutableSmokeReceipt -Value $staleJson -Encoding UTF8
+            Set-Content -LiteralPath (Join-Path $statusDirectory 'smoke-latest.json') -Value $staleJson -Encoding UTF8
+            $staleBeacon = & ./server/router/Publish-CertaServerStatus.ps1 -ServerRoot $serverRoot
+
+            # Even a hash-bound, self-consistent smoke receipt must fail closed
+            # when the underlying evidence does not prove the claimed route.
+            Set-Content -LiteralPath $routingReceipt -Value '{}' -Encoding UTF8
+            $smokeRecord.started_at = $smokeStarted.ToString('o')
+            $smokeRecord.completed_at = $smokeCompleted.ToString('o')
+            $smokeRecord.evidence_sha256.routing_receipt = (Get-FileHash -LiteralPath $routingReceipt -Algorithm SHA256).Hash
+            $invalidEvidenceJson = ConvertTo-Json -InputObject $smokeRecord -Depth 14
+            Set-Content -LiteralPath $immutableSmokeReceipt -Value $invalidEvidenceJson -Encoding UTF8
+            Set-Content -LiteralPath (Join-Path $statusDirectory 'smoke-latest.json') -Value $invalidEvidenceJson -Encoding UTF8
+            $invalidEvidenceBeacon = & ./server/router/Publish-CertaServerStatus.ps1 -ServerRoot $serverRoot
+          }
+          finally {
+            $env:USERPROFILE = $originalProfile
+          }
+
+          if ($beacon.health -ne 'ATTN') { throw "Expected synthetic health ATTN, got $($beacon.health)." }
+          if ($beacon.smoke -ne 'PASS') { throw "Expected synthetic smoke PASS, got $($beacon.smoke)." }
+          if ($beacon.smoke_run_id -ne $smokeRunId) { throw 'Publisher did not bind the beacon to the exact smoke run ID.' }
+          if ($beacon.beacon -notmatch '^Certa Beacon H-ATTN S-PASS U-\d{8}T\d{6}Z R-[A-F0-9]{8}$') {
+            throw "Unexpected beacon name: $($beacon.beacon)"
+          }
+          if ($staleBeacon.smoke -ne 'STALE' -or $staleBeacon.beacon -notmatch ' S-STALE ') { throw 'Stale smoke evidence was not published fail-closed.' }
+          if ($invalidEvidenceBeacon.smoke -ne 'ERROR' -or $invalidEvidenceBeacon.beacon -notmatch ' S-ERROR ') { throw 'Semantically invalid smoke evidence was not published fail-closed.' }
+          $parsed = Get-Content -LiteralPath $commandsPath -Raw | ConvertFrom-Json
+          $beaconCommands = @(@($parsed) | Where-Object { $_.trigger -like 'Certa Beacon H-*' })
+          if ($beaconCommands.Count -ne 1) { throw 'Beacon command was not written exactly once.' }
+          if ($beaconCommands[0].allowParams -isnot [bool] -or [bool]$beaconCommands[0].allowParams) { throw 'Beacon command unexpectedly allows parameters.' }
+          if ([string]$beaconCommands[0].offCommand -ne '') { throw 'Beacon command unexpectedly has an offCommand.' }
