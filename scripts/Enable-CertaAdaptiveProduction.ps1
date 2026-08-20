@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 
-$root = 'C:\Users\SimpS\OneDrive\Documents\CERTAHEALTH'
+$root = Split-Path -Parent $PSScriptRoot
 $loadScript = Join-Path $root 'scripts\Manage-CertaLaptopLoad.ps1'
 $cloudScript = Join-Path $root 'scripts\Invoke-CertaCloudOffload.ps1'
 

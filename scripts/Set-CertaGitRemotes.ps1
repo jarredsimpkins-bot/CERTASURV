@@ -6,21 +6,14 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$documents = 'C:\Users\SimpS\OneDrive\Documents'
-$webAppCandidates = @(
-    Join-Path $documents 'CERTASURV_WEB_APP'
-    Join-Path $documents 'New project2'
-)
-$webAppPath = $webAppCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-if (-not $webAppPath) {
-    $webAppPath = $webAppCandidates[0]
-}
+. (Join-Path $PSScriptRoot 'CertaRepoPaths.ps1')
+$paths = Get-CertaRepositoryPaths
 $repos = @(
-    @{ Name = 'CERTAHEALTH'; Path = Join-Path $documents 'CERTAHEALTH'; Slug = 'certahealth' },
-    @{ Name = 'CERTARD'; Path = Join-Path $documents 'CERTARD'; Slug = 'certard' },
-    @{ Name = 'MACROTBC'; Path = Join-Path $documents 'MACROTBC'; Slug = 'macrotbc' },
-    @{ Name = 'AUTOMATIONS'; Path = Join-Path $documents 'AUTOMATIONS'; Slug = 'certasurv-automations' },
-    @{ Name = 'CERTASURV_WEB_APP'; Path = $webAppPath; Slug = 'certasurv-web-app' }
+    @{ Name = 'CERTAHEALTH'; Path = $paths.Control; Slug = 'CERTASURV' },
+    @{ Name = 'CERTARD'; Path = $paths.Certard; Slug = 'certard' },
+    @{ Name = 'MACROTBC'; Path = $paths.MacroTbc; Slug = 'macrotbc' },
+    @{ Name = 'AUTOMATIONS'; Path = $paths.Automations; Slug = 'certasurv-automations' },
+    @{ Name = 'CERTASURV_WEB_APP'; Path = $paths.WebApp; Slug = 'certasurv-web-app' }
 )
 
 $rows = foreach ($repo in $repos) {
