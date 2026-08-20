@@ -60,8 +60,11 @@ jobs:
             'server/router/Test-CertaRouter.ps1',
             'server/router/Test-CertaTaskRecord.ps1',
             'server/trigger/Install-CertaServer-TriggerCommands.ps1',
+            'server/trigger/Test-CertaServerTriggerCommands.ps1',
             'server/capabilities/New-CertaFileManifest.ps1',
             'server/capabilities/Test-CertaFileManifest.ps1',
+            'server/docs/PRODUCTION_AUTOMATION_ROADMAP.md',
+            'server/registries/production-capability-backlog.csv',
             'bootstrap/Install-CertaServer-FromGitHub.ps1'
           )
           foreach ($path in $required) {
@@ -74,3 +77,8 @@ jobs:
         shell: pwsh
         run: |
           & ./server/router/Test-CertaRouter.ps1
+
+      - name: Run Trigger command normalization regression test
+        shell: pwsh
+        run: |
+          & ./server/trigger/Test-CertaServerTriggerCommands.ps1
