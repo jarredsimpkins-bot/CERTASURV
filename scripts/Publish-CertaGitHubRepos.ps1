@@ -19,39 +19,32 @@ $headers = @{
     'X-GitHub-Api-Version' = '2022-11-28'
 }
 
-$documents = 'C:\Users\SimpS\OneDrive\Documents'
-$webAppCandidates = @(
-    Join-Path $documents 'CERTASURV_WEB_APP'
-    Join-Path $documents 'New project2'
-)
-$webAppPath = $webAppCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-if (-not $webAppPath) {
-    $webAppPath = $webAppCandidates[0]
-}
+. (Join-Path $PSScriptRoot 'CertaRepoPaths.ps1')
+$paths = Get-CertaRepositoryPaths
 
 $repos = @(
     @{
         Name = 'certard'
         Description = 'CERTARD project watcher and coordination companion.'
-        Path = 'C:\Users\SimpS\OneDrive\Documents\CERTARD'
+        Path = $paths.Certard
         Branch = 'main'
     },
     @{
         Name = 'macrotbc'
         Description = 'CertaSurv TBC macro, command center, and local production integration.'
-        Path = 'C:\Users\SimpS\OneDrive\Documents\MACROTBC'
+        Path = $paths.MacroTbc
         Branch = 'codex/certasurv-command-center'
     },
     @{
         Name = 'certasurv-automations'
         Description = 'CertaSurv Google Drive, Apps Script, and operations automation package.'
-        Path = 'C:\Users\SimpS\OneDrive\Documents\AUTOMATIONS'
+        Path = $paths.Automations
         Branch = 'codex/onboard-everything'
     },
     @{
         Name = 'certasurv-web-app'
         Description = 'CertaSurv land opportunity radar, parcel, estimate, and dashboard app.'
-        Path = $webAppPath
+        Path = $paths.WebApp
         Branch = 'codex/land-opportunity-radar-mvp'
     }
 )
@@ -95,13 +88,15 @@ $results = foreach ($repo in $repos) {
         git -C $repo.Path remote add origin $remote
     }
 
-    git -C $repo.Path push -u origin $repo.Branch
+    $currentBranch = git -C $repo.Path branch --show-current
+    $pushBranch = if ($currentBranch) { $currentBranch } else { $repo.Branch }
+    git -C $repo.Path push -u origin $pushBranch
     $pushOk = ($LASTEXITCODE -eq 0)
 
     [pscustomobject]@{
         Repo = $fullName
         Created = $created
-        Branch = $repo.Branch
+        Branch = $pushBranch
         Pushed = $pushOk
         Url = "https://github.com/$fullName"
     }
