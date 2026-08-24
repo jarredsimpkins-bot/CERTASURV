@@ -72,6 +72,25 @@ switch($op){
     & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $dst -Latitude $ll[0] -Longitude $ll[1]
     exit $LASTEXITCODE
   }
+  'open-flashforge' {
+    $app=Get-StartApps | Where-Object { $_.Name -match 'FlashPrint|FlashForge|Orca-Flashforge' } | Select-Object -First 1
+    if($app){
+      Start-Process ('shell:AppsFolder\'+$app.AppID)
+      "CERTANODE_FLASHFORGE_OPENED $($app.Name)"; break
+    }
+    $candidates=@(
+      (Join-Path $env:LOCALAPPDATA 'Programs\Orca-Flashforge\orca-flashforge.exe'),
+      (Join-Path $env:ProgramFiles 'Orca-Flashforge\orca-flashforge.exe'),
+      (Join-Path $env:ProgramFiles 'FlashForge\FlashPrint 5\FlashPrint.exe'),
+      (Join-Path ${env:ProgramFiles(x86)} 'FlashForge\FlashPrint 5\FlashPrint.exe'),
+      (Join-Path $env:ProgramFiles 'FlashForge\FlashPrint\FlashPrint.exe'),
+      (Join-Path ${env:ProgramFiles(x86)} 'FlashForge\FlashPrint\FlashPrint.exe')
+    )
+    $exe=$candidates | Where-Object { $_ -and (Test-Path -LiteralPath $_) } | Select-Object -First 1
+    if(-not $exe){ throw 'FlashForge/FlashPrint/Orca-Flashforge is not installed or registered on this node.' }
+    Start-Process -FilePath $exe
+    "CERTANODE_FLASHFORGE_OPENED $exe"; break
+  }
   'refresh' {
     $uri='https://raw.githubusercontent.com/jarredsimpkins-bot/CERTASURV/main/bootstrap/Force-CertaNode-Action-Repair.ps1'
     $dst=Join-Path $bridge 'Force-CertaNode-Action-Repair.ps1'
@@ -98,6 +117,7 @@ Set-Content -LiteralPath (Join-Path $bridge 'CertaNode-Refresh.ps1') -Value $ref
 $items=@(
   [ordered]@{trigger='Calculator';command='calc';offCommand='';ground='foreground';voice='calculator';voiceReply='';allowParams='true'},
   [ordered]@{trigger='Notepad';command='notepad';offCommand='';ground='foreground';voice='notepad';voiceReply='';allowParams='true'},
+  [ordered]@{trigger='FlashForge';command='powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Certa4010\TriggerBridge\CertaNode-Action.ps1" open-flashforge';offCommand='';ground='foreground';voice='flash forge';voiceReply='';allowParams='false'},
   [ordered]@{trigger='CertaNode Bridge';command='powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Certa4010\TriggerBridge\CertaNode-Refresh.ps1"';offCommand='';ground='foreground';voice='certa node bridge';voiceReply='';allowParams='false'},
   [ordered]@{trigger='CertaNode Action';command='powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Certa4010\TriggerBridge\CertaNode-Action.ps1"';offCommand='';ground='foreground';voice='certa node action';voiceReply='';allowParams='true'}
 )
