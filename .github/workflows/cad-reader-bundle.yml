@@ -1,0 +1,33 @@
+name: CAD reader bundle
+on:
+  push:
+    branches: [hamlin-dwg-r1-20260913]
+    paths: [.github/workflows/cad-reader-bundle.yml]
+permissions:
+  contents: read
+jobs:
+  stage-reader:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Fetch hash-bound existing GNU LibreDWG reader bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p reader
+          curl --fail --location --proto '=https' --connect-timeout 15 --max-time 120 'https://raw.githubusercontent.com/Long68-code/claude-dwg-assets/main/libredwg_ubuntu24.tar.gz' -o reader/libredwg_ubuntu24.tar.gz
+          python3 - <<'PY'
+          import hashlib,pathlib
+          p=pathlib.Path('reader/libredwg_ubuntu24.tar.gz');b=p.read_bytes()
+          blob=hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()
+          assert blob=='f30d50ed8e86094a43ca88a90c5f5cdf9d6ef048',blob
+          pathlib.Path('reader/SHA256.txt').write_text(hashlib.sha256(b).hexdigest()+'  libredwg_ubuntu24.tar.gz\n')
+          pathlib.Path('reader/SOURCE.txt').write_text('GNU LibreDWG 0.14.8531, GPLv3. Prebuilt bundle from Long68-code/claude-dwg-assets, immutable git blob f30d50ed8e86094a43ca88a90c5f5cdf9d6ef048. Corresponding upstream source: https://github.com/LibreDWG/libredwg . No user project files processed or transmitted.\n')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: cad-reader-bundle
+          path: reader/
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error
