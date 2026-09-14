@@ -8,59 +8,24 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-24.04
-    timeout-minutes: 8
+    timeout-minutes: 5
     steps:
-      - name: Build pinned open-source converter without project data
+      - name: Retrieve official converter; no user drawings
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p build/src result/source
-          cd build
-          cat > Cargo.toml <<'EOF'
-          [package]
-          name = "cadconvert"
-          version = "0.1.0"
-          edition = "2021"
-          [dependencies]
-          acadrust = "=0.5.5"
-          [profile.release]
-          strip = true
-          EOF
-          cat > src/main.rs <<'EOF'
-          use acadrust::{DwgReader,DwgWriter,DxfReader,DxfWriter};
-          use std::{env,path::Path};
-          fn main() -> Result<(),Box<dyn std::error::Error>> {
-              let a:Vec<String> = env::args().collect();
-              if a.len()!=3 { return Err("usage: cadconvert INPUT.dwg|dxf NEW_OUTPUT.dwg|dxf".into()); }
-              if Path::new(&a[2]).exists() { return Err("Output exists; refusing overwrite".into()); }
-              let ext = Path::new(&a[1]).extension().and_then(|v|v.to_str()).unwrap_or("").to_ascii_lowercase();
-              let doc = match ext.as_str() {
-                  "dwg" => DwgReader::from_file(&a[1])?.read()?,
-                  "dxf" => DxfReader::from_file(&a[1])?.read()?,
-                  _ => return Err("Unsupported input extension".into()),
-              };
-              println!("Read {} entities",doc.entities().count());
-              match Path::new(&a[2]).extension().and_then(|v|v.to_str()).unwrap_or("").to_ascii_lowercase().as_str() {
-                  "dwg" => DwgWriter::write_to_file(&a[2],&doc)?,
-                  "dxf" => DxfWriter::new(&doc).write_to_file(&a[2])?,
-                  _ => return Err("Unsupported output extension".into()),
-              }
-              println!("Wrote {} bytes",std::fs::metadata(&a[2])?.len());
-              Ok(())
-          }
-          EOF
-          cargo build --release
-          cp target/release/cadconvert ../result/
-          cp Cargo.toml Cargo.lock ../result/source/
-          cp src/main.rs ../result/source/
-          cargo vendor ../result/source/vendor > /dev/null
-          cd ../result
-          sha256sum cadconvert > SHA256SUMS.txt
-          printf 'Open-source CAD file converter. Library acadrust 0.5.5 (MPL-2.0). Complete build source and dependencies included. No user drawings, credentials or project files are used by this build.\n' > README.txt
+          mkdir -p result
+          curl --fail --location --proto '=https' --proto-redir '=https' --connect-timeout 20 --max-time 120 'https://www.opendesign.com/guestfiles/get?filename=ODAFileConverter_QT6_lnxX64_8.3dll_27.1.AppImage' -o result/ODAFileConverter.AppImage
+          python3 - <<'PY'
+          import hashlib,json,pathlib
+          p=pathlib.Path('result/ODAFileConverter.AppImage'); b=p.read_bytes()
+          assert b[:4]==b'\x7fELF' and 1000000<len(b)<200000000
+          pathlib.Path('result/source-receipt.json').write_text(json.dumps({'source':'Official Open Design Alliance guestfiles download','version':'27.1','bytes':len(b),'sha256':hashlib.sha256(b).hexdigest(),'user_project_data':False},indent=2))
+          PY
       - uses: actions/upload-artifact@v4
         with:
-          name: cad-conversion-utility-linux
+          name: native-cad-converter-tool
           path: result/
           retention-days: 1
-          compression-level: 9
+          compression-level: 0
           if-no-files-found: error
