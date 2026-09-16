@@ -1,125 +1,34 @@
+# TEMPORARY OWNER-PRESENT MSI BOOTSTRAP — restore after one verified run.
+# Fetches one immutable hash-bound package from an exact Git commit.
+Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+$ProgressPreference = 'SilentlyContinue'
 
-$root = 'C:\Certa4010'
-$aiRoot = Join-Path $root 'AI'
-$logRoot = Join-Path $root 'Logs'
-New-Item -ItemType Directory -Force -Path $aiRoot,$logRoot | Out-Null
-$log = Join-Path $logRoot ("openrouter_install_{0}.log" -f (Get-Date -Format 'yyyyMMdd_HHmmss'))
+if ($env:COMPUTERNAME -ine 'MSI') { throw "Refusing: bootstrap is MSI-only, current host is $env:COMPUTERNAME." }
+if (-not (Test-Path -LiteralPath 'D:\')) { throw 'Refusing: D: is not mounted.' }
 
-function Log([string]$Message) {
-    "$(Get-Date -Format s) $Message" | Tee-Object -FilePath $log -Append
-}
+$Commit = '24af869599b8dc143148c1ddd66ecba0f14be4e9'
+$PackageSha256 = '6271631d3c289a4a1c5ae3a23680277d18de3f59b9daf54abacb5820d47acd30'
+$InstallerSha256 = '341184e19d9fa1f5064f0f1bce037006e02bfeee49183ebde2a82cfd108f3788'
+$Url = "https://raw.githubusercontent.com/jarredsimpkins-bot/CERTASURV/$Commit/bootstrap/certard-msi-r2/CertaRD_TriggerControl_OpenClaw_MSI_20260916_R2.zip"
+$StageRoot = 'D:\CERTARD\staging\bootstrap\MSI_TRIGGERCONTROL_OPENCLAW_20260916_R2'
+$ZipPath = 'D:\CERTARD\staging\bootstrap\CertaRD_TriggerControl_OpenClaw_MSI_20260916_R2.zip'
 
-function Get-PythonCommand {
-    if (Get-Command py.exe -ErrorAction SilentlyContinue) {
-        return @('py.exe','-3')
-    }
-    if (Get-Command python.exe -ErrorAction SilentlyContinue) {
-        return @('python.exe')
-    }
-    return $null
-}
+New-Item -ItemType Directory -Force -Path (Split-Path -Parent $ZipPath) | Out-Null
+Invoke-WebRequest -UseBasicParsing -Uri $Url -OutFile $ZipPath
+$actualZip = (Get-FileHash -Algorithm SHA256 -LiteralPath $ZipPath).Hash.ToLowerInvariant()
+if ($actualZip -ne $PackageSha256) { throw "R2 ZIP SHA256 mismatch: $actualZip" }
 
-Log 'Starting CertaSurv OpenRouter bootstrap.'
+if (Test-Path -LiteralPath $StageRoot) { Remove-Item -LiteralPath $StageRoot -Recurse -Force }
+New-Item -ItemType Directory -Force -Path $StageRoot | Out-Null
+Expand-Archive -LiteralPath $ZipPath -DestinationPath $StageRoot -Force
+$installer = Join-Path $StageRoot 'certard_msi_bootstrap\Apply-Bootstrap-MSI.ps1'
+if (-not (Test-Path -LiteralPath $installer)) { throw "Bootstrap installer missing: $installer" }
+$actualInstaller = (Get-FileHash -Algorithm SHA256 -LiteralPath $installer).Hash.ToLowerInvariant()
+if ($actualInstaller -ne $InstallerSha256) { throw "Installer SHA256 mismatch: $actualInstaller" }
 
-$python = Get-PythonCommand
-if (-not $python) {
-    if (-not (Get-Command winget.exe -ErrorAction SilentlyContinue)) {
-        throw 'Python 3.9+ is required and winget is not available. Install Python, then rerun this script.'
-    }
-
-    Log 'Python not found. Installing Python with winget.'
-    & winget.exe install --id Python.Python.3.13 -e --accept-package-agreements --accept-source-agreements
-    if ($LASTEXITCODE -ne 0) { throw "Python installation failed with exit code $LASTEXITCODE" }
-
-    $env:PATH = [Environment]::GetEnvironmentVariable('PATH','Machine') + ';' + [Environment]::GetEnvironmentVariable('PATH','User')
-    $python = Get-PythonCommand
-    if (-not $python) { throw 'Python was installed but is not available in this session. Open a new PowerShell window and rerun.' }
-}
-
-$pythonExe = $python[0]
-$pythonPrefix = @()
-if ($python.Count -gt 1) { $pythonPrefix = $python[1..($python.Count-1)] }
-
-Log 'Installing/upgrading the official OpenRouter Python SDK.'
-& $pythonExe @pythonPrefix -m pip install --upgrade openrouter
-if ($LASTEXITCODE -ne 0) { throw "pip install openrouter failed with exit code $LASTEXITCODE" }
-
-$testScript = @'
-import os
-import sys
-from openrouter import OpenRouter
-
-api_key = os.getenv("OPENROUTER_API_KEY")
-if not api_key:
-    print("OPENROUTER_KEY_MISSING")
-    sys.exit(20)
-
-with OpenRouter(api_key=api_key) as client:
-    response = client.chat.send(
-        model="openrouter/free",
-        messages=[
-            {
-                "role": "user",
-                "content": "Reply with exactly: CERTASURV_OPENROUTER_OK"
-            }
-        ],
-        stream=False,
-    )
-
-text = response.choices[0].message.content if response.choices else None
-print(text)
-if text and "CERTASURV_OPENROUTER_OK" in text:
-    sys.exit(0)
-sys.exit(21)
-'@
-
-$testPath = Join-Path $aiRoot 'test_openrouter.py'
-Set-Content -LiteralPath $testPath -Value $testScript -Encoding UTF8
-
-$key = [Environment]::GetEnvironmentVariable('OPENROUTER_API_KEY','Machine')
-if (-not $key) { $key = [Environment]::GetEnvironmentVariable('OPENROUTER_API_KEY','User') }
-if (-not $key) { $key = $env:OPENROUTER_API_KEY }
-
-if (-not $key) {
-    Log 'SDK installed. No local OpenRouter key found. Requesting a replacement key securely.'
-    Write-Host ''
-    Write-Host 'OpenRouter SDK installed.' -ForegroundColor Green
-    Write-Host 'Paste a FRESH replacement OpenRouter API key below. Input is masked and the key is never written to GitHub or the install log.' -ForegroundColor Yellow
-    $secureKey = Read-Host 'OpenRouter API key' -AsSecureString
-    $ptr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureKey)
-    try {
-        $key = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr)
-    }
-    finally {
-        [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr)
-    }
-    if ([string]::IsNullOrWhiteSpace($key)) { throw 'No OpenRouter API key was entered.' }
-    [Environment]::SetEnvironmentVariable('OPENROUTER_API_KEY',$key,'User')
-    Log 'OpenRouter key saved to the Windows user environment. Key value was not logged.'
-}
-
-$env:OPENROUTER_API_KEY = $key
-Log 'Running zero-cost OpenRouter free-router smoke test.'
-& $pythonExe @pythonPrefix $testPath
+& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $installer
 $code = $LASTEXITCODE
-
-if ($code -eq 0) {
-    $receipt = [ordered]@{
-        timestamp = (Get-Date).ToString('o')
-        computer = $env:COMPUTERNAME
-        user = "$env:USERDOMAIN\$env:USERNAME"
-        sdk = 'openrouter-python'
-        model = 'openrouter/free'
-        status = 'PASS'
-        test_script = $testPath
-        log = $log
-    }
-    $receipt | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $aiRoot 'openrouter-receipt.json') -Encoding UTF8
-    Log 'OpenRouter smoke test PASS.'
-    Write-Host 'CERTASURV_OPENROUTER_PASS' -ForegroundColor Green
-    exit 0
-}
-
-Log "OpenRouter smoke test FAILED with exit code $code."
-throw "OpenRouter smoke test failed with exit code $code. See $log"
+if ($null -eq $code) { $code = 0 }
+if ($code -ne 0) { throw "R2 bootstrap installer failed with exit code $code." }
+Write-Output 'CERTARD_MSI_TRIGGER_BOOTSTRAP_R2_COMPLETED'
