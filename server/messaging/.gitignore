@@ -1,0 +1,13 @@
+__pycache__/
+.pytest_cache/
+.venv/
+.env
+.env.*
+!.env.example
+*.sqlite*
+*.db*
+*.log
+config.local.json
+runtime/
+credentials*.json
+*service-account*.json

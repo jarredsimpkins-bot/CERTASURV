@@ -1,0 +1,5 @@
+# Optional provider only. Core queue/tests do not require Twilio or a paid account.
+# Direct dependency pin; generate a fully hashed transitive lock in the approved target environment.
+twilio==9.11.2
+# Windows needs an IANA timezone database; pin during target-environment dependency review.
+tzdata>=2025.2
